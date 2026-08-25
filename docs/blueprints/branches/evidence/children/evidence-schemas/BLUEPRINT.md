@@ -2,10 +2,10 @@
 blueprint_id: ANG-BP-EVIDENCE-SCHEMAS
 title: Canonical evidence schemas and visibility
 parent_id: ANG-BP-EVIDENCE
-revision: 2
+revision: 1
 tier: 2
 design_status: approved_for_cr0
-delivery_status: cr0_scaffold_accepted_normal_gate_not_run
+delivery_status: ready
 accountable_owner: ANG-AUTH-PROJECT-OWNER-001
 execution_owner: human_directed_leaf_operator
 updated_at: 2026-08-25
@@ -111,9 +111,9 @@ For combined evidence, the default effective policy is the intersection of allow
 
 Contracts use semantic versions. Unknown major versions reject. Minor versions may add optional fields only; consumers preserve unknown optional data. Patch versions clarify without changing serialized semantics. Changed payload or semantic envelope fields create new identities. Corrections are new artifacts linked by ARTIFACT-LINEAGE; schemas never authorize overwrite.
 
-## Historical executable work package
+## Executable work package
 
-`ANG-WORK-EVIDENCE-SCHEMAS-001` created the bounded schemas, Python standard-library validation kernel, and synthetic fixtures. Independent decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0` records `SCAFFOLD_ACCEPTED` at commit `903f9b9d5e58818d774604dbd6f4d89b2b4544e0`. This historical leaf is non-repeatable and does not complete the node.
+`ANG-WORK-EVIDENCE-SCHEMAS-001` is the exact next leaf. It will create versioned JSON schema documents, a small Python 3.11 standard-library canonicalization/validation kernel, and synthetic positive/negative fixtures. It is ready only under the exact CR0 policy, assessment, paths, commands, ceilings, role separation, and absent-state baseline recorded by the leaf. CR0 can accept those outputs only through `ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001`; this does not complete the node.
 
 ## Dependencies and sequencing
 
@@ -158,8 +158,8 @@ Release-0 validation is CPU-only, local, deterministic, synthetic, and small. La
 
 ## Current status and blockers
 
-Revision 2 changes only delivery and continuity records from revision 1; contract, gate, threshold, policy, and implementation semantics are unchanged. The CR0 scaffold is independently accepted. The normal technical and Human-Flourishing gates remain `NOT_RUN`; Slice 00 and M0 remain `NOT_PASSED`; no wider implementation is authorized.
+Design revision 1 is approved for CR0. The first leaf has an owner, distinct executor/validator/independent gate authority, current LOW bootstrap authorization, exact path/command/resource limits, and immutable absent-state baseline. Its CR0 scaffold gate and normal technical gate both remain unrun; no wider implementation is authorized.
 
 ## Parent roll-up and next exact action
 
-Preserve the accepted outputs and immutable evidence. Do not rerun the historical leaf or activate lineage implementation before the normal schema gate. After continuity review, further executable work requires successor authority.
+Outputs are three detailed draft contracts plus one exact work leaf. Review together with ARTIFACT-LINEAGE, then authorize `ANG-WORK-EVIDENCE-SCHEMAS-001`; do not activate lineage implementation first.

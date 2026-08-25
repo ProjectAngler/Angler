@@ -1,14 +1,18 @@
 # EVIDENCE-SCHEMAS status
 
 Freshness: 2026-08-25  
-Revision: 2  
+Revision: 1  
 Design: approved_for_cr0  
-Delivery: cr0_scaffold_accepted_normal_gate_not_run  
-CR0 scaffold gate: `SCAFFOLD_ACCEPTED`  
-Normal technical gate: `ANG-GATE-EVIDENCE-SCHEMAS-001` (`NOT_RUN`)
+Delivery: ready  
+CR0 scaffold gate: `ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001` (specified, not run)  
+Normal technical gate: `ANG-GATE-EVIDENCE-SCHEMAS-001` (specified, not run; cannot be passed by bootstrap work)
 
-The exact bootstrap scaffold exists at commit `903f9b9d5e58818d774604dbd6f4d89b2b4544e0`. Independent decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0` accepts only that bounded scaffold. Revision 2 changes delivery/continuity records only; contract, threshold, policy, gate, and implementation semantics remain those of revision 1.
+Completed: envelope, visibility, canonicalization, `Episode`, `ExperimentManifest`, compatibility, failure, and test semantics are specified. The exact implementation leaf is drafted.
 
-The historical leaf, its 14 implementation artifacts, test/effect receipts, executor handoff, baseline, and decision are immutable and non-repeatable. Normal Evidence-Schemas and Human-Flourishing gates remain `NOT_RUN`; Slice 00 and M0 remain `NOT_PASSED`. ARTIFACT-LINEAGE remains blocked.
+Authorization: ADR-0003 accepted; root registry/index synchronized; project owner accountable; independent design review passed; LOW bootstrap `ALLOW` and absent-state baseline issued. Executor outputs and the independent SAFETY decision have disjoint literal write scopes. No decision exists yet.
 
-Next: complete continuity review, preserve all accepted evidence, and require successor authority for any further executable work.
+Evidence: design artifacts only; no schemas, code, fixture results, or gate decisions.
+
+Next: execute only `ANG-WORK-EVIDENCE-SCHEMAS-001` without expanding its Release-0 scope.
+
+Rollback: restore the leaf baseline for delivery failure; use `ANG-ADR-0002` archive for release-wide failure. Preserve failed evidence.

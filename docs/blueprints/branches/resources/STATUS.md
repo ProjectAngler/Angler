@@ -3,11 +3,14 @@
 Freshness: 2026-08-25  
 Revision: 2  
 Design: approved_for_cr0  
-Delivery: cr0_scaffold_accepted_normal_gate_not_run  
-Normal gate: `ANG-GATE-RESOURCE-DESIGN-001` (`NOT_RUN`)
+Delivery: revision_3_ready_pending_revalidation_004_non_authorizing  
+Current gate: `ANG-GATE-CR0-RESOURCES-001@2` (specified; not run)
 
-The revision-3 CR0 leaf produced only synthetic schemas, fixtures, its deterministic test, and handoff. Independent receipt SHA-256 `D7221A84BE404A64487E79A93B5268E5E819E153B3F07E5647473F2855A24B4B` records `SCAFFOLD_ACCEPTED`; accepted commit `7f383939d021c4bba9dd5af046ce0838b032ff02`. Activation attempt 003 remains immutable `REJECTED` evidence.
-
-Limitations: no host/GPU probe or enumeration ran, no inventory is measured, and no model, placement backend, network, package, personal/recovered data, or deployment effect exists. Normal Resources and Human-Flourishing gates are `NOT_RUN`; Slice 00 and M0 are `NOT_PASSED`.
-
-Next: do not rerun the historical leaf. Finish the authorized continuity reconciliation, then require a successor manifest and fresh assessment for any real probe or executable Resources work. Preserve accepted outputs, receipt, handoff, and failed activation evidence byte-for-byte.
+Completed: Tier-1 boundary plus inventory, probe, planner, headroom, objective, failure, and identity semantics approved for bounded construction.  
+Evidence predecessor: independently accepted for CR0 scaffolding only; exact decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0`. The normal EVIDENCE gate remains `NOT_RUN`.  
+CR0 history: `ANG-CR0-REVALIDATION-20260825-003` was `REJECTED` because mandatory continuation caches cited a stale rollback identity; its spec and decision remain immutable failure evidence.  
+CR0 blocker: active successor `ANG-CR0-REVALIDATION-20260825-004` is PENDING/NON-AUTHORIZING. `ANG-WORK-CR0-RESOURCES-001@3` is unusable until the new independent decision is `APPROVED` and root separately records Manifest v2 `PASS`/`authorized`.  
+Blocker beyond CR0: RESOURCE-PROBES delivery is successor-only; no authorized empirical probe, dependency intake, placement backend, or validated model plan exists.  
+Next: independent revalidation-004 packet review only; do not execute the Resource leaf/test or create its nine outputs. After approval and final authorization, execute only `ANG-WORK-CR0-RESOURCES-001@3`—never a real probe.  
+Evidence: accepted Evidence scaffold decision, immutable rejected-003 evidence, and PENDING successor structural packet; no Resource run, receipt, measured inventory, or plan evidence.  
+Rollback: authoritative `ANG-BASELINE-CR0-RESOURCES-002` SHA-256 `A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE`; release archive remains human-controlled.

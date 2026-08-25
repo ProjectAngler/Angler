@@ -1,7 +1,7 @@
 ---
 blueprint_id: ANG-BP-RESOURCES
 blueprint_revision: 2
-capsule_revision: 6
+capsule_revision: 5
 freshness_date: 2026-08-25
 parent_id: ANG-BP-ROOT
 target_tokens: 750
@@ -23,6 +23,6 @@ No query-conditioned model routing. Compatible placement may reload state at a t
 
 Inventory separates observed capacity, uncertainty, and administrative permission. Probes are separately authorized, bounded, idempotent, and disposable. Plans first eliminate violations, then optimize only among feasible candidates; every plan reserves evaluation, rollback, and host-stability headroom set by external policy.
 
-The Evidence predecessor is satisfied only for CR0 scaffolding by decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0`; its normal gate remains `NOT_RUN`. Resources activation attempt 003 was `REJECTED` and is immutable history. Revalidation 004 later authorized the bounded synthetic leaf, independently `SCAFFOLD_ACCEPTED` at commit `7f383939d021c4bba9dd5af046ce0838b032ff02`, receipt SHA-256 `D7221A84BE404A64487E79A93B5268E5E819E153B3F07E5647473F2855A24B4B`.
+The Evidence predecessor is satisfied only for CR0 scaffolding by `SCAFFOLD_ACCEPTED` decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0`; the normal Evidence gate remains `NOT_RUN`. `ANG-CR0-REVALIDATION-20260825-003` was independently `REJECTED` for stale continuation-cache rollback identity and remains immutable history. Active successor `ANG-CR0-REVALIDATION-20260825-004` is PENDING/NON-AUTHORIZING. CR0 gate `ANG-GATE-CR0-RESOURCES-001@2`, leaf `ANG-WORK-CR0-RESOURCES-001@3`, and authoritative baseline `ANG-BASELINE-CR0-RESOURCES-002` SHA-256 `A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE` are frozen for that review. The normal Resource design gate, Human-Flourishing gate, Slice 00, and M0 remain unpassed. No real probe, GPU/model use, or milestone pass is authorized.
 
-The accepted outputs are schemas, synthetic fixtures, a deterministic test, and handoff only. They contain no measured inventory and prove no host, GPU, placement, or model capability. The leaf is historical and must not be rerun. Normal Resource and Human-Flourishing gates remain `NOT_RUN`; Slice 00 and M0 remain `NOT_PASSED`. Any real probe or successor work requires a new manifest and authority after continuity reconciliation.
+Next action: bound independent reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-004` inspects the successor packet and writes only its reserved revalidation-004 decision. Do not execute the leaf/test or create any of its nine outputs. After an `APPROVED` decision and separate Manifest v2 PASS/authorization, execute only the frozen revision-3 Resource leaf; any host/GPU probe still requires a successor assessment and leaf.
