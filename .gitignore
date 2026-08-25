@@ -1,0 +1,43 @@
+# Private recovery/context artifacts; retained locally, never published by default.
+/outputs/
+/work/
+
+# Secrets and local configuration.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+
+# Python build and test state.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Large or generated research payloads. Manifests remain tracked.
+/artifacts/payloads/
+/evidence/payloads/
+/data/private/
+/data/sealed/
+/models/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+
+# Editor and operating-system noise.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini

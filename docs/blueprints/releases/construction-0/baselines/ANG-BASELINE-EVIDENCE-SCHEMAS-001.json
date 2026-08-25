@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "ANG-BASELINE-EVIDENCE-SCHEMAS-001",
+  "created_at": "2026-08-25T00:00:00-04:00",
+  "workspace_root": "C:/Users/darks/Documents/Codex/2026-08-25/i-x20",
+  "leaf_id": "ANG-WORK-EVIDENCE-SCHEMAS-001",
+  "pre_release_archive": {
+    "path": "work/pre-construction-release-0-20260825.zip",
+    "sha256": "5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C3"
+  },
+  "targets": [
+    {"path": "src/angler/episodes/__init__.py", "state": "absent"},
+    {"path": "src/angler/episodes/canonical.py", "state": "absent"},
+    {"path": "src/angler/episodes/schema_validation.py", "state": "absent"},
+    {"path": "src/angler/episodes/visibility.py", "state": "absent"},
+    {"path": "src/angler/episodes/schemas/evidence-envelope.v1.json", "state": "absent"},
+    {"path": "src/angler/episodes/schemas/episode.v1.json", "state": "absent"},
+    {"path": "src/angler/episodes/schemas/experiment-manifest.v1.json", "state": "absent"},
+    {"path": "tests/unit/evidence/test_evidence_schemas.py", "state": "absent"},
+    {"path": "tests/fixtures/evidence_schemas/valid-envelope.json", "state": "absent"},
+    {"path": "tests/fixtures/evidence_schemas/valid-episode.json", "state": "absent"},
+    {"path": "tests/fixtures/evidence_schemas/valid-experiment-manifest.json", "state": "absent"},
+    {"path": "tests/fixtures/evidence_schemas/invalid-cases.json", "state": "absent"},
+    {"path": "tests/fixtures/evidence_schemas/visibility-matrix.json", "state": "absent"},
+    {"path": "tests/fixtures/evidence_schemas/sealed-commitment-cases.json", "state": "absent"},
+    {"path": "artifacts/control-plane/evidence-schemas/test-receipt.json", "state": "absent"},
+    {"path": "artifacts/control-plane/evidence-schemas/effect-receipt.json", "state": "absent"},
+    {"path": "artifacts/control-plane/evidence-schemas/HANDOFF.md", "state": "absent"},
+    {"path": "artifacts/control-plane/evidence-schemas/scaffold-gate-decision.json", "state": "absent"}
+  ],
+  "rollback_classes": {
+    "restore_or_remove": [
+      "src/angler/episodes/__init__.py",
+      "src/angler/episodes/canonical.py",
+      "src/angler/episodes/schema_validation.py",
+      "src/angler/episodes/visibility.py",
+      "src/angler/episodes/schemas/evidence-envelope.v1.json",
+      "src/angler/episodes/schemas/episode.v1.json",
+      "src/angler/episodes/schemas/experiment-manifest.v1.json",
+      "tests/unit/evidence/test_evidence_schemas.py",
+      "tests/fixtures/evidence_schemas/valid-envelope.json",
+      "tests/fixtures/evidence_schemas/valid-episode.json",
+      "tests/fixtures/evidence_schemas/valid-experiment-manifest.json",
+      "tests/fixtures/evidence_schemas/invalid-cases.json",
+      "tests/fixtures/evidence_schemas/visibility-matrix.json",
+      "tests/fixtures/evidence_schemas/sealed-commitment-cases.json"
+    ],
+    "preserve_on_failure": [
+      "artifacts/control-plane/evidence-schemas/test-receipt.json",
+      "artifacts/control-plane/evidence-schemas/effect-receipt.json",
+      "artifacts/control-plane/evidence-schemas/HANDOFF.md",
+      "artifacts/control-plane/evidence-schemas/scaffold-gate-decision.json"
+    ]
+  },
+  "rollback_rule": "Preserve immutable test/effect receipts, handoff, and independent gate decision on every failure, rejection, escalation, or rollback. For restore_or_remove targets only, verify canonical paths and hashes, restore a pre-existing file from the pre-leaf Git baseline, or remove an absent-at-baseline file individually; remove only newly empty leaf directories. Never broadly or recursively delete, and never delete or rewrite preserve_on_failure evidence.",
+  "verification": "All targets were checked with Test-Path -LiteralPath and were absent when this manifest was created. Reverify immediately before activation; any mismatch requires a successor baseline and assessment."
+}

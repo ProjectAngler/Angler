@@ -1,0 +1,519 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-08-25",
+  "root_id": "ANG-BP-ROOT",
+  "authoritative_tier0": "../../PROJECT_BLUEPRINT.md",
+  "human_flourishing_constitution": "HUMAN_FLOURISHING_CONSTITUTION.md",
+  "supreme_invariant": "ANG-INV-HUMAN-FLOURISHING-001",
+  "protocol": "PROTOCOL.md",
+  "interface_registry": "INTERFACE_REGISTRY.md",
+  "dependency_graph": "DEPENDENCY_GRAPH.md",
+  "integration_spine": "INTEGRATION_SPINE.md",
+  "nodes": [
+    {
+      "id": "ANG-BP-ROOT",
+      "title": "Project Angler",
+      "parent_id": null,
+      "tier": 0,
+      "order": 0,
+      "blueprint_path": "../../PROJECT_BLUEPRINT.md",
+      "capsule_path": "ROOT_CAPSULE.md",
+      "design_status": "draft",
+      "delivery_status": "not_started",
+      "revision": 2,
+      "context_budget_tokens": 1000,
+      "children": [
+        "ANG-BP-SCIENCE",
+        "ANG-BP-RUNTIME",
+        "ANG-BP-LEARNING",
+        "ANG-BP-EVIDENCE",
+        "ANG-BP-RESOURCES",
+        "ANG-BP-WORLDS",
+        "ANG-BP-TOOLS",
+        "ANG-BP-SAFETY"
+      ]
+    },
+    {
+      "id": "ANG-BP-SCIENCE",
+      "title": "Scientific proof and evaluation",
+      "parent_id": "ANG-BP-ROOT",
+      "tier": 1,
+      "order": 100,
+      "blueprint_path": "branches/science/BLUEPRINT.md",
+      "capsule_path": "branches/science/CAPSULE.md",
+      "status_path": "branches/science/STATUS.md",
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_cr0_predecessors",
+      "revision": 2,
+      "context_budget_tokens": 700,
+      "provides": [
+        "ANG-CTR-EVALUATION-SUITE-001",
+        "ANG-CTR-EVALUATION-RECEIPT-001",
+        "ANG-CTR-PROMOTION-DECISION-001"
+      ],
+      "contract_paths": [
+        "branches/science/contracts/ANG-CTR-EVALUATION-SUITE-001.md",
+        "branches/science/contracts/ANG-CTR-EVALUATION-RECEIPT-001.md",
+        "branches/science/contracts/ANG-CTR-PROMOTION-DECISION-001.md"
+      ],
+      "gate_paths": ["branches/science/gates/ANG-GATE-SCIENCE-DESIGN-001.md"],
+      "children": [
+        "ANG-BP-BENCHMARKS",
+        "ANG-BP-PARTITIONS",
+        "ANG-BP-BASELINES"
+      ],
+      "declared_children": [
+        {"id": "ANG-BP-CAUSAL-TESTS", "title": "Causal interventions", "status": "stub", "gate": "ANG-GATE-CAUSAL-TESTS-001"},
+        {"id": "ANG-BP-PROMOTION", "title": "Statistics and promotion", "status": "stub", "gate": "ANG-GATE-PROMOTION-POLICY-001"},
+        {"id": "ANG-BP-ADVERSARIAL-EVAL", "title": "Adversarial evaluation", "status": "stub", "gate": "ANG-GATE-ADVERSARIAL-001"}
+      ]
+    },
+    {
+      "id": "ANG-BP-BENCHMARKS",
+      "title": "Benchmark families",
+      "parent_id": "ANG-BP-SCIENCE",
+      "tier": 2,
+      "order": 110,
+      "blueprint_path": "branches/science/children/benchmarks/BLUEPRINT.md",
+      "capsule_path": "branches/science/children/benchmarks/CAPSULE.md",
+      "status_path": "branches/science/children/benchmarks/STATUS.md",
+      "gate_paths": ["branches/science/children/benchmarks/gates/ANG-GATE-BENCHMARKS-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_cr0_predecessors",
+      "revision": 1,
+      "context_budget_tokens": 500,
+      "provides": [],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-PARTITIONS",
+      "title": "Partitioning and sealing",
+      "parent_id": "ANG-BP-SCIENCE",
+      "tier": 2,
+      "order": 120,
+      "blueprint_path": "branches/science/children/partitions/BLUEPRINT.md",
+      "capsule_path": "branches/science/children/partitions/CAPSULE.md",
+      "status_path": "branches/science/children/partitions/STATUS.md",
+      "gate_paths": ["branches/science/children/partitions/gates/ANG-GATE-PARTITIONS-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_cr0_predecessors",
+      "revision": 1,
+      "context_budget_tokens": 500,
+      "provides": [],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-BASELINES",
+      "title": "Baselines and fair budgets",
+      "parent_id": "ANG-BP-SCIENCE",
+      "tier": 2,
+      "order": 130,
+      "blueprint_path": "branches/science/children/baselines/BLUEPRINT.md",
+      "capsule_path": "branches/science/children/baselines/CAPSULE.md",
+      "status_path": "branches/science/children/baselines/STATUS.md",
+      "gate_paths": ["branches/science/children/baselines/gates/ANG-GATE-BASELINES-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_cr0_predecessors",
+      "revision": 1,
+      "context_budget_tokens": 500,
+      "provides": [],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-RUNTIME",
+      "title": "Runtime and neural state",
+      "parent_id": "ANG-BP-ROOT",
+      "tier": 1,
+      "order": 200,
+      "blueprint_path": "branches/runtime/BLUEPRINT.md",
+      "capsule_path": "branches/runtime/CAPSULE.md",
+      "status_path": "branches/runtime/STATUS.md",
+      "design_status": "draft",
+      "delivery_status": "not_started",
+      "revision": 2,
+      "context_budget_tokens": 700,
+      "provides": [
+        "ANG-CTR-TRAJECTORY-001",
+        "ANG-CTR-PLASTIC-STATE-001",
+        "ANG-CTR-TRANSACTION-RECEIPT-001"
+      ],
+      "declared_children": [
+        {"id": "ANG-BP-MODEL-BOUNDARY", "title": "Foundation model adapter", "status": "stub", "gate": "ANG-GATE-MODEL-BOUNDARY-001"},
+        {"id": "ANG-BP-AGENT-RUNTIME", "title": "Agent runtime", "status": "stub", "gate": "ANG-GATE-AGENT-RUNTIME-001"},
+        {"id": "ANG-BP-PLASTIC-STATE", "title": "Plastic state representation", "status": "stub", "gate": "ANG-GATE-PLASTIC-STATE-001"},
+        {"id": "ANG-BP-STATE-LINEAGE", "title": "State lineage store", "status": "stub", "gate": "ANG-GATE-STATE-LINEAGE-001"},
+        {"id": "ANG-BP-LEARNING-TRANSACTION", "title": "Learning transaction coordinator", "status": "stub", "gate": "ANG-GATE-TRANSACTION-001"},
+        {"id": "ANG-BP-RUNTIME-COMPATIBILITY", "title": "Runtime compatibility", "status": "stub", "gate": "ANG-GATE-RUNTIME-COMPAT-001"}
+      ]
+    },
+    {
+      "id": "ANG-BP-LEARNING",
+      "title": "Plasticity and competence learning",
+      "parent_id": "ANG-BP-ROOT",
+      "tier": 1,
+      "order": 300,
+      "blueprint_path": "branches/learning/BLUEPRINT.md",
+      "capsule_path": "branches/learning/CAPSULE.md",
+      "status_path": "branches/learning/STATUS.md",
+      "design_status": "draft",
+      "delivery_status": "not_started",
+      "revision": 1,
+      "context_budget_tokens": 700,
+      "provides": ["ANG-CTR-UPDATE-PROPOSAL-001"],
+      "declared_children": [
+        {"id": "ANG-BP-FEEDBACK-UPDATE", "title": "Feedback update v0", "status": "stub", "gate": "ANG-GATE-FEEDBACK-UPDATE-001"},
+        {"id": "ANG-BP-REPLAY-SELECTION", "title": "Replay selection", "status": "stub", "gate": "ANG-GATE-REPLAY-001"},
+        {"id": "ANG-BP-META-UPDATER", "title": "Meta-plastic updater", "status": "deferred", "gate": "ANG-GATE-META-UPDATER-001"},
+        {"id": "ANG-BP-CONSOLIDATION", "title": "Consolidation", "status": "deferred", "gate": "ANG-GATE-CONSOLIDATION-001"},
+        {"id": "ANG-BP-RETENTION", "title": "Lifelong retention", "status": "deferred", "gate": "ANG-GATE-RETENTION-001"},
+        {"id": "ANG-BP-SKILL-COMPOSITION", "title": "Skill composition", "status": "deferred", "gate": "ANG-GATE-COMPOSITION-001"}
+      ]
+    },
+    {
+      "id": "ANG-BP-EVIDENCE",
+      "title": "Evidence and reproducibility",
+      "parent_id": "ANG-BP-ROOT",
+      "tier": 1,
+      "order": 400,
+      "blueprint_path": "branches/evidence/BLUEPRINT.md",
+      "capsule_path": "branches/evidence/CAPSULE.md",
+      "status_path": "branches/evidence/STATUS.md",
+      "design_status": "approved_for_cr0",
+      "delivery_status": "ready",
+      "revision": 3,
+      "context_budget_tokens": 700,
+      "provides": [
+        "ANG-CTR-EVIDENCE-ENVELOPE-001",
+        "ANG-CTR-EPISODE-001",
+        "ANG-CTR-EXPERIMENT-MANIFEST-001",
+        "ANG-CTR-ARTIFACT-LINEAGE-001",
+        "ANG-CTR-AUTHORIZATION-BINDING-001"
+      ],
+      "contract_paths": [
+        "branches/evidence/children/evidence-schemas/contracts/ANG-CTR-EVIDENCE-ENVELOPE-001.md",
+        "branches/evidence/children/evidence-schemas/contracts/ANG-CTR-EPISODE-001.md",
+        "branches/evidence/children/evidence-schemas/contracts/ANG-CTR-EXPERIMENT-MANIFEST-001.md",
+        "branches/evidence/children/artifact-lineage/contracts/ANG-CTR-ARTIFACT-LINEAGE-001.md",
+        "branches/evidence/children/artifact-lineage/contracts/ANG-CTR-AUTHORIZATION-BINDING-001.md"
+      ],
+      "gate_paths": ["branches/evidence/gates/ANG-GATE-EVIDENCE-DESIGN-001.md"],
+      "decision_paths": [
+        "decisions/ANG-ADR-0003-CANONICAL-EVIDENCE-IDENTITY.md",
+        "branches/evidence/decisions/ANG-ADR-EVIDENCE-0001-CANONICAL-IDENTITY.md"
+      ],
+      "handoff_path": "branches/evidence/handoffs/2026-08-25-slice00-evidence-design.md",
+      "children": [
+        "ANG-BP-EVIDENCE-SCHEMAS",
+        "ANG-BP-ARTIFACT-LINEAGE"
+      ],
+      "declared_children": [
+        {"id": "ANG-BP-EVENT-STORE", "title": "Append-only event store", "status": "stub", "gate": "ANG-GATE-EVENT-STORE-001"},
+        {"id": "ANG-BP-EXPERIMENT-RUNNER", "title": "Experiment runner", "status": "stub", "gate": "ANG-GATE-EXPERIMENT-RUNNER-001"},
+        {"id": "ANG-BP-REPLAY-RECOVERY", "title": "Replay and recovery", "status": "stub", "gate": "ANG-GATE-REPLAY-RECOVERY-001"},
+        {"id": "ANG-BP-OBSERVABILITY", "title": "Metrics and observability", "status": "stub", "gate": "ANG-GATE-OBSERVABILITY-001"}
+      ]
+    },
+    {
+      "id": "ANG-BP-EVIDENCE-SCHEMAS",
+      "title": "Canonical evidence schemas and visibility",
+      "parent_id": "ANG-BP-EVIDENCE",
+      "tier": 2,
+      "order": 410,
+      "blueprint_path": "branches/evidence/children/evidence-schemas/BLUEPRINT.md",
+      "capsule_path": "branches/evidence/children/evidence-schemas/CAPSULE.md",
+      "status_path": "branches/evidence/children/evidence-schemas/STATUS.md",
+      "contract_paths": [
+        "branches/evidence/children/evidence-schemas/contracts/ANG-CTR-EVIDENCE-ENVELOPE-001.md",
+        "branches/evidence/children/evidence-schemas/contracts/ANG-CTR-EPISODE-001.md",
+        "branches/evidence/children/evidence-schemas/contracts/ANG-CTR-EXPERIMENT-MANIFEST-001.md"
+      ],
+      "gate_paths": ["branches/evidence/children/evidence-schemas/gates/ANG-GATE-EVIDENCE-SCHEMAS-001.md", "branches/evidence/children/evidence-schemas/gates/ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "ready",
+      "revision": 1,
+      "context_budget_tokens": 650,
+      "provides": [
+        "ANG-CTR-EVIDENCE-ENVELOPE-001",
+        "ANG-CTR-EPISODE-001",
+        "ANG-CTR-EXPERIMENT-MANIFEST-001"
+      ],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-ARTIFACT-LINEAGE",
+      "title": "Artifact and lineage registry",
+      "parent_id": "ANG-BP-EVIDENCE",
+      "tier": 2,
+      "order": 420,
+      "blueprint_path": "branches/evidence/children/artifact-lineage/BLUEPRINT.md",
+      "capsule_path": "branches/evidence/children/artifact-lineage/CAPSULE.md",
+      "status_path": "branches/evidence/children/artifact-lineage/STATUS.md",
+      "contract_paths": [
+        "branches/evidence/children/artifact-lineage/contracts/ANG-CTR-ARTIFACT-LINEAGE-001.md",
+        "branches/evidence/children/artifact-lineage/contracts/ANG-CTR-AUTHORIZATION-BINDING-001.md"
+      ],
+      "gate_paths": ["branches/evidence/children/artifact-lineage/gates/ANG-GATE-ARTIFACT-LINEAGE-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_evidence_schemas",
+      "revision": 1,
+      "context_budget_tokens": 650,
+      "provides": [
+        "ANG-CTR-ARTIFACT-LINEAGE-001",
+        "ANG-CTR-AUTHORIZATION-BINDING-001"
+      ],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-RESOURCES",
+      "title": "Resource adaptation and portability",
+      "parent_id": "ANG-BP-ROOT",
+      "tier": 1,
+      "order": 500,
+      "blueprint_path": "branches/resources/BLUEPRINT.md",
+      "capsule_path": "branches/resources/CAPSULE.md",
+      "status_path": "branches/resources/STATUS.md",
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_evidence_schemas",
+      "revision": 2,
+      "context_budget_tokens": 750,
+      "provides": [
+        "ANG-CTR-RESOURCE-INVENTORY-001",
+        "ANG-CTR-EXECUTION-PLAN-001",
+        "ANG-CTR-MIGRATION-PROPOSAL-001"
+      ],
+      "contract_paths": [
+        "branches/resources/contracts/ANG-CTR-RESOURCE-INVENTORY-001.md",
+        "branches/resources/contracts/ANG-CTR-EXECUTION-PLAN-001.md"
+      ],
+      "gate_paths": ["branches/resources/gates/ANG-GATE-RESOURCE-DESIGN-001.md"],
+      "children": [
+        "ANG-BP-CAPABILITY-INVENTORY",
+        "ANG-BP-RESOURCE-PROBES",
+        "ANG-BP-EXECUTION-PLANNER"
+      ],
+      "declared_children": [
+        {"id": "ANG-BP-PLACEMENT", "title": "Placement and backend execution", "status": "stub", "gate": "ANG-GATE-PLACEMENT-001"},
+        {"id": "ANG-BP-SAFE-REPLANNING", "title": "Safe replanning", "status": "stub", "gate": "ANG-GATE-REPLANNING-001"},
+        {"id": "ANG-BP-COMPETENCE-MIGRATION", "title": "Competence migration", "status": "deferred", "gate": "ANG-GATE-MIGRATION-001"},
+        {"id": "ANG-BP-SCALING-EVAL", "title": "Scaling evaluation", "status": "stub", "gate": "ANG-GATE-SCALING-EVAL-001"}
+      ]
+    },
+    {
+      "id": "ANG-BP-CAPABILITY-INVENTORY",
+      "title": "Capability inventory",
+      "parent_id": "ANG-BP-RESOURCES",
+      "tier": 2,
+      "order": 510,
+      "blueprint_path": "branches/resources/children/capability_inventory/BLUEPRINT.md",
+      "capsule_path": "branches/resources/children/capability_inventory/CAPSULE.md",
+      "status_path": "branches/resources/children/capability_inventory/STATUS.md",
+      "gate_paths": ["branches/resources/children/capability_inventory/gates/ANG-GATE-INVENTORY-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_evidence_schemas",
+      "revision": 1,
+      "context_budget_tokens": 500,
+      "provides": ["ANG-CTR-RESOURCE-INVENTORY-001"],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-RESOURCE-PROBES",
+      "title": "Bounded empirical probes",
+      "parent_id": "ANG-BP-RESOURCES",
+      "tier": 2,
+      "order": 520,
+      "blueprint_path": "branches/resources/children/resource_probes/BLUEPRINT.md",
+      "capsule_path": "branches/resources/children/resource_probes/CAPSULE.md",
+      "status_path": "branches/resources/children/resource_probes/STATUS.md",
+      "gate_paths": ["branches/resources/children/resource_probes/gates/ANG-GATE-RESOURCE-PROBES-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "deferred_to_successor_leaf",
+      "revision": 1,
+      "context_budget_tokens": 500,
+      "provides": [],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-EXECUTION-PLANNER",
+      "title": "Execution planner",
+      "parent_id": "ANG-BP-RESOURCES",
+      "tier": 2,
+      "order": 530,
+      "blueprint_path": "branches/resources/children/execution_planner/BLUEPRINT.md",
+      "capsule_path": "branches/resources/children/execution_planner/CAPSULE.md",
+      "status_path": "branches/resources/children/execution_planner/STATUS.md",
+      "gate_paths": ["branches/resources/children/execution_planner/gates/ANG-GATE-EXECUTION-PLANNER-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_evidence_schemas",
+      "revision": 1,
+      "context_budget_tokens": 550,
+      "provides": ["ANG-CTR-EXECUTION-PLAN-001"],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-WORLDS",
+      "title": "Environments and curriculum",
+      "parent_id": "ANG-BP-ROOT",
+      "tier": 1,
+      "order": 600,
+      "blueprint_path": "branches/worlds/BLUEPRINT.md",
+      "capsule_path": "branches/worlds/CAPSULE.md",
+      "status_path": "branches/worlds/STATUS.md",
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_cr0_predecessors",
+      "revision": 2,
+      "context_budget_tokens": 700,
+      "provides": [
+        "ANG-CTR-TASK-SPEC-001",
+        "ANG-CTR-OBSERVATION-001",
+        "ANG-CTR-ACTION-001",
+        "ANG-CTR-FEEDBACK-001"
+      ],
+      "contract_paths": [
+        "branches/worlds/contracts/ANG-CTR-TASK-SPEC-001.md",
+        "branches/worlds/contracts/ANG-CTR-OBSERVATION-001.md",
+        "branches/worlds/contracts/ANG-CTR-ACTION-001.md",
+        "branches/worlds/contracts/ANG-CTR-FEEDBACK-001.md"
+      ],
+      "gate_paths": ["branches/worlds/gates/ANG-GATE-WORLDS-DESIGN-001.md"],
+      "children": ["ANG-BP-ENVIRONMENT-PROTOCOL"],
+      "declared_children": [
+        {"id": "ANG-BP-FIXED-FAMILIES", "title": "Fixed procedural families", "status": "stub", "gate": "ANG-GATE-FIXED-FAMILIES-001"},
+        {"id": "ANG-BP-OUTCOME-VERIFIERS", "title": "Outcome verifiers", "status": "stub", "gate": "ANG-GATE-VERIFIERS-001"},
+        {"id": "ANG-BP-ENVIRONMENT-VALIDATION", "title": "Environment validation", "status": "stub", "gate": "ANG-GATE-ENV-VALIDATION-001"},
+        {"id": "ANG-BP-CURRICULUM", "title": "Curriculum scheduler", "status": "deferred", "gate": "ANG-GATE-CURRICULUM-001"},
+        {"id": "ANG-BP-GENERATED-WORLDS", "title": "Generated environments", "status": "deferred", "gate": "ANG-GATE-GENERATED-WORLDS-001"}
+      ]
+    },
+    {
+      "id": "ANG-BP-ENVIRONMENT-PROTOCOL",
+      "title": "Environment protocol",
+      "parent_id": "ANG-BP-WORLDS",
+      "tier": 2,
+      "order": 610,
+      "blueprint_path": "branches/worlds/children/environment_protocol/BLUEPRINT.md",
+      "capsule_path": "branches/worlds/children/environment_protocol/CAPSULE.md",
+      "status_path": "branches/worlds/children/environment_protocol/STATUS.md",
+      "gate_paths": ["branches/worlds/children/environment_protocol/gates/ANG-GATE-ENV-PROTOCOL-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "blocked_by_cr0_predecessors",
+      "revision": 1,
+      "context_budget_tokens": 550,
+      "provides": [
+        "ANG-CTR-TASK-SPEC-001",
+        "ANG-CTR-OBSERVATION-001",
+        "ANG-CTR-ACTION-001",
+        "ANG-CTR-FEEDBACK-001"
+      ],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-TOOLS",
+      "title": "Tools and capability workshop",
+      "parent_id": "ANG-BP-ROOT",
+      "tier": 1,
+      "order": 700,
+      "blueprint_path": "branches/tools/BLUEPRINT.md",
+      "capsule_path": "branches/tools/CAPSULE.md",
+      "status_path": "branches/tools/STATUS.md",
+      "design_status": "draft",
+      "delivery_status": "deferred",
+      "revision": 1,
+      "context_budget_tokens": 700,
+      "provides": [
+        "ANG-CTR-TOOL-PACKAGE-001",
+        "ANG-CTR-TOOL-RECEIPT-001"
+      ],
+      "declared_children": [
+        {"id": "ANG-BP-TOOL-SPEC", "title": "Tool specification and registry", "status": "stub", "gate": "ANG-GATE-TOOL-SPEC-001"},
+        {"id": "ANG-BP-TOOL-SANDBOX", "title": "Sandbox runtime", "status": "stub", "gate": "ANG-GATE-TOOL-SANDBOX-001"},
+        {"id": "ANG-BP-TOOL-WORKSHOP", "title": "Tool workshop", "status": "stub", "gate": "ANG-GATE-TOOL-WORKSHOP-001"},
+        {"id": "ANG-BP-TOOL-USE-LEARNING", "title": "Tool-use learning", "status": "stub", "gate": "ANG-GATE-TOOL-USE-001"},
+        {"id": "ANG-BP-TOOL-LIFECYCLE", "title": "Promotion and revocation", "status": "stub", "gate": "ANG-GATE-TOOL-LIFECYCLE-001"},
+        {"id": "ANG-BP-TOOL-COMPOSITION", "title": "Tool composition", "status": "stub", "gate": "ANG-GATE-TOOL-COMPOSITION-001"}
+      ]
+    },
+    {
+      "id": "ANG-BP-SAFETY",
+      "title": "Safety, supply chain, and bounded evolution",
+      "parent_id": "ANG-BP-ROOT",
+      "tier": 1,
+      "order": 800,
+      "blueprint_path": "branches/safety/BLUEPRINT.md",
+      "capsule_path": "branches/safety/CAPSULE.md",
+      "status_path": "branches/safety/STATUS.md",
+      "design_status": "draft",
+      "delivery_status": "cr0_governance_documented",
+      "revision": 2,
+      "context_budget_tokens": 750,
+      "provides": ["ANG-CTR-HUMAN-IMPACT-ASSESSMENT-001"],
+      "contract_paths": ["branches/safety/contracts/ANG-CTR-HUMAN-IMPACT-ASSESSMENT-001.md"],
+      "gate_paths": [
+        "branches/safety/gates/ANG-GATE-HUMAN-FLOURISHING-001.md",
+        "branches/safety/gates/ANG-GATE-SAFETY-DESIGN-001.md",
+        "branches/safety/gates/ANG-GATE-CONSTRUCTION-RELEASE-0-001.md"
+      ],
+      "children": [
+        "ANG-BP-THREAT-MODEL",
+        "ANG-BP-HUMAN-AUTHORITY",
+        "ANG-BP-PERMISSIONS"
+      ],
+      "declared_children": [
+        {"id": "ANG-BP-DEPENDENCY-INTAKE", "title": "External dependency intake", "status": "stub", "gate": "ANG-GATE-DEPENDENCY-INTAKE-001"},
+        {"id": "ANG-BP-RECOVERED-CODE-INTAKE", "title": "Recovered-code intake", "status": "stub", "gate": "ANG-GATE-RECOVERED-INTAKE-001"},
+        {"id": "ANG-BP-MUTATION-SANDBOX", "title": "Mutation sandbox", "status": "deferred", "gate": "ANG-GATE-MUTATION-SANDBOX-001"},
+        {"id": "ANG-BP-EVOLUTION-GATE", "title": "Bounded evolution gate", "status": "deferred", "gate": "ANG-GATE-EVOLUTION-001"}
+      ]
+    },
+    {
+      "id": "ANG-BP-THREAT-MODEL",
+      "title": "Construction Release 0 threat and trust model",
+      "parent_id": "ANG-BP-SAFETY",
+      "tier": 2,
+      "order": 810,
+      "blueprint_path": "branches/safety/children/threat-model/BLUEPRINT.md",
+      "capsule_path": "branches/safety/children/threat-model/CAPSULE.md",
+      "status_path": "branches/safety/children/threat-model/STATUS.md",
+      "gate_paths": ["branches/safety/children/threat-model/gates/ANG-GATE-THREAT-MODEL-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "documented",
+      "revision": 1,
+      "context_budget_tokens": 800,
+      "provides": [],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-HUMAN-AUTHORITY",
+      "title": "Human authority, stop, and rollback",
+      "parent_id": "ANG-BP-SAFETY",
+      "tier": 2,
+      "order": 820,
+      "blueprint_path": "branches/safety/children/human-authority/BLUEPRINT.md",
+      "capsule_path": "branches/safety/children/human-authority/CAPSULE.md",
+      "status_path": "branches/safety/children/human-authority/STATUS.md",
+      "gate_paths": ["branches/safety/children/human-authority/gates/ANG-GATE-HUMAN-AUTHORITY-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "documented",
+      "revision": 1,
+      "context_budget_tokens": 800,
+      "provides": [],
+      "declared_children": []
+    },
+    {
+      "id": "ANG-BP-PERMISSIONS",
+      "title": "Construction Release 0 permissions and resource ceilings",
+      "parent_id": "ANG-BP-SAFETY",
+      "tier": 2,
+      "order": 830,
+      "blueprint_path": "branches/safety/children/permissions/BLUEPRINT.md",
+      "capsule_path": "branches/safety/children/permissions/CAPSULE.md",
+      "status_path": "branches/safety/children/permissions/STATUS.md",
+      "gate_paths": ["branches/safety/children/permissions/gates/ANG-GATE-PERMISSIONS-001.md"],
+      "design_status": "approved_for_cr0",
+      "delivery_status": "documented",
+      "revision": 1,
+      "context_budget_tokens": 800,
+      "provides": [],
+      "declared_children": []
+    }
+  ]
+}
