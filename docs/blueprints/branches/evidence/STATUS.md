@@ -3,8 +3,8 @@
 Freshness: 2026-08-25  
 Revision: 3  
 Design: approved_for_cr0  
-Delivery: ready  
-Current gate: `ANG-GATE-EVIDENCE-DESIGN-001` (design review passed; child delivery gates unrun)
+Delivery: cr0_scaffold_accepted_normal_gate_not_run  
+Current gate: `ANG-GATE-EVIDENCE-SCHEMAS-001` (specified, `NOT_RUN`)
 
 ## Completed design work
 
@@ -23,11 +23,11 @@ Current gate: `ANG-GATE-EVIDENCE-DESIGN-001` (design review passed; child delive
 
 ## Evidence
 
-Design review only. No schema implementation, executable child-gate decision, Slice-00 completion, human-flourishing pass, or M0 claim exists.
+The exact bootstrap scaffold exists at commit `903f9b9d5e58818d774604dbd6f4d89b2b4544e0`. Independent decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0` records `SCAFFOLD_ACCEPTED` only. Its bound leaf, receipts, handoff, baseline, and decision remain immutable. The normal technical gate, Slice 00, Human-Flourishing gate, and M0 remain unpassed.
 
 ## Next exact action
 
-Execute only `ANG-WORK-EVIDENCE-SCHEMAS-001`. Its release-scoped scaffold gate may unlock only manifest-listed CR0 scaffold consumers. Keep ARTIFACT-LINEAGE and every later normal EVIDENCE child blocked until `ANG-GATE-EVIDENCE-SCHEMAS-001` passes under ordinary prerequisites; bootstrap acceptance cannot pass it.
+Do not rerun or rewrite `ANG-WORK-EVIDENCE-SCHEMAS-001` or its accepted artifacts. Permit only read-only dependency verification for Resources revalidation 003. Keep ARTIFACT-LINEAGE and every normal EVIDENCE child blocked until `ANG-GATE-EVIDENCE-SCHEMAS-001` passes under ordinary prerequisites.
 
 ## Rollback
 

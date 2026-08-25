@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "ANG-BASELINE-CR0-RESOURCES-001",
+  "created_at": "2026-08-25T00:00:00-04:00",
+  "workspace_root": "C:/Users/darks/Documents/Codex/2026-08-25/i-x20",
+  "base_commit": "903f9b9d5e58818d774604dbd6f4d89b2b4544e0",
+  "leaf_id": "ANG-WORK-CR0-RESOURCES-001",
+  "leaf_revision": 2,
+  "release_id": "ANG-CR-0001-CONSTRUCTION-RELEASE-0",
+  "pre_release_archive": {
+    "path": "work/pre-construction-release-0-20260825.zip",
+    "sha256": "5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C3"
+  },
+  "targets": [
+    {"path": "schemas/control/v1/resources/resource-inventory.schema.json", "state": "absent"},
+    {"path": "schemas/control/v1/resources/execution-plan.schema.json", "state": "absent"},
+    {"path": "tests/synthetic/slice00/resources/constrained.inventory.json", "state": "absent"},
+    {"path": "tests/synthetic/slice00/resources/workstation.inventory.json", "state": "absent"},
+    {"path": "tests/synthetic/slice00/resources/cluster.inventory.json", "state": "absent"},
+    {"path": "tests/synthetic/slice00/resources/invalid-overcommitted.plan.json", "state": "absent"},
+    {"path": "tests/synthetic/slice00/resources/Test-Cr0ResourceScaffold.ps1", "state": "absent"},
+    {"path": "docs/blueprints/releases/construction-0/branch-receipts/RESOURCES.md", "state": "absent"},
+    {"path": "docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-RESOURCES-001.md", "state": "absent"}
+  ],
+  "rollback_classes": {
+    "restore_or_remove": [
+      "schemas/control/v1/resources/resource-inventory.schema.json",
+      "schemas/control/v1/resources/execution-plan.schema.json",
+      "tests/synthetic/slice00/resources/constrained.inventory.json",
+      "tests/synthetic/slice00/resources/workstation.inventory.json",
+      "tests/synthetic/slice00/resources/cluster.inventory.json",
+      "tests/synthetic/slice00/resources/invalid-overcommitted.plan.json",
+      "tests/synthetic/slice00/resources/Test-Cr0ResourceScaffold.ps1"
+    ],
+    "preserve_on_failure": [
+      "docs/blueprints/releases/construction-0/branch-receipts/RESOURCES.md",
+      "docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-RESOURCES-001.md"
+    ]
+  },
+  "rollback_rule": "Preserve the reviewer decision receipt and executor handoff on every failure, rejection, escalation, or rollback. For restore_or_remove targets only, verify canonical literal paths and hashes, restore a pre-existing file from base commit 903f9b9d5e58818d774604dbd6f4d89b2b4544e0, or remove an absent-at-baseline file individually; remove only newly empty leaf directories. Never broadly or recursively delete, and never delete or rewrite preserve_on_failure evidence.",
+  "verification": "All nine targets were independently checked with Test-Path -LiteralPath and were absent at clean base commit 903f9b9d5e58818d774604dbd6f4d89b2b4544e0 before this pending activation packet. Reverify immediately before activation; any mismatch stops work and requires a successor baseline and revalidation."
+}

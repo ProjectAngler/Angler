@@ -285,7 +285,7 @@
         "branches/resources/contracts/ANG-CTR-RESOURCE-INVENTORY-001.md",
         "branches/resources/contracts/ANG-CTR-EXECUTION-PLAN-001.md"
       ],
-      "gate_paths": ["branches/resources/gates/ANG-GATE-RESOURCE-DESIGN-001.md"],
+      "gate_paths": ["branches/resources/gates/ANG-GATE-RESOURCE-DESIGN-001.md", "branches/resources/gates/ANG-GATE-CR0-RESOURCES-001.md"],
       "children": [
         "ANG-BP-CAPABILITY-INVENTORY",
         "ANG-BP-RESOURCE-PROBES",

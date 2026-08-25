@@ -1,7 +1,7 @@
 ---
 blueprint_id: ANG-BP-RESOURCES
 blueprint_revision: 2
-capsule_revision: 3
+capsule_revision: 4
 freshness_date: 2026-08-25
 parent_id: ANG-BP-ROOT
 target_tokens: 750
@@ -23,6 +23,6 @@ No query-conditioned model routing. Compatible placement may reload state at a t
 
 Inventory separates observed capacity, uncertainty, and administrative permission. Probes are separately authorized, bounded, idempotent, and disposable. Plans first eliminate violations, then optimize only among feasible candidates; every plan reserves evaluation, rollback, and host-stability headroom set by external policy.
 
-Current gate: `ANG-GATE-RESOURCE-DESIGN-001`. Tier-1 and inventory/probe/planner designs are approved for CR0; schema/synthetic-test delivery remains blocked by EVIDENCE-SCHEMAS. No real probe, GPU/model use, or milestone pass is authorized.
+The Evidence predecessor is satisfied only for CR0 scaffolding by `SCAFFOLD_ACCEPTED` decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0`; the normal Evidence gate remains `NOT_RUN`. CR0 gate `ANG-GATE-CR0-RESOURCES-001@1` is specified, and the exact Resource leaf specification is ready, but revalidation `ANG-CR0-REVALIDATION-20260825-003` is PENDING/NON-AUTHORIZING. The normal Resource design gate, Human-Flourishing gate, Slice 00, and M0 remain unpassed. No real probe, GPU/model use, or milestone pass is authorized.
 
-Next action: execute the release-listed resource schema leaf, then seek a successor assessment before any real host/GPU probe. Read root capsule, RESOURCES plus three active child capsules, ADR-0002, and the CR0 leaf.
+Next action: the bound independent revalidation reviewer inspects the packet and writes only its reserved decision. Do not execute the leaf/test or create any of its nine outputs. After an `APPROVED` decision and separate Manifest v2 PASS/authorization, execute only the frozen Resource leaf; any host/GPU probe still requires a successor assessment and leaf.
