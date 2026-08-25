@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {
+      "case_id": "duplicate-json-key",
+      "validator": "canonical_json",
+      "operation": "parse_raw",
+      "raw_json": "{\"alpha\":1,\"alpha\":2}",
+      "expected_error": "EVIDENCE_DUPLICATE_KEY"
+    },
+    {
+      "case_id": "ambiguous-json-float",
+      "validator": "canonical_json",
+      "operation": "parse_raw",
+      "raw_json": "{\"value\":1.0}",
+      "expected_error": "EVIDENCE_AMBIGUOUS_NUMBER"
+    },
+    {
+      "case_id": "nonfinite-json-number",
+      "validator": "canonical_json",
+      "operation": "parse_raw",
+      "raw_json": "{\"value\":NaN}",
+      "expected_error": "EVIDENCE_NONFINITE_NUMBER"
+    },
+    {
+      "case_id": "unicode-key-collision",
+      "validator": "canonical_json",
+      "operation": "parse_raw",
+      "raw_json": "{\"é\":1,\"é\":2}",
+      "expected_error": "EVIDENCE_UNICODE_KEY_COLLISION"
+    },
+    {
+      "case_id": "unknown-envelope-major",
+      "validator": "envelope",
+      "operation": "set",
+      "path": ["envelope_contract", "version"],
+      "value": "2.0.0",
+      "expected_error": "EVIDENCE_SCHEMA_UNSUPPORTED"
+    },
+    {
+      "case_id": "missing-semantic-binding",
+      "validator": "envelope",
+      "operation": "delete",
+      "path": ["semantic_bindings", "model_ref"],
+      "expected_error": "EVIDENCE_REQUIRED_FIELD_MISSING"
+    },
+    {
+      "case_id": "missing-required-assessment",
+      "validator": "envelope_authorized",
+      "operation": "set",
+      "path": ["human_impact", "assessment_ref"],
+      "value": null,
+      "expected_error": "EVIDENCE_AUTHORIZATION_INCOMPLETE"
+    },
+    {
+      "case_id": "personal-data-class-in-cr0",
+      "validator": "envelope",
+      "operation": "set",
+      "path": ["visibility", "class"],
+      "value": "RESTRICTED_PERSONAL",
+      "expected_error": "EVIDENCE_PERSONAL_DATA_FORBIDDEN"
+    },
+    {
+      "case_id": "incomplete-parent-reference",
+      "validator": "envelope",
+      "operation": "append_incomplete_parent",
+      "expected_error": "EVIDENCE_PARENT_INVALID"
+    },
+    {
+      "case_id": "held-out-marked-eligible",
+      "validator": "episode",
+      "operation": "set_pair",
+      "values": {"partition": "HELD_OUT", "learner_eligibility": "ELIGIBLE"},
+      "expected_error": "EPISODE_LEARNING_INELIGIBLE"
+    },
+    {
+      "case_id": "cross-run-feedback",
+      "validator": "episode",
+      "operation": "set",
+      "path": ["feedback_ref", "run_ref"],
+      "value": "ANG-RUN-DIFFERENT-002",
+      "expected_error": "EPISODE_REFERENCE_MISMATCH"
+    },
+    {
+      "case_id": "episode-end-before-start",
+      "validator": "episode",
+      "operation": "set",
+      "path": ["ended_at_utc"],
+      "value": "2026-08-25T11:59:59Z",
+      "expected_error": "EPISODE_TIME_INVALID"
+    },
+    {
+      "case_id": "executable-manifest-with-pending-ref",
+      "validator": "manifest",
+      "operation": "set",
+      "path": ["pending_refs"],
+      "value": ["ANG-PENDING-SYNTHETIC-001"],
+      "expected_error": "MANIFEST_INCOMPLETE"
+    },
+    {
+      "case_id": "threshold-change-reuses-manifest-id",
+      "validator": "manifest_immutability",
+      "operation": "set",
+      "path": ["metrics_statistics_thresholds_and_negative_controls", "thresholds", "positive_acceptance"],
+      "value": "0.9000",
+      "expected_error": "MANIFEST_THRESHOLD_REUSE"
+    }
+  ]
+}

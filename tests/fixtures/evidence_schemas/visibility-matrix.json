@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "policies": {
+    "learner": {
+      "class": "LEARNER_VISIBLE",
+      "policy_id_and_version": "ANG-POL-LEARNER-SYNTHETIC-001@1",
+      "allowed_payload_principals": ["ANG-AUTH-LEARNER-001"],
+      "allowed_projection_ids": ["task-view"],
+      "opaque_payload_ref": "opaque:learner-visible"
+    },
+    "control": {
+      "class": "CONTROL_PLANE",
+      "policy_id_and_version": "ANG-POL-CONTROL-SYNTHETIC-001@1",
+      "allowed_payload_principals": ["ANG-BP-EVIDENCE", "ANG-AUTH-VALIDATOR-001"],
+      "allowed_projection_ids": ["public-metadata"],
+      "opaque_payload_ref": "opaque:control-plane"
+    },
+    "sealed": {
+      "class": "SEALED_EVALUATION",
+      "policy_id_and_version": "ANG-POL-SEALED-SYNTHETIC-001@1",
+      "allowed_payload_principals": ["ANG-AUTH-SEALED-EVALUATOR-001"],
+      "allowed_projection_ids": ["sealed-score"],
+      "opaque_payload_ref": "opaque:sealed-evaluation"
+    },
+    "authority": {
+      "class": "HUMAN_AUTHORITY",
+      "policy_id_and_version": "ANG-POL-AUTHORITY-SYNTHETIC-001@1",
+      "allowed_payload_principals": ["ANG-AUTH-SAFETY-APPROVER-001"],
+      "allowed_projection_ids": ["decision-summary"],
+      "opaque_payload_ref": "opaque:human-authority"
+    }
+  },
+  "cases": [
+    {"case_id": "learner-visible-allow", "policy": "learner", "principal": "ANG-AUTH-LEARNER-001", "projection": "task-view", "purpose": "perform-declared-task", "allowed": true},
+    {"case_id": "control-validator-allow", "policy": "control", "principal": "ANG-AUTH-VALIDATOR-001", "projection": "public-metadata", "purpose": "validate-structure", "allowed": true},
+    {"case_id": "sealed-evaluator-allow", "policy": "sealed", "principal": "ANG-AUTH-SEALED-EVALUATOR-001", "projection": "sealed-score", "purpose": "independent-evaluation", "allowed": true},
+    {"case_id": "authority-safety-allow", "policy": "authority", "principal": "ANG-AUTH-SAFETY-APPROVER-001", "projection": "decision-summary", "purpose": "review-bootstrap-scope", "allowed": true},
+    {"case_id": "learner-control-deny", "policy": "control", "principal": "ANG-AUTH-LEARNER-001", "projection": "public-metadata", "purpose": "learn", "allowed": false},
+    {"case_id": "learner-sealed-deny", "policy": "sealed", "principal": "ANG-AUTH-LEARNER-001", "projection": "sealed-score", "purpose": "learn", "allowed": false},
+    {"case_id": "evidence-authority-deny", "policy": "authority", "principal": "ANG-BP-EVIDENCE", "projection": "decision-summary", "purpose": "read", "allowed": false},
+    {"case_id": "wrong-projection-deny", "policy": "sealed", "principal": "ANG-AUTH-SEALED-EVALUATOR-001", "projection": "hidden-answer", "purpose": "evaluate", "allowed": false},
+    {"case_id": "empty-purpose-deny", "policy": "control", "principal": "ANG-AUTH-VALIDATOR-001", "projection": "public-metadata", "purpose": "", "allowed": false}
+  ]
+}

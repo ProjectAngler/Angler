@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "episode_id": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+  "task_spec_ref": {
+    "artifact_id": "sha256:3111111111111111111111111111111111111111111111111111111111111111",
+    "content_id": "sha256:4111111111111111111111111111111111111111111111111111111111111111",
+    "artifact_type": "TASK_SPEC",
+    "payload_contract": {"id": "ANG-CTR-TASK-SPEC-001", "version": "1.0.0"},
+    "relationship": "ATTEMPT_OF",
+    "expected_visibility_class": "LEARNER_VISIBLE",
+    "run_ref": "ANG-RUN-SYNTHETIC-EPISODE-001",
+    "attempt_ref": "attempt-0001"
+  },
+  "trajectory_ref": {
+    "artifact_id": "sha256:3222222222222222222222222222222222222222222222222222222222222222",
+    "content_id": "sha256:4222222222222222222222222222222222222222222222222222222222222222",
+    "artifact_type": "TRAJECTORY",
+    "payload_contract": {"id": "ANG-CTR-TRAJECTORY-001", "version": "1.0.0"},
+    "relationship": "OBSERVED_IN",
+    "expected_visibility_class": "CONTROL_PLANE",
+    "run_ref": "ANG-RUN-SYNTHETIC-EPISODE-001",
+    "attempt_ref": "attempt-0001"
+  },
+  "feedback_ref": {
+    "artifact_id": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "content_id": "sha256:4333333333333333333333333333333333333333333333333333333333333333",
+    "artifact_type": "FEEDBACK",
+    "payload_contract": {"id": "ANG-CTR-FEEDBACK-001", "version": "1.0.0"},
+    "relationship": "FEEDBACK_FOR",
+    "expected_visibility_class": "CONTROL_PLANE",
+    "run_ref": "ANG-RUN-SYNTHETIC-EPISODE-001",
+    "attempt_ref": "attempt-0001"
+  },
+  "model_ref": "explicit-none:no-model-in-cr0",
+  "tokenizer_ref": "explicit-none:no-tokenizer-in-cr0",
+  "plastic_state_ref": "explicit-none:no-plastic-state-in-cr0",
+  "execution_plan_ref": "ANG-PLAN-LOCAL-SCAFFOLD-001",
+  "resource_inventory_ref": "explicit-none:no-resource-probe-in-cr0",
+  "tool_registry_ref": {"explicit_none": true, "reason_code": "NO_TOOLS_IN_CR0"},
+  "experiment_manifest_ref": "ANG-MANIFEST-SYNTHETIC-001",
+  "environment_and_verifier_refs": [
+    "ANG-ENV-SYNTHETIC-001",
+    "ANG-AUTH-VALIDATOR-001"
+  ],
+  "partition": "TRAIN",
+  "learner_eligibility": "ELIGIBLE",
+  "eligibility_policy_ref": "ANG-POL-SYNTHETIC-ELIGIBILITY-001@1",
+  "feedback_exposure": "STRUCTURED_OUTCOME",
+  "attempt_index": 0,
+  "started_at_utc": "2026-08-25T12:00:00Z",
+  "ended_at_utc": "2026-08-25T12:00:01Z",
+  "termination": "COMPLETED",
+  "resource_usage_ref": "ANG-USAGE-SYNTHETIC-001",
+  "declared_failure_refs": []
+}

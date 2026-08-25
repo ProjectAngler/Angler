@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "decision_identity_rule": "ANG-EVID-CR0-EVIDENCE-SCAFFOLD-<sha256-of-exact-utf8-file-bytes>",
+  "gate": {
+    "id": "ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001",
+    "version": 1,
+    "spec_sha256": "A883FE8799BF06390B9691F1F15F06763DAD3FB5A7210F958A2AADA7C68548F5"
+  },
+  "disposition": "SCAFFOLD_ACCEPTED",
+  "reasons": [
+    "The frozen leaf, manifest version 2, scaffold gate, and absent-state rollback baseline match their recorded SHA-256 identities.",
+    "The two declared foreground Python 3.11 unittest runs used the exact -B command, each passed the same 16 cases with zero failures and zero errors, and the effect and test receipts match their independently rechecked hashes.",
+    "Static review of every declared source, schema, test, and fixture output found only the bounded standard-library evidence scaffold and confirmed the declared canonicalization, identity, typed rejection, visibility, learner-ineligibility, manifest-immutability, dependency, cache, path, and non-equivalence controls.",
+    "All 17 executor-changed paths are literal leaf-authorized outputs with receipt hashes matching the reviewed files; the executor did not create or edit this independently owned decision path.",
+    "No reviewed evidence indicates network, GPU/model, package, background-process, recovered/real-person-data, deployment, outside-workspace-write, threshold-change, self-approval, or authority-broadening effects."
+  ],
+  "bindings": {
+    "base_commit": "f514c50f19d92fecae5237c908526d1215821a34",
+    "leaf": {
+      "id": "ANG-WORK-EVIDENCE-SCHEMAS-001",
+      "revision": 1,
+      "sha256": "5CF4A9DE5337D1C52F3D8E1CFEC6404425853808F65F31DBA6BB7284EDC53289"
+    },
+    "release_manifest": {
+      "id": "ANG-CR-0001-CONSTRUCTION-RELEASE-0",
+      "version": 2,
+      "sha256": "802D152574ABD5771CF851293F9E2240039472F61DBC78472D2BF3638CE5E5D2"
+    },
+    "rollback_baseline": {
+      "id": "ANG-BASELINE-EVIDENCE-SCHEMAS-001",
+      "sha256": "F05FA1F18183D089B53CFC1EA27139775C447709D05B6C8E303DC477E3329F8F"
+    },
+    "test_receipt": {
+      "path": "artifacts/control-plane/evidence-schemas/test-receipt.json",
+      "sha256": "897D57E64169654F41422D70A2DA87C3E15E22A521A77437A8E80FB12B3C3E53"
+    },
+    "effect_receipt": {
+      "path": "artifacts/control-plane/evidence-schemas/effect-receipt.json",
+      "sha256": "9808AFC82EF8B77DAABF8296E11A54C267E087566BA24ABA46999747A775C893"
+    },
+    "handoff": {
+      "path": "artifacts/control-plane/evidence-schemas/HANDOFF.md",
+      "sha256": "017969B6E382D405EE32E73306808C82BB283A2B68E5CAC1129596439AC5C855"
+    }
+  },
+  "executor": "ANG-EXEC-CODEX-ROOT-CR0-001",
+  "reviewer_role": "ANG-AUTH-SAFETY-APPROVER-001",
+  "reviewer_instance": "ANG-REVIEW-CODEX-SAFETY-CR0-001",
+  "reviewer_session_ref": "codex-subagent:/root/safety_change_map",
+  "independence": {
+    "reviewer_is_executor": false,
+    "reviewer_executed_leaf_or_tests": false,
+    "reviewer_modified_leaf_release_or_executor_outputs": false,
+    "reviewer_write_scope": [
+      "artifacts/control-plane/evidence-schemas/scaffold-gate-decision.json"
+    ]
+  },
+  "exact_changed_paths": {
+    "executor": [
+      "src/angler/episodes/__init__.py",
+      "src/angler/episodes/canonical.py",
+      "src/angler/episodes/schema_validation.py",
+      "src/angler/episodes/visibility.py",
+      "src/angler/episodes/schemas/evidence-envelope.v1.json",
+      "src/angler/episodes/schemas/episode.v1.json",
+      "src/angler/episodes/schemas/experiment-manifest.v1.json",
+      "tests/unit/evidence/test_evidence_schemas.py",
+      "tests/fixtures/evidence_schemas/valid-envelope.json",
+      "tests/fixtures/evidence_schemas/valid-episode.json",
+      "tests/fixtures/evidence_schemas/valid-experiment-manifest.json",
+      "tests/fixtures/evidence_schemas/invalid-cases.json",
+      "tests/fixtures/evidence_schemas/visibility-matrix.json",
+      "tests/fixtures/evidence_schemas/sealed-commitment-cases.json",
+      "artifacts/control-plane/evidence-schemas/effect-receipt.json",
+      "artifacts/control-plane/evidence-schemas/test-receipt.json",
+      "artifacts/control-plane/evidence-schemas/HANDOFF.md"
+    ],
+    "reviewer": [
+      "artifacts/control-plane/evidence-schemas/scaffold-gate-decision.json"
+    ]
+  },
+  "rollback_identity": {
+    "baseline_id": "ANG-BASELINE-EVIDENCE-SCHEMAS-001",
+    "baseline_sha256": "F05FA1F18183D089B53CFC1EA27139775C447709D05B6C8E303DC477E3329F8F",
+    "archive_path": "work/pre-construction-release-0-20260825.zip",
+    "archive_sha256": "5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C3",
+    "failure_evidence_class": "preserve_on_failure"
+  },
+  "non_equivalence": {
+    "normal_evidence_schema_gate": {
+      "id": "ANG-GATE-EVIDENCE-SCHEMAS-001",
+      "status": "NOT_RUN"
+    },
+    "human_flourishing_gate": {
+      "id": "ANG-GATE-HUMAN-FLOURISHING-001",
+      "status": "NOT_RUN"
+    },
+    "slice_00": "NOT_PASSED",
+    "milestone_m0": "NOT_PASSED",
+    "claim": "This decision accepts only the exact CR0 local evidence scaffold for manifest-listed scaffold consumers; it makes no normal technical, Human-Flourishing, Slice 00, M0, scientific, model, learner, deployment, production, or external-use claim."
+  },
+  "reviewed_on": "2026-08-25"
+}

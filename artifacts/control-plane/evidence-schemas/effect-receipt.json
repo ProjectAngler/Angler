@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "receipt_type": "CR0_EFFECT_INSPECTION",
+  "receipt_identity_rule": "sha256 of the exact UTF-8 file bytes, recorded by the test receipt and independent decision",
+  "leaf_id": "ANG-WORK-EVIDENCE-SCHEMAS-001",
+  "test_id": "ANG-TEST-CR0-EVIDENCE-SCAFFOLD-001",
+  "executor": "ANG-EXEC-CODEX-ROOT-CR0-001",
+  "validator_role": "ANG-AUTH-VALIDATOR-001",
+  "inspection_date": "2026-08-25",
+  "workspace_root": "C:/Users/darks/Documents/Codex/2026-08-25/i-x20",
+  "base_commit": "f514c50f19d92fecae5237c908526d1215821a34",
+  "baseline": {
+    "id": "ANG-BASELINE-EVIDENCE-SCHEMAS-001",
+    "sha256": "F05FA1F18183D089B53CFC1EA27139775C447709D05B6C8E303DC477E3329F8F",
+    "pre_start_targets_absent": 18,
+    "pre_start_targets_present": 0
+  },
+  "commands": [
+    {
+      "sequence": 1,
+      "command": "python -B -m unittest tests.unit.evidence.test_evidence_schemas",
+      "foreground": true,
+      "exit_code": 0,
+      "case_count": 16,
+      "failures": 0,
+      "errors": 0,
+      "test_reported_seconds": "0.016",
+      "observed_wall_seconds": "0.5040202"
+    },
+    {
+      "sequence": 2,
+      "command": "python -B -m unittest tests.unit.evidence.test_evidence_schemas",
+      "foreground": true,
+      "exit_code": 0,
+      "case_count": 16,
+      "failures": 0,
+      "errors": 0,
+      "test_reported_seconds": "0.016",
+      "observed_wall_seconds": "0.2698418"
+    }
+  ],
+  "runtime": {
+    "python": "3.11.9",
+    "bytecode_disabled": true,
+    "third_party_imports": 0,
+    "package_installs": 0
+  },
+  "declared_case_accounting": {
+    "positive_fixture_documents": 3,
+    "typed_invalid_cases": 14,
+    "visibility_requests": 9,
+    "visibility_denials": 5,
+    "sealed_commitment_cases": 3,
+    "positive_acceptance": "100%",
+    "typed_negative_rejection": "100%",
+    "forbidden_visibility_rejection": "100%"
+  },
+  "observed_execution_outputs_before_evidence_append": [
+    "src/angler/episodes/__init__.py",
+    "src/angler/episodes/canonical.py",
+    "src/angler/episodes/schema_validation.py",
+    "src/angler/episodes/visibility.py",
+    "src/angler/episodes/schemas/evidence-envelope.v1.json",
+    "src/angler/episodes/schemas/episode.v1.json",
+    "src/angler/episodes/schemas/experiment-manifest.v1.json",
+    "tests/unit/evidence/test_evidence_schemas.py",
+    "tests/fixtures/evidence_schemas/valid-envelope.json",
+    "tests/fixtures/evidence_schemas/valid-episode.json",
+    "tests/fixtures/evidence_schemas/valid-experiment-manifest.json",
+    "tests/fixtures/evidence_schemas/invalid-cases.json",
+    "tests/fixtures/evidence_schemas/visibility-matrix.json",
+    "tests/fixtures/evidence_schemas/sealed-commitment-cases.json"
+  ],
+  "authorized_evidence_append_sequence": [
+    "artifacts/control-plane/evidence-schemas/effect-receipt.json",
+    "artifacts/control-plane/evidence-schemas/test-receipt.json",
+    "artifacts/control-plane/evidence-schemas/HANDOFF.md"
+  ],
+  "executor_denied_path": "artifacts/control-plane/evidence-schemas/scaffold-gate-decision.json",
+  "effects": {
+    "unexpected_files_in_declared_source_test_fixture_roots": 0,
+    "python_cache_directories_in_declared_roots": 0,
+    "pyc_or_temporary_files_in_declared_roots": 0,
+    "network_or_dns_actions": 0,
+    "gpu_or_model_actions": 0,
+    "background_processes": 0,
+    "subprocesses_created_by_leaf_code": 0,
+    "external_dependencies_loaded": 0,
+    "recovered_or_real_person_records": 0,
+    "outside_workspace_writes": 0,
+    "deployment_or_external_effects": 0
+  },
+  "resource_and_output": {
+    "declared_pre_receipt_bytes": 74874,
+    "total_new_file_ceiling_bytes": 26214400,
+    "per_file_ceiling_bytes": 5242880,
+    "per_fixture_ceiling_bytes": 1048576,
+    "continuous_efficiency_monitoring": false,
+    "basis": "two bounded single-process tests plus deterministic file/import assertions; no profiling or telemetry layer"
+  },
+  "inspection_result": "PASS",
+  "non_equivalence": {
+    "scaffold_gate_disposition": "NOT_RECORDED_BY_EXECUTOR",
+    "normal_evidence_schema_gate": "NOT_RUN",
+    "human_flourishing_gate": "NOT_RUN",
+    "slice_00": "NOT_PASSED",
+    "milestone_m0": "NOT_PASSED"
+  }
+}

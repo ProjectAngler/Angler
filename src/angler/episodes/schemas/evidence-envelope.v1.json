@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:project-angler:schema:evidence-envelope:1.0.0",
+  "title": "ANG-CTR-EVIDENCE-ENVELOPE-001@1.0.0",
+  "description": "Canonical identity, provenance, visibility, compatibility, and integrity envelope. Validation does not imply truth, safety, authorization, or promotion.",
+  "type": "object",
+  "required": [
+    "envelope_contract",
+    "payload_contract",
+    "artifact_type",
+    "artifact_id",
+    "payload_binding",
+    "producer",
+    "created_at_utc",
+    "reproducibility",
+    "parents",
+    "visibility",
+    "semantic_bindings",
+    "human_impact",
+    "integrity",
+    "attestations",
+    "extensions"
+  ],
+  "properties": {
+    "envelope_contract": {"$ref": "#/$defs/versionedContract"},
+    "payload_contract": {"$ref": "#/$defs/versionedContract"},
+    "artifact_type": {"type": "string", "minLength": 1},
+    "artifact_id": {"$ref": "#/$defs/digestId"},
+    "payload_binding": {
+      "type": "object",
+      "required": ["mode", "content_id", "canonicalization_profile", "canonical_size_or_protected_size_class"],
+      "properties": {
+        "mode": {"enum": ["SHA256", "HMAC_SHA256", "AUTHENTICATED_CIPHERTEXT_SHA256"]},
+        "content_id": {"$ref": "#/$defs/digestId"},
+        "canonicalization_profile": {"const": "ANG-CANON-JSON-001@1"},
+        "commitment_key_or_cipher_profile_ref": {"type": ["string", "null"]},
+        "canonical_size_or_protected_size_class": {"type": ["integer", "string"]}
+      },
+      "additionalProperties": false
+    },
+    "producer": {
+      "type": "object",
+      "required": ["component_id", "code_identity", "dependency_snapshot_ref", "run_or_transaction_ref", "authority_or_delegation_ref"],
+      "properties": {
+        "component_id": {"type": "string", "minLength": 1},
+        "code_identity": {"type": "string", "minLength": 1},
+        "dependency_snapshot_ref": {"type": "string", "minLength": 1},
+        "run_or_transaction_ref": {"type": "string", "minLength": 1},
+        "authority_or_delegation_ref": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "created_at_utc": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"},
+    "reproducibility": {
+      "type": "object",
+      "required": ["level", "tolerance_profile_ref"],
+      "properties": {
+        "level": {"enum": ["DETERMINISTIC", "SEEDED_TOLERANT", "OBSERVATIONAL"]},
+        "tolerance_profile_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "parents": {"type": "array", "items": {"$ref": "#/$defs/typedReference"}, "uniqueItems": true},
+    "visibility": {
+      "type": "object",
+      "required": ["class", "policy_id_and_version", "allowed_payload_principals", "allowed_projection_ids", "opaque_payload_ref"],
+      "properties": {
+        "class": {"enum": ["LEARNER_VISIBLE", "CONTROL_PLANE", "SEALED_EVALUATION", "HUMAN_AUTHORITY", "RESTRICTED_PERSONAL"]},
+        "policy_id_and_version": {"type": "string", "minLength": 1},
+        "allowed_payload_principals": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "allowed_projection_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "opaque_payload_ref": {"type": "string", "pattern": "^opaque:"}
+      },
+      "additionalProperties": false
+    },
+    "semantic_bindings": {
+      "type": "object",
+      "required": ["model_ref", "tokenizer_ref", "plastic_state_ref", "updater_optimizer_ref", "task_partition_ref", "tool_registry_ref", "seed_set_ref", "resource_inventory_ref", "execution_plan_ref", "experiment_manifest_ref", "evaluation_gate_ref"],
+      "properties": {
+        "model_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "tokenizer_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "plastic_state_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "updater_optimizer_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "task_partition_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "tool_registry_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "seed_set_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "resource_inventory_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "execution_plan_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "experiment_manifest_ref": {"$ref": "#/$defs/refOrNotApplicable"},
+        "evaluation_gate_ref": {"$ref": "#/$defs/refOrNotApplicable"}
+      },
+      "additionalProperties": false
+    },
+    "human_impact": {
+      "type": "object",
+      "required": ["requirement", "basis_ref", "assessment_ref"],
+      "properties": {
+        "requirement": {"enum": ["REQUIRED", "NOT_REQUIRED_WITH_BASIS"]},
+        "basis_ref": {"type": "string", "minLength": 1},
+        "assessment_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "integrity": {
+      "type": "object",
+      "required": ["identity_profile", "payload_count_or_shape"],
+      "properties": {
+        "identity_profile": {"type": "string", "minLength": 1},
+        "payload_count_or_shape": {"type": ["integer", "string", "object"]},
+        "low_entropy_or_enumerable": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "attestations": {"type": "array", "items": {"type": "string"}},
+    "extensions": {"type": "object"}
+  },
+  "$defs": {
+    "versionedContract": {
+      "type": "object",
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"}
+      },
+      "additionalProperties": false
+    },
+    "digestId": {"type": "string", "pattern": "^(?:sha256|hmac-sha256):[0-9a-f]{64}$"},
+    "refOrNotApplicable": {
+      "oneOf": [
+        {"type": "string", "minLength": 1},
+        {
+          "type": "object",
+          "required": ["not_applicable", "reason_code"],
+          "properties": {
+            "not_applicable": {"const": true},
+            "reason_code": {"type": "string", "minLength": 1}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "typedReference": {
+      "type": "object",
+      "required": ["artifact_id", "content_id", "artifact_type", "payload_contract", "relationship", "expected_visibility_class"],
+      "properties": {
+        "artifact_id": {"$ref": "#/$defs/digestId"},
+        "content_id": {"$ref": "#/$defs/digestId"},
+        "artifact_type": {"type": "string", "minLength": 1},
+        "payload_contract": {"$ref": "#/$defs/versionedContract"},
+        "relationship": {"type": "string", "minLength": 1},
+        "expected_visibility_class": {"enum": ["LEARNER_VISIBLE", "CONTROL_PLANE", "SEALED_EVALUATION", "HUMAN_AUTHORITY", "RESTRICTED_PERSONAL"]}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,69 @@
+{
+  "envelope_contract": {
+    "id": "ANG-CTR-EVIDENCE-ENVELOPE-001",
+    "version": "1.0.0"
+  },
+  "payload_contract": {
+    "id": "ANG-CTR-SYNTHETIC-FIXTURE-001",
+    "version": "1.0.0"
+  },
+  "artifact_type": "SYNTHETIC_CONTROL_PLANE_FIXTURE",
+  "artifact_id": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "payload_binding": {
+    "mode": "SHA256",
+    "content_id": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "canonicalization_profile": "ANG-CANON-JSON-001@1",
+    "commitment_key_or_cipher_profile_ref": null,
+    "canonical_size_or_protected_size_class": 3
+  },
+  "producer": {
+    "component_id": "ANG-COMP-SYNTHETIC-FIXTURE-001",
+    "code_identity": "git:f514c50",
+    "dependency_snapshot_ref": "python-standard-library-only",
+    "run_or_transaction_ref": "ANG-RUN-SYNTHETIC-001",
+    "authority_or_delegation_ref": "ANG-WORK-EVIDENCE-SCHEMAS-001"
+  },
+  "created_at_utc": "2026-08-25T12:00:00Z",
+  "reproducibility": {
+    "level": "DETERMINISTIC",
+    "tolerance_profile_ref": null
+  },
+  "parents": [],
+  "visibility": {
+    "class": "CONTROL_PLANE",
+    "policy_id_and_version": "ANG-POL-SYNTHETIC-CONTROL-001@1",
+    "allowed_payload_principals": [
+      "ANG-AUTH-VALIDATOR-001",
+      "ANG-BP-EVIDENCE"
+    ],
+    "allowed_projection_ids": [
+      "ANG-PROJ-PUBLIC-METADATA-001"
+    ],
+    "opaque_payload_ref": "opaque:synthetic-envelope-001"
+  },
+  "semantic_bindings": {
+    "model_ref": {"not_applicable": true, "reason_code": "NO_MODEL_IN_CR0"},
+    "tokenizer_ref": {"not_applicable": true, "reason_code": "NO_MODEL_IN_CR0"},
+    "plastic_state_ref": {"not_applicable": true, "reason_code": "NO_LEARNER_IN_CR0"},
+    "updater_optimizer_ref": {"not_applicable": true, "reason_code": "NO_LEARNER_IN_CR0"},
+    "task_partition_ref": "ANG-PARTITION-SYNTHETIC-CR0-001",
+    "tool_registry_ref": {"not_applicable": true, "reason_code": "NO_TOOLS_IN_CR0"},
+    "seed_set_ref": "ANG-SEEDS-SYNTHETIC-001",
+    "resource_inventory_ref": {"not_applicable": true, "reason_code": "NO_PROBE_IN_CR0"},
+    "execution_plan_ref": "ANG-PLAN-LOCAL-SCAFFOLD-001",
+    "experiment_manifest_ref": "ANG-MANIFEST-SYNTHETIC-001",
+    "evaluation_gate_ref": "ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001"
+  },
+  "human_impact": {
+    "requirement": "REQUIRED",
+    "basis_ref": "ANG-POL-LOCAL-SCAFFOLD-001@1",
+    "assessment_ref": "ANG-ASSESS-CONSTRUCTION-RELEASE-0-001"
+  },
+  "integrity": {
+    "identity_profile": "ANG-EVIDENCE-IDENTITY-001@1",
+    "payload_count_or_shape": {"records": 1},
+    "low_entropy_or_enumerable": false
+  },
+  "attestations": [],
+  "extensions": {}
+}

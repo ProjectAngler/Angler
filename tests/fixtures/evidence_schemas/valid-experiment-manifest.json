@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "manifest_id": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+  "purpose_and_claims": {
+    "purpose": "Validate synthetic evidence-schema behavior",
+    "intended_claim": "The CR0 scaffold implements declared structural checks only"
+  },
+  "hypotheses_and_falsifiers": {
+    "hypothesis": "Valid synthetic fixtures pass and declared invalid fixtures fail",
+    "falsifier": "Any expected invalid fixture is accepted"
+  },
+  "prohibited_claims": [
+    "adaptive reasoning demonstrated",
+    "human-flourishing gate passed",
+    "normal evidence gate passed"
+  ],
+  "code_and_dependency_refs": {
+    "code_ref": "git:f514c50+leaf",
+    "dependency_ref": "python-standard-library-only"
+  },
+  "model_tokenizer_state_updater_optimizer_refs": {
+    "model_ref": "explicit-none:no-model-in-cr0",
+    "tokenizer_ref": "explicit-none:no-tokenizer-in-cr0",
+    "state_ref": "explicit-none:no-state-in-cr0",
+    "updater_ref": "explicit-none:no-updater-in-cr0",
+    "optimizer_ref": "explicit-none:no-optimizer-in-cr0"
+  },
+  "tool_registry_and_permission_refs": {
+    "tool_registry_ref": "explicit-none:no-tools-in-cr0",
+    "permission_ref": "ANG-WORK-EVIDENCE-SCHEMAS-001"
+  },
+  "resource_inventory_plan_headroom_ceiling_refs": {
+    "inventory_ref": "explicit-none:no-probe-in-cr0",
+    "plan_ref": "ANG-PLAN-LOCAL-SCAFFOLD-001",
+    "ceiling_ref": "ANG-WORK-EVIDENCE-SCHEMAS-001"
+  },
+  "task_environment_generator_verifier_refs": {
+    "task_family_ref": "ANG-TASK-SYNTHETIC-SCHEMA-001",
+    "environment_ref": "explicit-none:no-environment-runtime-in-cr0",
+    "verifier_ref": "ANG-AUTH-VALIDATOR-001"
+  },
+  "partition_and_visibility_refs": {
+    "partition_ref": "ANG-PARTITION-SYNTHETIC-CR0-001",
+    "visibility_ref": "ANG-POL-SYNTHETIC-CONTROL-001@1"
+  },
+  "evaluation_suite_and_intervention_refs": {
+    "suite_ref": "ANG-TEST-CR0-EVIDENCE-SCAFFOLD-001",
+    "intervention_ref": "transport-and-identity-mutation-matrix"
+  },
+  "baseline_and_fair_budget_refs": {
+    "baseline_ref": "ANG-BASELINE-EVIDENCE-SCHEMAS-001",
+    "budget_ref": "ANG-WORK-EVIDENCE-SCHEMAS-001"
+  },
+  "metrics_statistics_thresholds_and_negative_controls": {
+    "metrics": ["declared-case acceptance", "declared-case rejection"],
+    "statistics_policy_ref": "deterministic-all-cases",
+    "thresholds": {
+      "positive_acceptance": "1.0000",
+      "negative_rejection": "1.0000"
+    },
+    "negative_controls": [
+      "duplicate-key",
+      "held-out-eligibility",
+      "raw-low-entropy-sealed-digest",
+      "threshold-identity-reuse"
+    ]
+  },
+  "seed_set_and_tolerance_profile": {
+    "seed_set_ref": "ANG-SEEDS-SYNTHETIC-001",
+    "reproduction_level": "DETERMINISTIC",
+    "tolerance_profile_ref": null
+  },
+  "human_impact_requirement_and_ref": {
+    "requirement": "REQUIRED",
+    "assessment_ref": "ANG-ASSESS-CONSTRUCTION-RELEASE-0-001"
+  },
+  "required_gate_refs": [
+    "ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001"
+  ],
+  "expected_output_contracts": [
+    "ANG-CTR-EVIDENCE-ENVELOPE-001@1.0.0",
+    "ANG-CTR-EPISODE-001@1.0.0",
+    "ANG-CTR-EXPERIMENT-MANIFEST-001@1.0.0"
+  ],
+  "stop_incident_and_rollback_refs": {
+    "stop_ref": "ANG-WORK-EVIDENCE-SCHEMAS-001#stop",
+    "incident_ref": "ANG-AUTH-INCIDENT-CONTROLLER-001",
+    "rollback_ref": "ANG-BASELINE-EVIDENCE-SCHEMAS-001"
+  },
+  "responsible_component_and_authority_refs": {
+    "component_ref": "ANG-BP-EVIDENCE-SCHEMAS",
+    "executor_ref": "ANG-EXEC-CODEX-ROOT-CR0-001",
+    "validator_ref": "ANG-AUTH-VALIDATOR-001"
+  },
+  "planned_start_and_expiry": {
+    "planned_start_utc": "2026-08-25T12:00:00Z",
+    "expires_at_utc": "2026-09-24T23:59:59Z"
+  },
+  "executable": true,
+  "pending_refs": []
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "synthetic_value_space": ["choice-a", "choice-b", "choice-c", "choice-d"],
+  "cases": [
+    {
+      "case_id": "raw-digest-for-enumerable-sealed-payload",
+      "visibility_class": "SEALED_EVALUATION",
+      "low_entropy_or_enumerable": true,
+      "mode": "SHA256",
+      "content_id": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "profile_ref": null,
+      "accepted": false,
+      "expected_error": "EVIDENCE_PROTECTED_COMMITMENT_REQUIRED"
+    },
+    {
+      "case_id": "hmac-for-enumerable-sealed-payload",
+      "visibility_class": "SEALED_EVALUATION",
+      "low_entropy_or_enumerable": true,
+      "mode": "HMAC_SHA256",
+      "content_id": "hmac-sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "profile_ref": "ANG-KEY-PROFILE-SYNTHETIC-001",
+      "accepted": true,
+      "expected_error": null
+    },
+    {
+      "case_id": "raw-digest-for-nonenumerable-control-payload",
+      "visibility_class": "CONTROL_PLANE",
+      "low_entropy_or_enumerable": false,
+      "mode": "SHA256",
+      "content_id": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "profile_ref": null,
+      "accepted": true,
+      "expected_error": null
+    }
+  ]
+}

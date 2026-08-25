@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:project-angler:schema:experiment-manifest:1.0.0",
+  "title": "ANG-CTR-EXPERIMENT-MANIFEST-001@1.0.0",
+  "description": "Pre-run immutable declaration. Existence of a manifest never authorizes execution or promotion.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "purpose_and_claims",
+    "hypotheses_and_falsifiers",
+    "prohibited_claims",
+    "code_and_dependency_refs",
+    "model_tokenizer_state_updater_optimizer_refs",
+    "tool_registry_and_permission_refs",
+    "resource_inventory_plan_headroom_ceiling_refs",
+    "task_environment_generator_verifier_refs",
+    "partition_and_visibility_refs",
+    "evaluation_suite_and_intervention_refs",
+    "baseline_and_fair_budget_refs",
+    "metrics_statistics_thresholds_and_negative_controls",
+    "seed_set_and_tolerance_profile",
+    "human_impact_requirement_and_ref",
+    "required_gate_refs",
+    "expected_output_contracts",
+    "stop_incident_and_rollback_refs",
+    "responsible_component_and_authority_refs",
+    "planned_start_and_expiry",
+    "executable",
+    "pending_refs"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "manifest_id": {"$ref": "#/$defs/digestId"},
+    "purpose_and_claims": {"type": "object", "minProperties": 1},
+    "hypotheses_and_falsifiers": {"type": "object", "minProperties": 1},
+    "prohibited_claims": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "code_and_dependency_refs": {"type": "object", "minProperties": 1},
+    "model_tokenizer_state_updater_optimizer_refs": {"type": "object", "minProperties": 1},
+    "tool_registry_and_permission_refs": {"type": "object", "minProperties": 1},
+    "resource_inventory_plan_headroom_ceiling_refs": {"type": "object", "minProperties": 1},
+    "task_environment_generator_verifier_refs": {"type": "object", "minProperties": 1},
+    "partition_and_visibility_refs": {"type": "object", "minProperties": 1},
+    "evaluation_suite_and_intervention_refs": {"type": "object", "minProperties": 1},
+    "baseline_and_fair_budget_refs": {"type": "object", "minProperties": 1},
+    "metrics_statistics_thresholds_and_negative_controls": {
+      "type": "object",
+      "required": ["metrics", "statistics_policy_ref", "thresholds", "negative_controls"],
+      "properties": {
+        "metrics": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+        "statistics_policy_ref": {"type": "string", "minLength": 1},
+        "thresholds": {"type": "object", "minProperties": 1},
+        "negative_controls": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true}
+      },
+      "additionalProperties": false
+    },
+    "seed_set_and_tolerance_profile": {
+      "type": "object",
+      "required": ["seed_set_ref", "reproduction_level", "tolerance_profile_ref"],
+      "properties": {
+        "seed_set_ref": {"type": "string", "minLength": 1},
+        "reproduction_level": {"enum": ["DETERMINISTIC", "SEEDED_TOLERANT", "OBSERVATIONAL"]},
+        "tolerance_profile_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "human_impact_requirement_and_ref": {
+      "type": "object",
+      "required": ["requirement", "assessment_ref"],
+      "properties": {
+        "requirement": {"enum": ["REQUIRED", "NOT_REQUIRED_WITH_BASIS"]},
+        "assessment_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "required_gate_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "expected_output_contracts": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "stop_incident_and_rollback_refs": {"type": "object", "minProperties": 1},
+    "responsible_component_and_authority_refs": {"type": "object", "minProperties": 1},
+    "planned_start_and_expiry": {
+      "type": "object",
+      "required": ["planned_start_utc", "expires_at_utc"],
+      "properties": {"planned_start_utc": {"$ref": "#/$defs/timestamp"}, "expires_at_utc": {"$ref": "#/$defs/timestamp"}},
+      "additionalProperties": false
+    },
+    "executable": {"type": "boolean"},
+    "pending_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+  },
+  "$defs": {
+    "digestId": {"type": "string", "pattern": "^(?:sha256|hmac-sha256):[0-9a-f]{64}$"},
+    "timestamp": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:project-angler:schema:episode:1.0.0",
+  "title": "ANG-CTR-EPISODE-001@1.0.0",
+  "description": "Immutable reference join for one task attempt. References never confer payload visibility.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "episode_id",
+    "task_spec_ref",
+    "trajectory_ref",
+    "feedback_ref",
+    "model_ref",
+    "tokenizer_ref",
+    "plastic_state_ref",
+    "execution_plan_ref",
+    "resource_inventory_ref",
+    "tool_registry_ref",
+    "experiment_manifest_ref",
+    "environment_and_verifier_refs",
+    "partition",
+    "learner_eligibility",
+    "eligibility_policy_ref",
+    "feedback_exposure",
+    "attempt_index",
+    "started_at_utc",
+    "ended_at_utc",
+    "termination",
+    "resource_usage_ref",
+    "declared_failure_refs"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "episode_id": {"$ref": "#/$defs/digestId"},
+    "task_spec_ref": {"$ref": "#/$defs/attemptReference"},
+    "trajectory_ref": {"$ref": "#/$defs/attemptReference"},
+    "feedback_ref": {"$ref": "#/$defs/attemptReference"},
+    "model_ref": {"type": "string", "minLength": 1},
+    "tokenizer_ref": {"type": "string", "minLength": 1},
+    "plastic_state_ref": {"type": "string", "minLength": 1},
+    "execution_plan_ref": {"type": "string", "minLength": 1},
+    "resource_inventory_ref": {"type": "string", "minLength": 1},
+    "tool_registry_ref": {"oneOf": [{"type": "string", "minLength": 1}, {"$ref": "#/$defs/explicitNone"}]},
+    "experiment_manifest_ref": {"type": "string", "minLength": 1},
+    "environment_and_verifier_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "partition": {"enum": ["TRAIN", "DEVELOPMENT", "HELD_OUT", "SEALED_TRANSFER", "SAFETY_CONTROL"]},
+    "learner_eligibility": {"enum": ["ELIGIBLE", "INELIGIBLE"]},
+    "eligibility_policy_ref": {"type": "string", "minLength": 1},
+    "feedback_exposure": {"enum": ["NONE", "SCORE_ONLY", "STRUCTURED_OUTCOME", "FULL_DECLARED_FEEDBACK"]},
+    "attempt_index": {"type": "integer", "minimum": 0},
+    "started_at_utc": {"$ref": "#/$defs/timestamp"},
+    "ended_at_utc": {"$ref": "#/$defs/timestamp"},
+    "termination": {"enum": ["COMPLETED", "FAILED", "TIMEOUT", "ABORTED", "CONTAINED"]},
+    "resource_usage_ref": {"type": "string", "minLength": 1},
+    "declared_failure_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+  },
+  "$defs": {
+    "digestId": {"type": "string", "pattern": "^(?:sha256|hmac-sha256):[0-9a-f]{64}$"},
+    "timestamp": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"},
+    "explicitNone": {
+      "type": "object",
+      "required": ["explicit_none", "reason_code"],
+      "properties": {"explicit_none": {"const": true}, "reason_code": {"type": "string", "minLength": 1}},
+      "additionalProperties": false
+    },
+    "versionedContract": {
+      "type": "object",
+      "required": ["id", "version"],
+      "properties": {"id": {"type": "string", "minLength": 1}, "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"}},
+      "additionalProperties": false
+    },
+    "attemptReference": {
+      "type": "object",
+      "required": ["artifact_id", "content_id", "artifact_type", "payload_contract", "relationship", "expected_visibility_class", "run_ref", "attempt_ref"],
+      "properties": {
+        "artifact_id": {"$ref": "#/$defs/digestId"},
+        "content_id": {"$ref": "#/$defs/digestId"},
+        "artifact_type": {"type": "string", "minLength": 1},
+        "payload_contract": {"$ref": "#/$defs/versionedContract"},
+        "relationship": {"type": "string", "minLength": 1},
+        "expected_visibility_class": {"enum": ["LEARNER_VISIBLE", "CONTROL_PLANE", "SEALED_EVALUATION", "HUMAN_AUTHORITY"]},
+        "run_ref": {"type": "string", "minLength": 1},
+        "attempt_ref": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
