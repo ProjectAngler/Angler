@@ -1,10 +1,10 @@
 ---
 release_id: ANG-CR-0001-CONSTRUCTION-RELEASE-0
 version: 2
-status: pending_revalidation
+status: authorized
 supersedes_version: 1
-revalidation_id: ANG-CR0-REVALIDATION-20260825-003
-revalidation_status: PENDING
+revalidation_id: ANG-CR0-REVALIDATION-20260825-004
+revalidation_status: PASS
 revalidated_at: 2026-08-25
 release_class: local_control_plane_scaffold
 decision: ANG-ADR-0002
@@ -22,7 +22,10 @@ independent_safety_reviewer_role: ANG-AUTH-SAFETY-APPROVER-001
 independent_safety_reviewer_instance: ANG-REVIEW-CODEX-SAFETY-CR0-001
 independent_safety_reviewer_session_ref: codex-subagent:/root/safety_change_map
 first_leaf_executor: ANG-EXEC-CODEX-ROOT-CR0-001
-resources_leaf_revision: 2
+resources_gate_version: 2
+resources_leaf_revision: 3
+resources_baseline_id: ANG-BASELINE-CR0-RESOURCES-002
+resources_baseline_sha256: A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE
 resources_leaf_executor: ANG-EXEC-CODEX-ROOT-CR0-RESOURCES-001
 resources_validator: ANG-AUTH-VALIDATOR-001
 resources_reviewer_role: ANG-AUTH-SAFETY-APPROVER-001
@@ -30,11 +33,16 @@ resources_reviewer_instance: ANG-REVIEW-CODEX-SAFETY-CR0-RESOURCES-001
 resources_reviewer_session_ref: codex-subagent:/root/safety_change_map
 resources_reviewer_vocabulary_ack: ACK_ACCEPTED
 revalidation_reviewer_role: ANG-AUTH-SAFETY-APPROVER-001
-revalidation_reviewer_instance: ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-003
+revalidation_reviewer_instance: ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-004
 revalidation_reviewer_session_ref: codex-subagent:/root/flourishing_red_team
-revalidation_decision_path: docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-003-decision.json
-revalidation_decision_status: ABSENT
-activation_base_commit: 903f9b9d5e58818d774604dbd6f4d89b2b4544e0
+revalidation_decision_path: docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-004-decision.json
+revalidation_decision_status: APPROVED
+revalidation_decision_sha256: 12EA8BB22C3F059985C1A9CEE3B90AA3469D31F2E4DD62E2F7649CA001D0CAA9
+activation_base_commit: 7313a0d951c8f27af4c036e3b67059b7506cb3f1
+rejected_revalidation_id: ANG-CR0-REVALIDATION-20260825-003
+rejected_revalidation_disposition: REJECTED
+rejected_revalidation_spec_sha256: 1AA06113B50B53327CCC79E8F06DC7F4E133AA1DA205BC762BAA677CD14F13F9
+rejected_revalidation_decision_sha256: 9C5FD13E5D7EB2B8256B703FC78F8BC2F190D2299C8523282757F7E4A559504A
 formal_human_flourishing_gate_status: NOT_RUN
 slice_id: ANG-SLICE-00-CONTROL
 slice_status: NOT_PASSED
@@ -52,13 +60,13 @@ rollback_sha256: 5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C
 
 ## Release capsule
 
-> **PENDING / NON-AUTHORIZING.** Manifest v2 is not usable authority while revalidation 003 is PENDING. No leaf, Resource test, or Resource output may start from this document. The current packet is structural review material only; authorization requires a separately authored `APPROVED` revalidation decision and a later root transition to `status: authorized` / `revalidation_status: PASS`.
+> **AUTHORIZED FOR THE EXACT RESOURCES SCAFFOLD LEAF.** Revalidation 004 independently APPROVED; Manifest v2 authorized. This permits only `ANG-WORK-CR0-RESOURCES-001@3` under its frozen paths, commands, roles, ceilings, denials, baseline, and gate. It grants no probe, model/GPU, network/package, recovered/real-person data, deployment, normal-gate, Human-Flourishing, Slice-00, M0, or scientific authority.
 
 This release registers one branch-owned EVIDENCE Tier-4 leaf, seven release-scoped branch leaves, and one integration leaf. Only EVIDENCE-SCHEMAS, SAFETY, RESOURCES, WORLDS, SCIENCE, and INTEGRATION may become activation candidates in CR0. RUNTIME, LEARNING, and TOOLS remain `not_ready`. Work may create documentation, implementation-independent JSON schemas, foreground standard-library validators, and synthetic non-person fixtures only. It authorizes no model/GPU work, network, package, external tool, recovered material, background process, deployment, promoted runtime mutation, or scientific claim.
 
 Bootstrap `ALLOW` under [the SAFETY-owned impact record](../../branches/safety/assessments/ANG-ASSESS-CONSTRUCTION-RELEASE-0-001.md) means only that these reversible construction tasks may start. EVIDENCE progression uses the separate scaffold-only `ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001`; even `SCAFFOLD_ACCEPTED` does not pass the normal `ANG-GATE-EVIDENCE-SCHEMAS-001`, which remains `NOT_RUN`. Neither bootstrap gate is `ANG-GATE-HUMAN-FLOURISHING-001`, Slice 00, M0, or product/runtime approval.
 
-The Evidence scaffold execution and its decision are historical and non-repeatable. Decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0` records `SCAFFOLD_ACCEPTED` for manifest-listed scaffold consumers only. It does not itself authorize Resources, whose ready specification remains unusable until revalidation 003 completes.
+The Evidence scaffold execution and its decision are historical and non-repeatable. Decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0` records `SCAFFOLD_ACCEPTED` for manifest-listed scaffold consumers only. It does not itself authorize Resources, whose ready revision-3 specification remains unusable until revalidation 004 completes.
 
 ## Authority and governing artifacts
 
@@ -72,8 +80,10 @@ The Evidence scaffold execution and its decision are historical and non-repeatab
 - [EVIDENCE scaffold acceptance gate](../../branches/evidence/children/evidence-schemas/gates/ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001.md)
 - [Normal EVIDENCE schema gate—specified, not run](../../branches/evidence/children/evidence-schemas/gates/ANG-GATE-EVIDENCE-SCHEMAS-001.md)
 - [CR0 Resources scaffold gate](../../branches/resources/gates/ANG-GATE-CR0-RESOURCES-001.md)
-- [CR0 Resources absent-state baseline](baselines/ANG-BASELINE-CR0-RESOURCES-001.json)
-- [PENDING revalidation 003 specification](revalidations/ANG-CR0-REVALIDATION-20260825-003.md)
+- [CR0 Resources successor absent-state baseline](baselines/ANG-BASELINE-CR0-RESOURCES-002.json)
+- [Immutable rejected revalidation 003 specification](revalidations/ANG-CR0-REVALIDATION-20260825-003.md)
+- [Immutable rejected revalidation 003 decision](revalidations/ANG-CR0-REVALIDATION-20260825-003-decision.json)
+- [PENDING successor revalidation 004 specification](revalidations/ANG-CR0-REVALIDATION-20260825-004.md)
 - [Root capsule](../../ROOT_CAPSULE.md)
 - [Recursive protocol](../../PROTOCOL.md)
 - [Integration spine](../../INTEGRATION_SPINE.md)
@@ -85,14 +95,15 @@ For the first leaf, deterministic verifier `ANG-AUTH-VALIDATOR-001` is distinct 
 
 For Resources, executor `ANG-EXEC-CODEX-ROOT-CR0-RESOURCES-001`, deterministic validator `ANG-AUTH-VALIDATOR-001`, independent SAFETY reviewer instance `ANG-REVIEW-CODEX-SAFETY-CR0-RESOURCES-001` at `codex-subagent:/root/safety_change_map`, and root recorder `ANG-BP-ROOT` are distinct. The reviewer returned `ACK_ACCEPTED` for the final dispositions `SCAFFOLD_ACCEPTED`, `SCAFFOLD_REJECTED`, or `ESCALATE`, confirming independence and reachability; this is a fulfilled precondition, not a gate disposition. Its sole future write is `docs/blueprints/releases/construction-0/branch-receipts/RESOURCES.md`, after the executor handoff; the executor is denied that path.
 
-Revalidation reviewer instance `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-003`, session `codex-subagent:/root/flourishing_red_team`, explicitly accepted and is reachable under role `ANG-AUTH-SAFETY-APPROVER-001`. It is barred from every packet/executor/Resources-decision write and may later write only `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-003-decision.json` with exactly `APPROVED`, `REJECTED`, or `ESCALATE`.
+Successor revalidation reviewer instance `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-004`, session `codex-subagent:/root/flourishing_red_team`, explicitly accepted and is independent and reachable under role `ANG-AUTH-SAFETY-APPROVER-001`. It is barred from every packet/executor/Resources-decision write and may later write only `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-004-decision.json` with exactly `APPROVED`, `REJECTED`, or `ESCALATE`.
 
 ## Frozen semantic inputs
 
 | Input | Frozen identity |
 |---|---|
 | Tier-0 blueprint | `ANG-BP-ROOT@2`; SHA-256 `A573A281D9733587891AB64B019170B40D41ACC341BA446B11EF764A63A8CE13` |
-| Root capsule | source revision 2 / capsule revision 5; SHA-256 `C2EC3B7FBBC04979AF0BA35645F858882021BAB922B26FF21EBFF050DC7C1243` |
+| Root capsule | source revision 2 / capsule revision 6; SHA-256 `E2DE70E2C118432A0B8B35D7F3B26E6DA116E99C5C5AC12B9192868366D00B72` |
+| Root status | mandatory authority-state cache; SHA-256 `CBA795AFF3CA2C24E1C9373192E792F5B108D7390DF59294D3C6FEF675A11A54` |
 | Constitution | `ANG-CON-HUMAN-FLOURISHING-001@1`; SHA-256 `A72B18C5B718829C030C33B7AFCA0F3F53A33232CE17358E6985159B04108EBA` |
 | Blueprint index | SHA-256 `1A4EA38741243E24EF46B74DA78EDDE256BDE7E9BE7EDDDAAFA013CF7FF17015` |
 | Protocol | SHA-256 `C922170BEDE154056E68732242DD489A738EF64E75453016B816F14D3E02C0CB` |
@@ -103,6 +114,8 @@ Revalidation reviewer instance `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-003`, s
 | Evidence identity decision | `ANG-ADR-0003`; SHA-256 `CBD8ACDB5EA5D0B217A047DFDC93BF36A36F60A40DE9E2BFE2C97250EF95E20F` |
 | Interface stabilization decision | `ANG-ADR-0004`; SHA-256 `90C54B0F0A107096496C1416C9AC994662265CABAE9F630CC6DF139C247562A6` |
 | EVIDENCE design | `ANG-BP-EVIDENCE@3`; SHA-256 `56DCE997BF6F002BB9202C144913B90D2A28A64203885B8A3730671AFB16ED48` |
+| EVIDENCE capsule | revision 8; SHA-256 `54860217CACB6DC5DEADA3763F8E35371C879BD8A0A792579211B3011EE70DD3` |
+| EVIDENCE status | SHA-256 `118B3D928F93F3C53B299D352B6CC5A4F2D323A2CF1297B9A06C9B0CABE34DA5` |
 | EVIDENCE-SCHEMAS design | `ANG-BP-EVIDENCE-SCHEMAS@1`; SHA-256 `2E50B0BB3F016AC0FEA3B5E72FFCDE7E945BD1D82DDA553722986339FF1F93FB` |
 | EVIDENCE schema work leaf | `ANG-WORK-EVIDENCE-SCHEMAS-001@1`; SHA-256 `5CF4A9DE5337D1C52F3D8E1CFEC6404425853808F65F31DBA6BB7284EDC53289` |
 | EVIDENCE schema baseline | `ANG-BASELINE-EVIDENCE-SCHEMAS-001`; SHA-256 `F05FA1F18183D089B53CFC1EA27139775C447709D05B6C8E303DC477E3329F8F` |
@@ -111,8 +124,10 @@ Revalidation reviewer instance `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-003`, s
 | Normal EVIDENCE schema gate | `ANG-GATE-EVIDENCE-SCHEMAS-001@1-NOT_RUN`; SHA-256 `CCDB0782B520328AA5B0A04C6684E16EB9390B8338B61FC6BBA1CB8913A49210` |
 | SAFETY design | `ANG-BP-SAFETY@2`; SHA-256 `4376A7C61D1CAFFB25671858A79C1A61185721EE850620E4A932B6D5002F8A5D` |
 | RESOURCES design | `ANG-BP-RESOURCES@2`; SHA-256 `796C1838973BB24B41416968D700DF2FD760A4BA7ECA854E7ECCB4E12B814F53` |
-| CR0 RESOURCES scaffold gate | `ANG-GATE-CR0-RESOURCES-001@1`; SHA-256 `AF52436A9E75850201622785206089B81570423B92A73E8C802B283E99F88E0B` |
-| CR0 RESOURCES absent-state baseline | `ANG-BASELINE-CR0-RESOURCES-001`; leaf revision `2`; SHA-256 `EF5387CDD4B652641E990DA1C1FF64B146B1D1598C9BAF9509D633A2FD1E2569` |
+| RESOURCES capsule | revision 5; SHA-256 `03DC17C85CF1076D8DB7482136A403D9EE4F7C804361C68210CC3232B2030175` |
+| RESOURCES status | SHA-256 `A1A221EF1FBB85EF8A41D6ECC627E8FECA2290073F849834891EDFCF92465DEA` |
+| CR0 RESOURCES scaffold gate | `ANG-GATE-CR0-RESOURCES-001@2`; SHA-256 `A12017C6B84F0ED63C021482E94379F95D524825C4C0FE25C33027A6669246F2` |
+| CR0 RESOURCES active absent-state baseline | `ANG-BASELINE-CR0-RESOURCES-002`; leaf revision `3`; SHA-256 `A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE` |
 | WORLDS design | `ANG-BP-WORLDS@2`; SHA-256 `B79D0B407F9864AB7C1DB899BA4516507C775179B843B022D91861696A39DAEA` |
 | SCIENCE design | `ANG-BP-SCIENCE@2`; SHA-256 `854DAB17C6F1CB29DF5466FB18F6D9DDFAAE72039CCC7529A7D86A4F15BF0A40` |
 | Construction policy | `ANG-POL-LOCAL-SCAFFOLD-001@1`; SHA-256 `23D04D544208C7273BA6C7860CC788CDD81640C8DD8236FFD1FED1F2D77495C6` |
@@ -120,18 +135,18 @@ Revalidation reviewer instance `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-003`, s
 | Bootstrap construction gate | `ANG-GATE-CONSTRUCTION-RELEASE-0-001@1`; SHA-256 `B768F7669241A0C3432E95E0DDB900AE5A007B2369AB3E4D073F473434DE8EEB` |
 | Bootstrap safety-design evidence | `ANG-EVID-CR0-SAFETY-DESIGN-001`; SHA-256 `0BA8237AB624C980870F263B79EDC1F3974058E8C313F1C422D993FD99FB1F4A` |
 | SAFETY work leaf | `ANG-WORK-CR0-SAFETY-001@1`; SHA-256 `A7D9C4FC82C9D7C8470B8085BB39F93D64A1B05A9C83614F9B47746860A193EE` |
-| RESOURCES work leaf | `ANG-WORK-CR0-RESOURCES-001@2`; SHA-256 `4591AA3D673CD9ADCFECFD39CBDE7B8141C127F6F45EFFEBEE09086E35880638`; ready specification, unusable while revalidation is PENDING |
+| RESOURCES work leaf | `ANG-WORK-CR0-RESOURCES-001@3`; SHA-256 `67BFE6FA3A9131D08293E8FB211504A9C9C7CCE5A4E9CF837DBBCA48AEFB7DBA`; ready specification, unusable while revalidation is PENDING |
 | WORLDS work leaf | `ANG-WORK-CR0-WORLDS-001@1`; SHA-256 `3ADCE6430F40D27AA2F5027393898BC448BA3616EE1BAC72E513E1F1AA34E704` |
 | SCIENCE work leaf | `ANG-WORK-CR0-SCIENCE-001@1`; SHA-256 `363D4848173BE0D6EBAE840BB71D01712D8F4E08891ACAB3DA91F9C841C73798` |
 | RUNTIME work leaf | `ANG-WORK-CR0-RUNTIME-001@1`; SHA-256 `A00FF073CB671DA626B991FBC00045AD24FC354E5C21B8B8ABD542367CBC355C` |
 | LEARNING work leaf | `ANG-WORK-CR0-LEARNING-001@1`; SHA-256 `5D69A7B0DE3DF06E647ADF538C88E933514ED3F97855D2F10F242BFCEAE83E44` |
 | TOOLS work leaf | `ANG-WORK-CR0-TOOLS-001@1`; SHA-256 `092796D9D02DE5E3A561C460257E77E65660D5338EE8E7A26261922BEDB6D551` |
 | INTEGRATION work leaf | `ANG-WORK-CR0-INTEGRATION-001@1`; SHA-256 `6A8378F9D5241078F80FCEC8895391F1B88731A3C9AFC08AA41E3872DC92B472` |
-| CR0 structural validator | SHA-256 `BAAEFB0BECD410AE572C2F7365AA469C5DC92EDA64DB724F11C5732B9C2B5AB4` |
-| Activation base commit | `903f9b9d5e58818d774604dbd6f4d89b2b4544e0` |
+| CR0 structural validator | SHA-256 `50C4700BE03F680DB229A325A2816DB6F0BD3EE2059507F12E159FC9EC431E94` |
+| Activation base commit | `7313a0d951c8f27af4c036e3b67059b7506cb3f1` |
 | Rollback archive | SHA-256 `5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C3` |
 
-Status files are continuation summaries rather than semantic inputs. Workers must read current status for blockers but do not invalidate a leaf merely because a roll-up was refreshed. Any change to a semantic input above stops all unopened leaves until this manifest is superseded or explicitly revalidated.
+Continuation caches remain summaries rather than normative branch designs, but their authority-state references are mandatory inputs for this successor packet. Root and RESOURCES CAPSULE/STATUS must identify only active revalidation 004, gate@2, leaf@3, and baseline-002 with its exact hash; revalidation 003 may appear only as explicit immutable `REJECTED` history. Any mismatch stops all unopened leaves and requires repair plus successor revalidation.
 
 ## Version 2 authoring-mechanism revalidation
 
@@ -178,31 +193,40 @@ No construction leaf or scaffold test has run, and no handoff or gate-decision a
 
 Manifest v2 is therefore reauthorized only for its exact frozen scope. Any executor-binding, handoff-authority, disposition-vocabulary, gate, or other semantic change stops unopened work and requires another explicit revalidation.
 
-## Same-version revalidation 003 — PENDING Resources activation
+## Same-version revalidation 003 — immutable REJECTED failure evidence
 
-Revalidation record `ANG-CR0-REVALIDATION-20260825-003`, dated 2026-08-25, is **PENDING / NON-AUTHORIZING**. Manifest v2 is not usable authority while revalidation 003 is PENDING. The ready Resources specification cannot be executed, and no Resources leaf, test, or output has run.
+Revalidation record `ANG-CR0-REVALIDATION-20260825-003`, dated 2026-08-25, is **REJECTED**. Its specification SHA-256 is `1AA06113B50B53327CCC79E8F06DC7F4E133AA1DA205BC762BAA677CD14F13F9`; its independently authored decision SHA-256 is `9C5FD13E5D7EB2B8256B703FC78F8BC2F190D2299C8523282757F7E4A559504A`. Both files and predecessor baseline `ANG-BASELINE-CR0-RESOURCES-001` SHA-256 `EF5387CDD4B652641E990DA1C1FF64B146B1D1598C9BAF9509D633A2FD1E2569` are immutable failure evidence.
 
-The accepted Evidence scaffold decision is immutable historical evidence. It binds execution-time Manifest v2 SHA-256 `802D152574ABD5771CF851293F9E2240039472F61DBC78472D2BF3638CE5E5D2`, Evidence leaf SHA-256 `5CF4A9DE5337D1C52F3D8E1CFEC6404425853808F65F31DBA6BB7284EDC53289`, and its exact receipts/handoff. This manifest records, but does not rewrite, its `SCAFFOLD_ACCEPTED` disposition. Historical Evidence work is historical and non-repeatable; its normal gate remains `NOT_RUN`.
+The decision identified a stale continuation-cache rollback identity: required root and RESOURCES status files cited a different baseline hash than the gate, leaf, manifest, validator, and specification. The prior static validator did not scan those mandatory continuation reads. Rejection granted no authority, ran no Resources leaf or test, created none of the nine Resources outputs, and cannot be retried or rewritten.
 
-The packet only records the already-listed Resources candidate with a full gate, exact absent-state baseline at commit `903f9b9d5e58818d774604dbd6f4d89b2b4544e0`, concrete separated roles, unchanged nine output paths, and unchanged local synthetic ceilings/commands/denials. It adds no scope, path, command, threshold, resource ceiling, capability, probe, model/GPU, network/package, recovered/real-person data, deployment, external effect, or normal-gate authority.
+## Same-version revalidation 004 — independently APPROVED Resources activation
 
-| PENDING packet binding | Exact identity |
+Revalidation record `ANG-CR0-REVALIDATION-20260825-004`, dated 2026-08-25, supersedes rejected 003 for future review and is independently **APPROVED**. Its reviewed candidate state was **PENDING / NON-AUTHORIZING** and no Resources leaf, test, output, receipt, or handoff existed during review. At authorization time, no Resources leaf, test, or output has run. Independent decision SHA-256 `12EA8BB22C3F059985C1A9CEE3B90AA3469D31F2E4DD62E2F7649CA001D0CAA9` binds the exact frozen packet and states that approval alone was not execution authority; this root ledger now performs only the predeclared `authorized` / `PASS` transition.
+
+The accepted Evidence scaffold decision remains immutable historical evidence. It binds execution-time Manifest v2 SHA-256 `802D152574ABD5771CF851293F9E2240039472F61DBC78472D2BF3638CE5E5D2`, Evidence leaf SHA-256 `5CF4A9DE5337D1C52F3D8E1CFEC6404425853808F65F31DBA6BB7284EDC53289`, and its exact receipts/handoff. This manifest records, but does not rewrite, its `SCAFFOLD_ACCEPTED` disposition. Historical Evidence work is historical and non-repeatable; its normal gate remains `NOT_RUN`.
+
+The successor packet starts from clean commit `7313a0d951c8f27af4c036e3b67059b7506cb3f1`, preserves the same nine outputs, local synthetic commands, ceilings, roles, denials, and non-equivalence, and adds only corrected rollback identity plus validator coverage of mandatory authority-state caches. It adds no path, command, resource ceiling, capability, probe, model/GPU, network/package, recovered/real-person data, deployment, external effect, or normal-gate authority.
+
+| PENDING successor binding | Exact identity |
 |---|---|
 | Evidence predecessor decision | `SCAFFOLD_ACCEPTED`; SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0` |
-| Resources gate | `ANG-GATE-CR0-RESOURCES-001@1`; SHA-256 `AF52436A9E75850201622785206089B81570423B92A73E8C802B283E99F88E0B` |
-| Resources baseline | `ANG-BASELINE-CR0-RESOURCES-001`; leaf revision `2`; SHA-256 `EF5387CDD4B652641E990DA1C1FF64B146B1D1598C9BAF9509D633A2FD1E2569` |
-| Resources leaf | `ANG-WORK-CR0-RESOURCES-001@2`; SHA-256 `4591AA3D673CD9ADCFECFD39CBDE7B8141C127F6F45EFFEBEE09086E35880638` |
-| Blueprint index | SHA-256 `1A4EA38741243E24EF46B74DA78EDDE256BDE7E9BE7EDDDAAFA013CF7FF17015` |
-| Root capsule | revision 5; SHA-256 `C2EC3B7FBBC04979AF0BA35645F858882021BAB922B26FF21EBFF050DC7C1243` |
-| CR0 validator | SHA-256 `BAAEFB0BECD410AE572C2F7365AA469C5DC92EDA64DB724F11C5732B9C2B5AB4` |
+| Rejected-003 evidence | spec `1AA06113B50B53327CCC79E8F06DC7F4E133AA1DA205BC762BAA677CD14F13F9`; decision `9C5FD13E5D7EB2B8256B703FC78F8BC2F190D2299C8523282757F7E4A559504A` |
+| Resources gate | `ANG-GATE-CR0-RESOURCES-001@2`; SHA-256 `A12017C6B84F0ED63C021482E94379F95D524825C4C0FE25C33027A6669246F2` |
+| Resources baseline | `ANG-BASELINE-CR0-RESOURCES-002`; leaf revision `3`; SHA-256 `A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE` |
+| Resources leaf | `ANG-WORK-CR0-RESOURCES-001@3`; SHA-256 `67BFE6FA3A9131D08293E8FB211504A9C9C7CCE5A4E9CF837DBBCA48AEFB7DBA` |
+| Blueprint index | unchanged; SHA-256 `1A4EA38741243E24EF46B74DA78EDDE256BDE7E9BE7EDDDAAFA013CF7FF17015` |
+| Root capsule / status | `E2DE70E2C118432A0B8B35D7F3B26E6DA116E99C5C5AC12B9192868366D00B72` / `CBA795AFF3CA2C24E1C9373192E792F5B108D7390DF59294D3C6FEF675A11A54` |
+| RESOURCES capsule / status | `03DC17C85CF1076D8DB7482136A403D9EE4F7C804361C68210CC3232B2030175` / `A1A221EF1FBB85EF8A41D6ECC627E8FECA2290073F849834891EDFCF92465DEA` |
+| EVIDENCE capsule / status | `54860217CACB6DC5DEADA3763F8E35371C879BD8A0A792579211B3011EE70DD3` / `118B3D928F93F3C53B299D352B6CC5A4F2D323A2CF1297B9A06C9B0CABE34DA5` |
+| CR0 validator | SHA-256 `50C4700BE03F680DB229A325A2816DB6F0BD3EE2059507F12E159FC9EC431E94` |
 
-Executor `ANG-EXEC-CODEX-ROOT-CR0-RESOURCES-001` owns eight literal outputs and is denied the Resources receipt. Validator `ANG-AUTH-VALIDATOR-001` produces evidence only. Reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-RESOURCES-001` alone may later write the Resources receipt after the handoff, using only `SCAFFOLD_ACCEPTED`, `SCAFFOLD_REJECTED`, or `ESCALATE`; its exact `ACK_ACCEPTED` vocabulary acknowledgement is durably frozen and fulfilled. Root only records the disposition.
+Executor `ANG-EXEC-CODEX-ROOT-CR0-RESOURCES-001` owns eight literal outputs and is denied the Resources receipt. Validator `ANG-AUTH-VALIDATOR-001` produces evidence only. Reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-RESOURCES-001` alone may later write the Resources receipt after the handoff, using only `SCAFFOLD_ACCEPTED`, `SCAFFOLD_REJECTED`, or `ESCALATE`; its successor-gate `ACK_ACCEPTED` is durably frozen and fulfilled. Root only records that disposition.
 
-Independent revalidation reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-003`, `codex-subagent:/root/flourishing_red_team`, accepted and is reachable. It may later write only `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-003-decision.json`, with `APPROVED`, `REJECTED`, or `ESCALATE`, and is denied all packet, executor, and Resources-receipt writes. That decision is absent during PENDING.
+Independent successor reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-004`, `codex-subagent:/root/flourishing_red_team`, authored only `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-004-decision.json`. Its disposition is exactly `APPROVED`, SHA-256 `12EA8BB22C3F059985C1A9CEE3B90AA3469D31F2E4DD62E2F7649CA001D0CAA9`; the reviewer remained independent and wrote no packet, executor, or Resources-receipt artifact. Root records that decision without alteration.
 
-The immutable work/spec is `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-003.md`. To avoid a reciprocal hash cycle, this manifest references the spec by ID/path but does not pin its hash; the spec pins the final PENDING manifest and validator hashes, and the future independent decision must pin both. No circular hash claim is authority.
+The successor work/spec is `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-004.md`. To avoid a reciprocal hash cycle, this manifest references the spec by ID/path but does not pin its hash; the spec pins the final PENDING manifest and validator hashes, and the future independent decision must pin both. No circular hash claim is authority.
 
-Only the three static commands declared by the revalidation spec may assess this PENDING packet. A successful CR0 result must say `PENDING / NON-AUTHORIZING`; it cannot authorize execution. Later PASS requires an exact `APPROVED` independent decision, preservation of the fulfilled Resources reviewer `ACK_ACCEPTED` binding, unchanged packet hashes, all nine targets still absent, and a separate root transition to `status: authorized` / `revalidation_status: PASS`. Normal Evidence, Resource design, Human-Flourishing, Slice 00, and M0 states remain `NOT_RUN` or `NOT_PASSED`.
+The two PENDING review rounds produced the required `PENDING / NON-AUTHORIZING` result. Revalidation 004 independently APPROVED; Manifest v2 authorized only after preserving rejected-003 evidence, the Resources reviewer `ACK_ACCEPTED`, every frozen packet/cache hash, and all nine absent targets. The authorized validator branch must still pass before the first Resources write. Normal Evidence, Resource design, Human-Flourishing, Slice 00, and M0 states remain `NOT_RUN` or `NOT_PASSED`.
 
 ## Authorized leaves and dependency order
 
@@ -210,7 +234,7 @@ Only the three static commands declared by the revalidation spec may assess this
 |---|---|---|---|---|---|
 | [`ANG-WORK-CR0-SAFETY-001`](../../work/slice-00/ANG-WORK-CR0-SAFETY-001.md) | `ANG-BP-SAFETY` | concrete executor binding and gate recheck | not_ready | yes, after blocker | `ANG-GATE-CR0-SAFETY-001` |
 | [`ANG-WORK-EVIDENCE-SCHEMAS-001`](../../branches/evidence/children/evidence-schemas/work/ANG-WORK-EVIDENCE-SCHEMAS-001.md) | `ANG-BP-EVIDENCE-SCHEMAS` | accepted independent decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0`; normal gate remains `NOT_RUN` | scaffold_accepted (historical; non-repeatable) | no; already executed | `ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001` |
-| [`ANG-WORK-CR0-RESOURCES-001`](../../work/slice-00/ANG-WORK-CR0-RESOURCES-001.md) | `ANG-BP-RESOURCES` | Evidence `SCAFFOLD_ACCEPTED` pinned; exact baseline/roles; revalidation 003 must become independently approved and authorized | ready (unusable while revalidation PENDING) | yes, after approval | `ANG-GATE-CR0-RESOURCES-001` |
+| [`ANG-WORK-CR0-RESOURCES-001`](../../work/slice-00/ANG-WORK-CR0-RESOURCES-001.md) | `ANG-BP-RESOURCES` | Evidence `SCAFFOLD_ACCEPTED` pinned; rejected-003 evidence preserved; exact baseline-002/roles; revalidation 004 must become independently approved and authorized | ready (unusable while revalidation PENDING) | yes, after approval | `ANG-GATE-CR0-RESOURCES-001@2` |
 | [`ANG-WORK-CR0-WORLDS-001`](../../work/slice-00/ANG-WORK-CR0-WORLDS-001.md) | `ANG-BP-WORLDS` | safety plus pinned independent EVIDENCE scaffold decision | blocked | yes, after dependencies | `ANG-GATE-CR0-WORLDS-001` |
 | [`ANG-WORK-CR0-SCIENCE-001`](../../work/slice-00/ANG-WORK-CR0-SCIENCE-001.md) | `ANG-BP-SCIENCE` | safety, pinned independent EVIDENCE scaffold decision, resources, worlds | blocked | yes, after dependencies | `ANG-GATE-CR0-SCIENCE-001` |
 | [`ANG-WORK-CR0-RUNTIME-001`](../../work/slice-00/ANG-WORK-CR0-RUNTIME-001.md) | `ANG-BP-RUNTIME` | successor release | not_ready | no | `ANG-GATE-CR0-RUNTIME-001` |

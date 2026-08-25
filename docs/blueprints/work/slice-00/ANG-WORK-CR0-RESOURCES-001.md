@@ -2,12 +2,14 @@
 blueprint_id: ANG-WORK-CR0-RESOURCES-001
 parent_id: ANG-BP-RESOURCES
 release_id: ANG-CR-0001-CONSTRUCTION-RELEASE-0
-revision: 2
+revision: 3
+supersedes_revision: 2
 tier: 4
 design_status: approved
 delivery_status: ready
 activation_state: unusable_pending_revalidation
-execution_condition: ANG-CR0-REVALIDATION-20260825-003 is APPROVED and Manifest v2 is PASS/authorized
+activation_revalidation: ANG-CR0-REVALIDATION-20260825-004
+execution_condition: ANG-CR0-REVALIDATION-20260825-004 is APPROVED and Manifest v2 is PASS/authorized
 accountable_owner: ANG-BP-RESOURCES
 execution_owner: ANG-EXEC-CODEX-ROOT-CR0-RESOURCES-001
 independent_validator: ANG-AUTH-VALIDATOR-001
@@ -47,16 +49,16 @@ authorized_read_scope:
   - docs/blueprints/branches/safety/policies/ANG-POL-LOCAL-SCAFFOLD-001.md
   - docs/blueprints/branches/safety/assessments/ANG-ASSESS-CONSTRUCTION-RELEASE-0-001.md
   - docs/blueprints/releases/construction-0/MANIFEST.md
-  - docs/blueprints/releases/construction-0/baselines/ANG-BASELINE-CR0-RESOURCES-001.json
+  - docs/blueprints/releases/construction-0/baselines/ANG-BASELINE-CR0-RESOURCES-002.json
   - docs/blueprints/branches/resources/gates/ANG-GATE-CR0-RESOURCES-001.md
   - artifacts/control-plane/evidence-schemas/scaffold-gate-decision.json
   - src/angler/episodes/schemas/evidence-envelope.v1.json
 updated_at: 2026-08-25
-gate: ANG-GATE-CR0-RESOURCES-001@1
+gate: ANG-GATE-CR0-RESOURCES-001@2
 normal_resource_design_gate: ANG-GATE-RESOURCE-DESIGN-001@1-NOT_RUN
 human_impact_assessment: ANG-ASSESS-CONSTRUCTION-RELEASE-0-001@1
 human_flourishing_gate: ANG-GATE-HUMAN-FLOURISHING-001@1-NOT_RUN
-rollback_ref: ANG-BASELINE-CR0-RESOURCES-001@sha256:EF5387CDD4B652641E990DA1C1FF64B146B1D1598C9BAF9509D633A2FD1E2569
+rollback_ref: ANG-BASELINE-CR0-RESOURCES-002@sha256:A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE
 ---
 
 # Exact objective
@@ -69,11 +71,11 @@ Read only the literal `authorized_read_scope`. Do not inspect the host/GPU, enum
 
 ## Versioned inputs and preconditions
 
-- Base commit `903f9b9d5e58818d774604dbd6f4d89b2b4544e0`; `ANG-BP-ROOT@2`; `ANG-BP-RESOURCES@2` SHA-256 `796C1838973BB24B41416968D700DF2FD760A4BA7ECA854E7ECCB4E12B814F53`.
+- Base commit `7313a0d951c8f27af4c036e3b67059b7506cb3f1`; `ANG-BP-ROOT@2`; `ANG-BP-RESOURCES@2` SHA-256 `796C1838973BB24B41416968D700DF2FD760A4BA7ECA854E7ECCB4E12B814F53`.
 - Interface registry SHA-256 `76CF641C07438F07C8178A3F0324DADCEB12E6C71A278B665ADE3A07D4818CA7`; ADR-0004 SHA-256 `90C54B0F0A107096496C1416C9AC994662265CABAE9F630CC6DF139C247562A6`.
 - `ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001` identity `ANG-EVID-CR0-EVIDENCE-SCAFFOLD-520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0`, decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0`, disposition `SCAFFOLD_ACCEPTED`. `ANG-GATE-EVIDENCE-SCHEMAS-001` remains `NOT_RUN`.
-- Gate SHA-256 `AF52436A9E75850201622785206089B81570423B92A73E8C802B283E99F88E0B`; baseline SHA-256 `EF5387CDD4B652641E990DA1C1FF64B146B1D1598C9BAF9509D633A2FD1E2569`. All nine targets must remain absent before start.
-- Revalidation 003 must be independently `APPROVED`, and Manifest v2 must separately be `PASS`/`authorized`. PENDING is NON-AUTHORIZING.
+- Gate version 2 SHA-256 `A12017C6B84F0ED63C021482E94379F95D524825C4C0FE25C33027A6669246F2`; baseline `ANG-BASELINE-CR0-RESOURCES-002` SHA-256 `A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE`. All nine targets must remain absent before start.
+- Revalidation 003 and its `REJECTED` decision are immutable failure evidence and grant no authority. Successor revalidation 004 must be independently `APPROVED`, and Manifest v2 must separately be `PASS`/`authorized`. PENDING is NON-AUTHORIZING.
 
 ## Exact outputs and authorized write scope
 
@@ -97,7 +99,7 @@ Author only through the host-provided Codex `apply_patch` primitive on the activ
 
 ## Dependencies and status
 
-The specification is `ready` but unusable while revalidation 003 is PENDING. Root alone records an `APPROVED` revalidation and changes the manifest to authorized; the executor cannot self-activate. Historical Evidence work is non-repeatable. Normal Evidence/Resource gates remain `NOT_RUN`.
+The revision-3 specification is `ready` but unusable while revalidation 004 is PENDING. Root alone records an `APPROVED` revalidation and changes the manifest to authorized; the executor cannot self-activate. Historical Evidence work and rejected revalidation 003 are non-repeatable. Normal Evidence/Resource gates remain `NOT_RUN`.
 
 ## Predeclared tests and evidence
 

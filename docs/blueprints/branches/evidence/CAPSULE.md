@@ -1,7 +1,7 @@
 ---
 blueprint_id: ANG-BP-EVIDENCE
 blueprint_revision: 3
-capsule_revision: 7
+capsule_revision: 8
 freshness_date: 2026-08-25
 parent_id: ANG-BP-ROOT
 target_tokens: 700
@@ -25,4 +25,4 @@ Concrete Slice-00 children: EVIDENCE-SCHEMAS and ARTIFACT-LINEAGE. EVENT-STORE a
 
 Current normal gate: `ANG-GATE-EVIDENCE-DESIGN-001`. Revision 3 passed CR0 design review under `ANG-ADR-0003`. The exact EVIDENCE-SCHEMAS bootstrap scaffold was executed and independent decision `ANG-EVID-CR0-EVIDENCE-SCAFFOLD-520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0` records `SCAFFOLD_ACCEPTED`. This unlocks only manifest-listed CR0 scaffold dependency review. The normal `ANG-GATE-EVIDENCE-SCHEMAS-001` remains `NOT_RUN`, so the node and ARTIFACT-LINEAGE are not complete. No Human-Flourishing, Slice-00, scientific, or M0 pass exists.
 
-Next: preserve the immutable Evidence leaf, receipts, handoff, and decision. Support read-only verification of the PENDING Resources activation packet; do not rerun the historical Evidence leaf or represent scaffold acceptance as the normal technical gate.
+Next: preserve the immutable Evidence leaf, receipts, handoff, and decision. `ANG-CR0-REVALIDATION-20260825-003` was `REJECTED` and remains immutable failure evidence; support only read-only verification of active PENDING successor `ANG-CR0-REVALIDATION-20260825-004`. Do not rerun the historical Evidence leaf or represent scaffold acceptance as the normal technical gate.

@@ -1,0 +1,284 @@
+{
+  "schema_version": "1.0",
+  "revalidation_id": "ANG-CR0-REVALIDATION-20260825-004",
+  "disposition": "APPROVED",
+  "reviewer_role": "ANG-AUTH-SAFETY-APPROVER-001",
+  "reviewer_instance": "ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-004",
+  "reviewer_session_ref": "codex-subagent:/root/flourishing_red_team",
+  "resources_reviewer_vocabulary_ack": "ACK_ACCEPTED",
+  "reviewed_on": "2026-08-25",
+  "packet_state_reviewed": "PENDING / NON-AUTHORIZING",
+  "reasons": [
+    "Every frozen 004 packet, cache, validator, predecessor, and rejected-003 evidence hash matched its declared SHA-256 identity at final review.",
+    "The pre-decision diff against clean base commit 7313a0d951c8f27af4c036e3b67059b7506cb3f1 contained exactly the 12 declared successor paths and no out-of-packet change.",
+    "All nine Resources targets and the reserved revalidation-004 decision path were absent before this decision was created.",
+    "The stale rollback-reference defect that caused revalidation 003 to be rejected is corrected with the successor baseline, gate, and leaf identities. All six frozen continuation caches consistently preserve 003 only as REJECTED history and identify 004 as the sole active PENDING successor; the four authority-state caches bind only baseline-002, gate version 2, and leaf revision 3.",
+    "Role separation, the Resources reviewer's fulfilled ACK_ACCEPTED vocabulary binding, non-equivalence, denials, and the non-circular hash direction are internally consistent and fail closed.",
+    "Two sequential static review rounds produced identical zero-exit results: Safety PASS, CR0 structural PASS with explicit PENDING / NON-AUTHORIZING language and 100 unique outputs, and blueprint-tree PASS with 21 concrete nodes, 38 declared children, and 139 Markdown files. No Resources leaf or Resource test ran."
+  ],
+  "dissent": [],
+  "bindings": {
+    "base_commit": "7313a0d951c8f27af4c036e3b67059b7506cb3f1",
+    "revalidation_spec_sha256": "50ED004747A4DABD9D306E8931D8BFD8A558F0CDE441596645A8E028F15CF9D2",
+    "pending_manifest_sha256": "A42B15F2296676838D650045C879BAB4A7123FBF7D6853B89CBB527C247ECF14",
+    "rejected_revalidation_003_spec_sha256": "1AA06113B50B53327CCC79E8F06DC7F4E133AA1DA205BC762BAA677CD14F13F9",
+    "rejected_revalidation_003_decision_sha256": "9C5FD13E5D7EB2B8256B703FC78F8BC2F190D2299C8523282757F7E4A559504A",
+    "historical_resources_baseline_001_sha256": "EF5387CDD4B652641E990DA1C1FF64B146B1D1598C9BAF9509D633A2FD1E2569",
+    "resources_leaf_id": "ANG-WORK-CR0-RESOURCES-001@3",
+    "resources_leaf_sha256": "67BFE6FA3A9131D08293E8FB211504A9C9C7CCE5A4E9CF837DBBCA48AEFB7DBA",
+    "resources_gate_id": "ANG-GATE-CR0-RESOURCES-001@2",
+    "resources_gate_sha256": "A12017C6B84F0ED63C021482E94379F95D524825C4C0FE25C33027A6669246F2",
+    "resources_baseline_id": "ANG-BASELINE-CR0-RESOURCES-002",
+    "resources_baseline_sha256": "A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE",
+    "validator_sha256": "50C4700BE03F680DB229A325A2816DB6F0BD3EE2059507F12E159FC9EC431E94",
+    "blueprint_index_sha256": "1A4EA38741243E24EF46B74DA78EDDE256BDE7E9BE7EDDDAAFA013CF7FF17015",
+    "root_capsule_sha256": "E2DE70E2C118432A0B8B35D7F3B26E6DA116E99C5C5AC12B9192868366D00B72",
+    "root_status_sha256": "CBA795AFF3CA2C24E1C9373192E792F5B108D7390DF59294D3C6FEF675A11A54",
+    "resources_capsule_sha256": "03DC17C85CF1076D8DB7482136A403D9EE4F7C804361C68210CC3232B2030175",
+    "resources_status_sha256": "A1A221EF1FBB85EF8A41D6ECC627E8FECA2290073F849834891EDFCF92465DEA",
+    "evidence_capsule_sha256": "54860217CACB6DC5DEADA3763F8E35371C879BD8A0A792579211B3011EE70DD3",
+    "evidence_status_sha256": "118B3D928F93F3C53B299D352B6CC5A4F2D323A2CF1297B9A06C9B0CABE34DA5",
+    "evidence_decision_sha256": "520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0",
+    "evidence_execution_manifest_sha256": "802D152574ABD5771CF851293F9E2240039472F61DBC78472D2BF3638CE5E5D2"
+  },
+  "verified_predecision_diff": {
+    "base_commit": "7313a0d951c8f27af4c036e3b67059b7506cb3f1",
+    "path_count": 12,
+    "outside_declared_packet_change": false,
+    "changed_paths": [
+      {
+        "change": "M",
+        "path": "docs/blueprints/ROOT_CAPSULE.md",
+        "sha256": "E2DE70E2C118432A0B8B35D7F3B26E6DA116E99C5C5AC12B9192868366D00B72"
+      },
+      {
+        "change": "M",
+        "path": "docs/blueprints/STATUS.md",
+        "sha256": "CBA795AFF3CA2C24E1C9373192E792F5B108D7390DF59294D3C6FEF675A11A54"
+      },
+      {
+        "change": "M",
+        "path": "docs/blueprints/branches/evidence/CAPSULE.md",
+        "sha256": "54860217CACB6DC5DEADA3763F8E35371C879BD8A0A792579211B3011EE70DD3"
+      },
+      {
+        "change": "M",
+        "path": "docs/blueprints/branches/evidence/STATUS.md",
+        "sha256": "118B3D928F93F3C53B299D352B6CC5A4F2D323A2CF1297B9A06C9B0CABE34DA5"
+      },
+      {
+        "change": "M",
+        "path": "docs/blueprints/branches/resources/CAPSULE.md",
+        "sha256": "03DC17C85CF1076D8DB7482136A403D9EE4F7C804361C68210CC3232B2030175"
+      },
+      {
+        "change": "M",
+        "path": "docs/blueprints/branches/resources/STATUS.md",
+        "sha256": "A1A221EF1FBB85EF8A41D6ECC627E8FECA2290073F849834891EDFCF92465DEA"
+      },
+      {
+        "change": "M",
+        "path": "docs/blueprints/branches/resources/gates/ANG-GATE-CR0-RESOURCES-001.md",
+        "sha256": "A12017C6B84F0ED63C021482E94379F95D524825C4C0FE25C33027A6669246F2"
+      },
+      {
+        "change": "M",
+        "path": "docs/blueprints/releases/construction-0/MANIFEST.md",
+        "sha256": "A42B15F2296676838D650045C879BAB4A7123FBF7D6853B89CBB527C247ECF14"
+      },
+      {
+        "change": "A",
+        "path": "docs/blueprints/releases/construction-0/baselines/ANG-BASELINE-CR0-RESOURCES-002.json",
+        "sha256": "A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE"
+      },
+      {
+        "change": "A",
+        "path": "docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-004.md",
+        "sha256": "50ED004747A4DABD9D306E8931D8BFD8A558F0CDE441596645A8E028F15CF9D2"
+      },
+      {
+        "change": "M",
+        "path": "docs/blueprints/work/slice-00/ANG-WORK-CR0-RESOURCES-001.md",
+        "sha256": "67BFE6FA3A9131D08293E8FB211504A9C9C7CCE5A4E9CF837DBBCA48AEFB7DBA"
+      },
+      {
+        "change": "M",
+        "path": "docs/blueprints/work/slice-00/validate-construction-release-0.ps1",
+        "sha256": "50C4700BE03F680DB229A325A2816DB6F0BD3EE2059507F12E159FC9EC431E94"
+      }
+    ]
+  },
+  "verified_absence": {
+    "resources_target_count": 9,
+    "decision_path_absent_before_write": true,
+    "paths": [
+      {
+        "path": "schemas/control/v1/resources/resource-inventory.schema.json",
+        "state": "absent"
+      },
+      {
+        "path": "schemas/control/v1/resources/execution-plan.schema.json",
+        "state": "absent"
+      },
+      {
+        "path": "tests/synthetic/slice00/resources/constrained.inventory.json",
+        "state": "absent"
+      },
+      {
+        "path": "tests/synthetic/slice00/resources/workstation.inventory.json",
+        "state": "absent"
+      },
+      {
+        "path": "tests/synthetic/slice00/resources/cluster.inventory.json",
+        "state": "absent"
+      },
+      {
+        "path": "tests/synthetic/slice00/resources/invalid-overcommitted.plan.json",
+        "state": "absent"
+      },
+      {
+        "path": "tests/synthetic/slice00/resources/Test-Cr0ResourceScaffold.ps1",
+        "state": "absent"
+      },
+      {
+        "path": "docs/blueprints/releases/construction-0/branch-receipts/RESOURCES.md",
+        "state": "absent"
+      },
+      {
+        "path": "docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-RESOURCES-001.md",
+        "state": "absent"
+      },
+      {
+        "path": "docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-004-decision.json",
+        "state": "absent_before_review_decision"
+      }
+    ]
+  },
+  "cache_consistency": {
+    "verified": true,
+    "all_six_frozen_hashes_match": true,
+    "authority_state_caches": [
+      "docs/blueprints/ROOT_CAPSULE.md",
+      "docs/blueprints/STATUS.md",
+      "docs/blueprints/branches/resources/CAPSULE.md",
+      "docs/blueprints/branches/resources/STATUS.md"
+    ],
+    "evidence_caches": [
+      "docs/blueprints/branches/evidence/CAPSULE.md",
+      "docs/blueprints/branches/evidence/STATUS.md"
+    ],
+    "active_revalidation": "ANG-CR0-REVALIDATION-20260825-004",
+    "active_state": "PENDING / NON-AUTHORIZING",
+    "active_resources_gate": "ANG-GATE-CR0-RESOURCES-001@2",
+    "active_resources_leaf": "ANG-WORK-CR0-RESOURCES-001@3",
+    "active_resources_baseline": "ANG-BASELINE-CR0-RESOURCES-002@sha256:A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE",
+    "revalidation_003_treatment": "immutable REJECTED history only",
+    "stale_baseline_reference_found": false,
+    "other_active_revalidation_found": false,
+    "validator_coverage": "The validator pins all six cache hashes and semantically checks every root/Resources authority-state cache for baseline-002, gate@2, leaf@3, revalidation-004 PENDING/NON-AUTHORIZING, forbidden baseline hashes, and explicit REJECTED context for revalidation 003."
+  },
+  "role_separation": {
+    "packet_writer": "ANG-BP-ROOT",
+    "resources_executor": "ANG-EXEC-CODEX-ROOT-CR0-RESOURCES-001",
+    "deterministic_validator": "ANG-AUTH-VALIDATOR-001",
+    "resources_reviewer_instance": "ANG-REVIEW-CODEX-SAFETY-CR0-RESOURCES-001",
+    "revalidation_reviewer_instance": "ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-004",
+    "reviewer_is_packet_writer_executor_or_resources_reviewer": false,
+    "reviewer_authored_packet_inputs": false,
+    "reviewer_executed_resources_leaf_or_tests": false,
+    "reviewer_modified_resources_outputs_or_receipt": false,
+    "reviewer_write_scope": [
+      "docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-004-decision.json"
+    ],
+    "verified": true
+  },
+  "hash_direction": {
+    "verified": true,
+    "statement": "Baseline-002 precedes gate@2; gate and baseline precede leaf@3; caches and leaf precede the validator; the validator and frozen inputs precede the pending manifest; the 004 specification pins the pending manifest and validator; this decision pins both, allowing only a later authorized manifest to pin this decision without a reciprocal hash cycle."
+  },
+  "static_results": [
+    {
+      "round": 1,
+      "results": [
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File docs/blueprints/branches/safety/tests/Test-Cr0SafetyDesign.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "PASS - CR0 safety design, bootstrap non-equivalence, authority, permission ceilings, assessment, and rollback hash validated."
+        },
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File docs/blueprints/work/slice-00/validate-construction-release-0.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "Construction Release 0 structural validation PASS - PENDING / NON-AUTHORIZING: 8 release-scoped leaves plus one historical branch-owned EVIDENCE leaf, 100 unique declared outputs, exact Resources absence/roles/rollback and semantic inputs verified. This result grants no leaf execution permission."
+        },
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File tools/validate_blueprint_tree.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "Blueprint validation PASS: 21 concrete nodes, 38 declared child nodes, 139 Markdown files."
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "results": [
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File docs/blueprints/branches/safety/tests/Test-Cr0SafetyDesign.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "PASS - CR0 safety design, bootstrap non-equivalence, authority, permission ceilings, assessment, and rollback hash validated."
+        },
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File docs/blueprints/work/slice-00/validate-construction-release-0.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "Construction Release 0 structural validation PASS - PENDING / NON-AUTHORIZING: 8 release-scoped leaves plus one historical branch-owned EVIDENCE leaf, 100 unique declared outputs, exact Resources absence/roles/rollback and semantic inputs verified. This result grants no leaf execution permission."
+        },
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File tools/validate_blueprint_tree.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "Blueprint validation PASS: 21 concrete nodes, 38 declared child nodes, 139 Markdown files."
+        }
+      ]
+    }
+  ],
+  "denials_and_limits": {
+    "verified": true,
+    "resources_leaf_or_test_executed": false,
+    "resources_output_or_receipt_created": false,
+    "denied": [
+      "real or synthetic probe execution or receipt",
+      "host or GPU inspection, allocation, model use, training, or adapter mutation",
+      "network, package, dependency, plugin, external-tool, spend, or background activity",
+      "recovered, outputs/**, real-person, credential, secret, or unknown-provenance data",
+      "deployment, publication, external effect, promoted-state mutation, or authority expansion",
+      "shell or ad-hoc authoring, cross-role writes, broad deletion, or automatic archive extraction"
+    ]
+  },
+  "non_equivalence": {
+    "normal_evidence_gate": {
+      "id": "ANG-GATE-EVIDENCE-SCHEMAS-001",
+      "status": "NOT_RUN"
+    },
+    "normal_resource_gate": {
+      "id": "ANG-GATE-RESOURCE-DESIGN-001",
+      "status": "NOT_RUN"
+    },
+    "human_flourishing_gate": {
+      "id": "ANG-GATE-HUMAN-FLOURISHING-001",
+      "status": "NOT_RUN"
+    },
+    "slice_00": {
+      "id": "ANG-SLICE-00-CONTROL",
+      "status": "NOT_PASSED"
+    },
+    "milestone_m0": {
+      "id": "ANG-M0-BLUEPRINT",
+      "status": "NOT_PASSED"
+    },
+    "claim": "This approval is only an independent structural prerequisite for a possible exact CR0 Resources scaffold activation. It creates no normal Evidence, Resource, Human-Flourishing, Slice-00, M0, measured-plan, scientific, model, deployment, or external-use pass."
+  },
+  "authorization_boundary": "APPROVED is necessary but does not authorize Resources execution. Before any Resources leaf, test, output, or receipt may begin, ANG-BP-ROOT must minimally record Manifest v2 status authorized and revalidation_status PASS, pin this exact decision SHA-256 while preserving every frozen identity, and obtain a PASS from the validator in its authorized branch."
+}

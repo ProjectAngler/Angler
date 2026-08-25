@@ -2,7 +2,7 @@
 blueprint_id: ANG-BP-ROOT
 source: ../../PROJECT_BLUEPRINT.md
 source_revision: 2
-capsule_revision: 5
+capsule_revision: 6
 freshness_date: 2026-08-25
 target_tokens: 1000
 ---
@@ -57,9 +57,9 @@ Across multiple procedural task families, one persistent LoRA state must causall
 
 Construction Release 0 remains a temporary local control-plane bootstrap. Its EVIDENCE schema scaffold was built at commit `903f9b9d5e58818d774604dbd6f4d89b2b4544e0`, and independent decision `ANG-EVID-CR0-EVIDENCE-SCAFFOLD-520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0` records only `SCAFFOLD_ACCEPTED`. The normal Evidence gate remains `NOT_RUN`.
 
-Resources activation packet `ANG-CR0-REVALIDATION-20260825-003` is PENDING and explicitly non-authorizing. Its Resource leaf specification is ready but unusable until the bound independent revalidation reviewer records `APPROVED` and Manifest v2 is separately changed to `authorized`/`PASS`. No Resources output or test may run before then. Runtime, learning, tools, model/GPU use, real probes, network/dependencies, recovered/real-person data, and external effects remain unauthorized. CR0 completion is not Human-Flourishing, Slice 00, M0, or normal technical delivery.
+Resources activation `ANG-CR0-REVALIDATION-20260825-003` was independently `REJECTED` because required continuation caches cited a stale rollback identity; its specification and decision are immutable failure evidence. Successor packet `ANG-CR0-REVALIDATION-20260825-004` is active, PENDING, and explicitly non-authorizing at clean checkpoint `7313a0d951c8f27af4c036e3b67059b7506cb3f1`. It binds gate `ANG-GATE-CR0-RESOURCES-001@2`, leaf `ANG-WORK-CR0-RESOURCES-001@3`, and absent-state baseline `ANG-BASELINE-CR0-RESOURCES-002` SHA-256 `A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE`. The ready Resource leaf remains unusable until the new bound independent reviewer records `APPROVED` and Manifest v2 is separately changed to `authorized`/`PASS`. No Resources output or test may run before then. Runtime, learning, tools, model/GPU use, real probes, network/dependencies, recovered/real-person data, and external effects remain unauthorized. CR0 completion is not Human-Flourishing, Slice 00, M0, or normal technical delivery.
 
-Next exact action: the independent revalidation reviewer inspects the PENDING packet and alone writes the reserved revalidation decision. If and only if it records `APPROVED`, root may perform the separate final PASS/authorization transition; execution then begins only through the exact Resources leaf. After all bounded CR0 scaffolds receive their release dispositions, use successor/ordinary authority for normal branch, Human-Flourishing, Slice-00, and M0 gates.
+Next exact action: independent reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-004` inspects the frozen PENDING successor packet and alone writes its reserved revalidation-004 decision. If and only if it records `APPROVED`, root may perform the separate final PASS/authorization transition; execution then begins only through the exact revision-3 Resources leaf. After all bounded CR0 scaffolds receive their release dispositions, use successor/ordinary authority for normal branch, Human-Flourishing, Slice-00, and M0 gates.
 
 ## Mandatory next reads
 

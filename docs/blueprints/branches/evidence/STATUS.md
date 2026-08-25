@@ -27,7 +27,7 @@ The exact bootstrap scaffold exists at commit `903f9b9d5e58818d774604dbd6f4d89b2
 
 ## Next exact action
 
-Do not rerun or rewrite `ANG-WORK-EVIDENCE-SCHEMAS-001` or its accepted artifacts. Permit only read-only dependency verification for Resources revalidation 003. Keep ARTIFACT-LINEAGE and every normal EVIDENCE child blocked until `ANG-GATE-EVIDENCE-SCHEMAS-001` passes under ordinary prerequisites.
+Do not rerun or rewrite `ANG-WORK-EVIDENCE-SCHEMAS-001` or its accepted artifacts. `ANG-CR0-REVALIDATION-20260825-003` is immutable `REJECTED` history; permit only read-only dependency verification for active Resources successor `ANG-CR0-REVALIDATION-20260825-004`. Keep ARTIFACT-LINEAGE and every normal EVIDENCE child blocked until `ANG-GATE-EVIDENCE-SCHEMAS-001` passes under ordinary prerequisites.
 
 ## Rollback
 
