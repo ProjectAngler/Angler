@@ -1,7 +1,7 @@
 ---
 blueprint_id: ANG-BP-EVIDENCE-SCHEMAS
-blueprint_revision: 1
-capsule_revision: 4
+blueprint_revision: 2
+capsule_revision: 5
 freshness_date: 2026-08-25
 parent_id: ANG-BP-EVIDENCE
 target_tokens: 650
@@ -23,4 +23,4 @@ The envelope records an applicable assessment reference or authorization require
 
 Unknown majors reject; minor additions preserve unknown optional fields. Corrections are new linked artifacts, never overwrites.
 
-Normal gate: `ANG-GATE-EVIDENCE-SCHEMAS-001`, specified but not run. The release-scoped `ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001` may accept provisional CR0 outputs only and cannot complete this node or substitute for Human-Flourishing review. Design review passed and `ANG-WORK-EVIDENCE-SCHEMAS-001` is ready under exact LOW bootstrap authority, separated executor/validator roles, concrete reviewer instance `ANG-REVIEW-CODEX-SAFETY-CR0-001`, disjoint decision write scope, and an absent-state baseline. No code, receipt, or gate decision exists.
+Normal gate: `ANG-GATE-EVIDENCE-SCHEMAS-001`, `NOT_RUN`. The release-scoped scaffold is independently `SCAFFOLD_ACCEPTED` at commit `903f9b9d5e58818d774604dbd6f4d89b2b4544e0`, decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0`. Revision 2 records delivery continuity only and changes no contract, threshold, policy, gate, or implementation semantic. The historical leaf is non-repeatable. Human-Flourishing remains `NOT_RUN`; Slice 00 and M0 remain `NOT_PASSED`.

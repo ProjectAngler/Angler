@@ -1,7 +1,7 @@
 # EVIDENCE status
 
 Freshness: 2026-08-25  
-Revision: 3  
+Revision: 3
 Design: approved_for_cr0  
 Delivery: cr0_scaffold_accepted_normal_gate_not_run  
 Current gate: `ANG-GATE-EVIDENCE-SCHEMAS-001` (specified, `NOT_RUN`)
@@ -27,7 +27,7 @@ The exact bootstrap scaffold exists at commit `903f9b9d5e58818d774604dbd6f4d89b2
 
 ## Next exact action
 
-Do not rerun or rewrite `ANG-WORK-EVIDENCE-SCHEMAS-001` or its accepted artifacts. `ANG-CR0-REVALIDATION-20260825-003` is immutable `REJECTED` history; permit only read-only dependency verification for active Resources successor `ANG-CR0-REVALIDATION-20260825-004`. Keep ARTIFACT-LINEAGE and every normal EVIDENCE child blocked until `ANG-GATE-EVIDENCE-SCHEMAS-001` passes under ordinary prerequisites.
+Do not rerun or rewrite `ANG-WORK-EVIDENCE-SCHEMAS-001` or its accepted artifacts. This status records delivery continuity only. Resources activation 003 is immutable `REJECTED` history; the later synthetic Resources scaffold is independently accepted by receipt SHA-256 `D7221A84BE404A64487E79A93B5268E5E819E153B3F07E5647473F2855A24B4B`. Complete the one-shot continuity review, then require successor authority. Keep ARTIFACT-LINEAGE blocked until `ANG-GATE-EVIDENCE-SCHEMAS-001` passes under ordinary prerequisites.
 
 ## Rollback
 

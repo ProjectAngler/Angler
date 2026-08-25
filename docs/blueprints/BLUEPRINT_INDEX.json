@@ -19,7 +19,7 @@
       "blueprint_path": "../../PROJECT_BLUEPRINT.md",
       "capsule_path": "ROOT_CAPSULE.md",
       "design_status": "draft",
-      "delivery_status": "not_started",
+      "delivery_status": "continuity_reconciliation_active",
       "revision": 2,
       "context_budget_tokens": 1000,
       "children": [
@@ -179,7 +179,7 @@
       "capsule_path": "branches/evidence/CAPSULE.md",
       "status_path": "branches/evidence/STATUS.md",
       "design_status": "approved_for_cr0",
-      "delivery_status": "ready",
+      "delivery_status": "cr0_scaffold_accepted_normal_gate_not_run",
       "revision": 3,
       "context_budget_tokens": 700,
       "provides": [
@@ -229,8 +229,8 @@
       ],
       "gate_paths": ["branches/evidence/children/evidence-schemas/gates/ANG-GATE-EVIDENCE-SCHEMAS-001.md", "branches/evidence/children/evidence-schemas/gates/ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001.md"],
       "design_status": "approved_for_cr0",
-      "delivery_status": "ready",
-      "revision": 1,
+      "delivery_status": "cr0_scaffold_accepted_normal_gate_not_run",
+      "revision": 2,
       "context_budget_tokens": 650,
       "provides": [
         "ANG-CTR-EVIDENCE-ENVELOPE-001",
@@ -273,7 +273,7 @@
       "capsule_path": "branches/resources/CAPSULE.md",
       "status_path": "branches/resources/STATUS.md",
       "design_status": "approved_for_cr0",
-      "delivery_status": "blocked_by_evidence_schemas",
+      "delivery_status": "cr0_scaffold_accepted_normal_gate_not_run",
       "revision": 2,
       "context_budget_tokens": 750,
       "provides": [

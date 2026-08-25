@@ -32,9 +32,14 @@ project-owner instruction
 → ANG-TEST-CR0-EVIDENCE-SCAFFOLD-001 + effect receipt
 → ANG-AUTH-VALIDATOR-001 independent verification
 → ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001 (CR0-only disposition)
+→ Evidence `SCAFFOLD_ACCEPTED` decision 520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0
+→ Resources activation 003 `REJECTED` (immutable failure evidence)
+→ revalidation 004 and ANG-WORK-CR0-RESOURCES-001@3
+→ Resources `SCAFFOLD_ACCEPTED` receipt D7221A84BE404A64487E79A93B5268E5E819E153B3F07E5647473F2855A24B4B
+→ ANG-WORK-CR0-CONTINUITY-002@1 (projection reconciliation only)
 ```
 
-This chain authorizes only the exact local synthetic construction leaf. `SCAFFOLD_ACCEPTED` may unlock only exact manifest-listed CR0 scaffold consumers and is deliberately not a pass for `ANG-GATE-EVIDENCE-SCHEMAS-001`, `ANG-GATE-HUMAN-FLOURISHING-001`, Slice 00, M0, a normal child delivery gate, or any scientific claim. Any model/GPU, network, package/dependency, recovered output, real-person data, out-of-scope path, background process, deployment, or external effect requires a successor authorization.
+This chain records two exact accepted local synthetic scaffolds and the continuity-only reconciliation. Each scaffold is historical and non-repeatable. Neither disposition passes `ANG-GATE-EVIDENCE-SCHEMAS-001`, the normal Resources gate, `ANG-GATE-HUMAN-FLOURISHING-001`, Slice 00, M0, or any scientific claim. Resources evidence is synthetic and unmeasured; no host/GPU probe occurred. After continuity, any model/GPU, probe, network, package/dependency, recovered output, real-person data, background process, deployment, external effect, or other executable work requires a successor manifest and fresh authority.
 
 ## Completion rule
 

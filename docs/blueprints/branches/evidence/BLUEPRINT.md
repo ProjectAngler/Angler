@@ -5,7 +5,7 @@ parent_id: ANG-BP-ROOT
 revision: 3
 tier: 1
 design_status: approved_for_cr0
-delivery_status: ready
+delivery_status: cr0_scaffold_accepted_normal_gate_not_run
 accountable_owner: ANG-AUTH-PROJECT-OWNER-001
 execution_owner: human_directed_leaf_operator
 updated_at: 2026-08-25
@@ -139,7 +139,7 @@ Immutable artifacts, relationship records, and signed authority records are auth
 
 | Child ID | Outcome | Gate | Status |
 |---|---|---|---|
-| `ANG-BP-EVIDENCE-SCHEMAS` | Canonical envelope, visibility, `Episode`, and `ExperimentManifest` contracts | normal `ANG-GATE-EVIDENCE-SCHEMAS-001`; CR0-only `ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001` | design approved; first CR0 scaffold leaf ready; normal gate not run |
+| `ANG-BP-EVIDENCE-SCHEMAS` | Canonical envelope, visibility, `Episode`, and `ExperimentManifest` contracts | normal `ANG-GATE-EVIDENCE-SCHEMAS-001`; CR0-only `ANG-GATE-CR0-EVIDENCE-SCAFFOLD-001` | CR0 scaffold accepted; normal gate `NOT_RUN` |
 | `ANG-BP-EVENT-STORE` | Append-only, correction-preserving local record | `ANG-GATE-EVENT-STORE-001` | bounded stub; Slice 01 |
 | `ANG-BP-ARTIFACT-LINEAGE` | Content addressing, typed parentage, correction, and authorization binding | `ANG-GATE-ARTIFACT-LINEAGE-001` | design approved; delivery blocked by schema gate |
 | `ANG-BP-EXPERIMENT-RUNNER` | Frozen manifests, seeds, partitions, tolerances, and results | `ANG-GATE-EXPERIMENT-RUNNER-001` | bounded stub; Slice 01 |
@@ -149,8 +149,8 @@ Immutable artifacts, relationship records, and signed authority records are auth
 ## Dependencies and sequencing
 
 1. Approve canonical envelope/visibility and lineage/authorization contracts together; neither is safe in isolation.
-2. Activate `ANG-WORK-EVIDENCE-SCHEMAS-001` under a current Release-0 work authorization.
-3. After its contract tests pass, activate `ANG-WORK-ARTIFACT-LINEAGE-001`.
+2. Preserve the accepted historical `ANG-WORK-EVIDENCE-SCHEMAS-001` scaffold and its independent disposition; do not rerun it.
+3. Activate `ANG-WORK-ARTIFACT-LINEAGE-001` only after the normal Evidence-Schemas gate passes under ordinary authority.
 4. Require cross-branch producer/consumer review before changing registry rows from conceptual to detailed draft.
 5. Expand EVENT-STORE and EXPERIMENT-RUNNER for Slice 01; expand replay only after runtime state identity exists.
 
@@ -197,8 +197,8 @@ Identity and visibility semantics are invariant across resource tiers. Constrain
 
 ## Current status and blockers
 
-Revision 3 passed independent CR0 design review and is registered under `ANG-ADR-0003`. EVIDENCE-SCHEMAS has one exact LOW bootstrap scaffold leaf ready; its non-equivalent scaffold acceptance may support only later CR0 scaffold leaves. ARTIFACT-LINEAGE remains blocked until the normal `ANG-GATE-EVIDENCE-SCHEMAS-001` passes under ordinary prerequisites. No executable child gate, Slice-00, human-flourishing, or M0 claim exists.
+Revision 3 records reconciled delivery history without changing any contract, threshold, policy, gate, or implementation semantic. EVIDENCE-SCHEMAS is independently `SCAFFOLD_ACCEPTED` at commit `903f9b9d5e58818d774604dbd6f4d89b2b4544e0`, decision SHA-256 `520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0`. ARTIFACT-LINEAGE remains blocked until the normal `ANG-GATE-EVIDENCE-SCHEMAS-001` passes. Normal Evidence and Human-Flourishing gates are `NOT_RUN`; Slice 00 and M0 are `NOT_PASSED`.
 
 ## Parent roll-up and next executable leaf
 
-EVIDENCE has approved CR0 designs for schemas and lineage. The exact first executable leaf is `ANG-WORK-EVIDENCE-SCHEMAS-001`, now ready under ADR-0002, the local-scaffold policy, the LOW bootstrap assessment, and baseline `ANG-BASELINE-EVIDENCE-SCHEMAS-001`. Execute no other EVIDENCE leaf first.
+EVIDENCE has an accepted CR0 schema scaffold, not normal delivery. Do not rerun the historical leaf. After the one-shot continuity leaf is reviewed, further executable work requires successor authority; ARTIFACT-LINEAGE remains blocked by the normal schema gate.
