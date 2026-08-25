@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "ANG-BASELINE-CR0-CONTINUITY-002",
+  "release_id": "ANG-CR-0001-CONSTRUCTION-RELEASE-0",
+  "release_manifest_version": 3,
+  "leaf_id": "ANG-WORK-CR0-CONTINUITY-002",
+  "leaf_revision": 1,
+  "created_at": "2026-08-25T00:00:00-04:00",
+  "base_commit": "84ff08b484197755c3fed66e7dc06988539e456e",
+  "workspace_root": "C:/Users/darks/Documents/Codex/2026-08-25/i-x20",
+  "pre_release_archive": {
+    "path": "work/pre-construction-release-0-20260825.zip",
+    "sha256": "5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C3"
+  },
+  "targets": [
+    {
+      "path": "docs/blueprints/ROOT_CAPSULE.md",
+      "state": "present",
+      "sha256": "E2DE70E2C118432A0B8B35D7F3B26E6DA116E99C5C5AC12B9192868366D00B72"
+    },
+    {
+      "path": "docs/blueprints/STATUS.md",
+      "state": "present",
+      "sha256": "CBA795AFF3CA2C24E1C9373192E792F5B108D7390DF59294D3C6FEF675A11A54"
+    },
+    {
+      "path": "docs/blueprints/branches/resources/CAPSULE.md",
+      "state": "present",
+      "sha256": "03DC17C85CF1076D8DB7482136A403D9EE4F7C804361C68210CC3232B2030175"
+    },
+    {
+      "path": "docs/blueprints/branches/resources/STATUS.md",
+      "state": "present",
+      "sha256": "A1A221EF1FBB85EF8A41D6ECC627E8FECA2290073F849834891EDFCF92465DEA"
+    },
+    {
+      "path": "docs/blueprints/branches/evidence/BLUEPRINT.md",
+      "state": "present",
+      "sha256": "56DCE997BF6F002BB9202C144913B90D2A28A64203885B8A3730671AFB16ED48"
+    },
+    {
+      "path": "docs/blueprints/branches/evidence/CAPSULE.md",
+      "state": "present",
+      "sha256": "54860217CACB6DC5DEADA3763F8E35371C879BD8A0A792579211B3011EE70DD3"
+    },
+    {
+      "path": "docs/blueprints/branches/evidence/STATUS.md",
+      "state": "present",
+      "sha256": "118B3D928F93F3C53B299D352B6CC5A4F2D323A2CF1297B9A06C9B0CABE34DA5"
+    },
+    {
+      "path": "docs/blueprints/branches/evidence/children/evidence-schemas/BLUEPRINT.md",
+      "state": "present",
+      "sha256": "2E50B0BB3F016AC0FEA3B5E72FFCDE7E945BD1D82DDA553722986339FF1F93FB"
+    },
+    {
+      "path": "docs/blueprints/branches/evidence/children/evidence-schemas/CAPSULE.md",
+      "state": "present",
+      "sha256": "A635F094C7C8F6A3FEEEF4D38918881CED1C50A12B07892D430A0D351424B90F"
+    },
+    {
+      "path": "docs/blueprints/branches/evidence/children/evidence-schemas/STATUS.md",
+      "state": "present",
+      "sha256": "48CAC7F77ED0B1FF6A51E73F22C2E2E4162520204BF82A69DD9B40E34B4746FA"
+    },
+    {
+      "path": "docs/blueprints/BLUEPRINT_INDEX.json",
+      "state": "present",
+      "sha256": "1A4EA38741243E24EF46B74DA78EDDE256BDE7E9BE7EDDDAAFA013CF7FF17015"
+    },
+    {
+      "path": "docs/blueprints/TREE.md",
+      "state": "present",
+      "sha256": "851F849BC738AACAC17319C2210364218CEC3B499F13A33144F820A09098F195"
+    },
+    {
+      "path": "docs/blueprints/TRACEABILITY.md",
+      "state": "present",
+      "sha256": "B19C6F66B60E4C0EE49A4FE61E3F592C9C90DCF434EE01C662C609A828C9F6F0"
+    },
+    {
+      "path": "docs/blueprints/branches/evidence/children/evidence-schemas/handoffs/2026-08-25-cr0-scaffold-accepted.md",
+      "state": "absent"
+    },
+    {
+      "path": "tests/synthetic/slice00/continuity/Test-Cr0ContinuationConsistency.ps1",
+      "state": "absent"
+    },
+    {
+      "path": "docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-CONTINUITY-002.md",
+      "state": "absent"
+    },
+    {
+      "path": "docs/blueprints/releases/construction-0/branch-receipts/CONTINUITY.md",
+      "state": "absent"
+    }
+  ],
+  "rollback_classes": {
+    "restore_exact": [
+      "docs/blueprints/ROOT_CAPSULE.md",
+      "docs/blueprints/STATUS.md",
+      "docs/blueprints/branches/resources/CAPSULE.md",
+      "docs/blueprints/branches/resources/STATUS.md",
+      "docs/blueprints/branches/evidence/BLUEPRINT.md",
+      "docs/blueprints/branches/evidence/CAPSULE.md",
+      "docs/blueprints/branches/evidence/STATUS.md",
+      "docs/blueprints/branches/evidence/children/evidence-schemas/BLUEPRINT.md",
+      "docs/blueprints/branches/evidence/children/evidence-schemas/CAPSULE.md",
+      "docs/blueprints/branches/evidence/children/evidence-schemas/STATUS.md",
+      "docs/blueprints/BLUEPRINT_INDEX.json",
+      "docs/blueprints/TREE.md",
+      "docs/blueprints/TRACEABILITY.md"
+    ],
+    "restore_or_remove": [
+      "tests/synthetic/slice00/continuity/Test-Cr0ContinuationConsistency.ps1"
+    ],
+    "preserve_on_failure": [
+      "docs/blueprints/branches/evidence/children/evidence-schemas/handoffs/2026-08-25-cr0-scaffold-accepted.md",
+      "docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-CONTINUITY-002.md",
+      "docs/blueprints/releases/construction-0/branch-receipts/CONTINUITY.md"
+    ]
+  },
+  "rollback_rule": "Preserve the append-only post-scaffold addendum, executor handoff, and independent receipt on every failure, rejection, escalation, or rollback. Restore each of the thirteen pre-existing projection files individually to its exact base-commit bytes and hash. Restore or remove only the one continuity test according to its absent baseline. Resolve every literal path beneath the workspace before acting. Never use a broad, recursive, globbed, or directory-level delete or restore, and never alter historical Evidence or Resources artifacts.",
+  "verification": "At clean commit 84ff08b484197755c3fed66e7dc06988539e456e, all thirteen present targets matched the recorded SHA-256 values and all four absent targets returned False from Test-Path -LiteralPath. Reverify immediately before any authorized leaf write; any mismatch stops and requires a successor baseline and revalidation."
+}
+

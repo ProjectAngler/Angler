@@ -4,34 +4,40 @@ version: 3
 status: authorized
 supersedes_version: 2
 predecessor_manifest_v2_sha256: 35936904E70CDB883ACF9A7235D943A94E5ED7EB2E3F7577654908E2E4BF4A41
-revalidation_id: ANG-CR0-REVALIDATION-20260825-005
+revalidation_id: ANG-CR0-REVALIDATION-20260825-006
 revalidation_status: PASS
-revalidation_spec_path: docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-005.md
-revalidation_decision_path: docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-005-decision.json
+revalidation_spec_path: docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-006.md
+revalidation_decision_path: docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-006-decision.json
 revalidation_decision_status: APPROVED
-revalidation_decision_sha256: 467A3EDFDD83049F8B7ECF1C371CEF62E79CC226264A66B4EE32CBF90D31CBA3
-pending_manifest_sha256: 08186187A1BE7468488250EECA8B5E78D0CAF0F1450B4A10A3B0830AB801043F
-activation_base_commit: 7f383939d021c4bba9dd5af046ce0838b032ff02
-sole_ready_leaf: ANG-WORK-CR0-CONTINUITY-001@1
-continuity_baseline: ANG-BASELINE-CR0-CONTINUITY-001
-continuity_baseline_sha256: EA997CD8B78817514A906BECC85491D4ACF74BB650D0324006C6C806D7A5A9F7
-continuity_gate: ANG-GATE-CR0-CONTINUITY-001@1
-continuity_gate_sha256: 85DAEB5E3FE72FE37EF40A141FB7DA8B2A133590C6520B2BC1BC55D0C94E20AC
-continuity_leaf_sha256: 8175422997DAF86D287A776E45BED2D7F48F3BA79D3EBC65D42130A222419116
-continuity_executor: ANG-EXEC-CODEX-ROOT-CR0-CONTINUITY-001
+revalidation_decision_sha256: C34C11606057FC6F22B7428D4DCE9F707B7A64C1D8038FE9F356DC0CBED98296
+pending_manifest_sha256: E41000C14FE7BA0F88FED46DA29DBCFAF3D3DD15D2DB54E001A34A76CFCBCE02
+activation_base_commit: 84ff08b484197755c3fed66e7dc06988539e456e
+sole_ready_leaf: ANG-WORK-CR0-CONTINUITY-002@1
+continuity_baseline: ANG-BASELINE-CR0-CONTINUITY-002
+continuity_baseline_sha256: 0BEF86FC8A56870E4B94BE1E057FD3C975D97D66DB1C4B775CC273AB373FFCE9
+continuity_gate: ANG-GATE-CR0-CONTINUITY-002@1
+continuity_gate_sha256: 947A78F2E7EA9528B5B1997A0DA178E125BF0B0E05C7192B5547E31BFF7A2919
+continuity_leaf_sha256: 67873CE6B8CF51702357ED7D8473E023FEAEF1B9459313E1955719BB1F681680
+continuity_executor: ANG-EXEC-CODEX-ROOT-CR0-CONTINUITY-002
 continuity_executor_task_id: 01a03a80-bb20-7d01-acf6-f50ca4856be5
 continuity_validator: ANG-AUTH-VALIDATOR-001
 continuity_reviewer_role: ANG-AUTH-SAFETY-APPROVER-001
-continuity_reviewer_instance: ANG-REVIEW-CODEX-SAFETY-CR0-CONTINUITY-001
+continuity_reviewer_instance: ANG-REVIEW-CODEX-SAFETY-CR0-CONTINUITY-002
 continuity_reviewer_session_ref: codex-subagent:/root/safety_change_map
 continuity_reviewer_vocabulary_ack: ACK_ACCEPTED
 continuity_result_recorder: ANG-BP-ROOT
 revalidation_reviewer_role: ANG-AUTH-SAFETY-APPROVER-001
-revalidation_reviewer_instance: ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-005
+revalidation_reviewer_instance: ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-006
 revalidation_reviewer_session_ref: codex-subagent:/root/flourishing_red_team
 revalidation_reviewer_vocabulary_ack: ACK_ACCEPTED
-v3_validator_sha256: EE783A80C63AF12F03D829E0F8381C7C5A964BC46FB8772D2D22DCC833683F8D
+v3_validator_sha256: 866AC1E579A4D38CA898B640AF2F2F8B464352BAB759ABC38F5D3C0A6D10D21A
 historical_v2_validator_sha256: 50C4700BE03F680DB229A325A2816DB6F0BD3EE2059507F12E159FC9EC431E94
+historical_005_reviewed_pending_manifest_sha256: 08186187A1BE7468488250EECA8B5E78D0CAF0F1450B4A10A3B0830AB801043F
+historical_005_decision_sha256: 467A3EDFDD83049F8B7ECF1C371CEF62E79CC226264A66B4EE32CBF90D31CBA3
+historical_005_attempted_authorized_manifest_sha256: 9578BD1B97451636449254CF1496387DA9602240B51401CC85595237E657C3E5
+historical_005_validator_sha256: EE783A80C63AF12F03D829E0F8381C7C5A964BC46FB8772D2D22DCC833683F8D
+historical_005_preserved_commit: 84ff08b484197755c3fed66e7dc06988539e456e
+historical_005_authorization_status: FAILED_VALIDATION_NO_AUTHORITY
 decision: ANG-ADR-0002
 policy: ANG-POL-LOCAL-SCAFFOLD-001@1
 bootstrap_assessment: ANG-ASSESS-CONSTRUCTION-RELEASE-0-001@1
@@ -55,9 +61,9 @@ rollback_sha256: 5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C
 
 ## Current authority state
 
-> **AUTHORIZED ONLY FOR `ANG-WORK-CR0-CONTINUITY-001@1`.** Revalidation 005 is independently `APPROVED`; Manifest v3 authorizes only the frozen continuity leaf after this validator passes in AUTHORIZED mode.
+> **AUTHORIZED ONLY FOR `ANG-WORK-CR0-CONTINUITY-002@1`.** Revalidation 006 is independently `APPROVED`; authority exists only after this validator returns AUTHORIZED PASS.
 
-Revalidation `ANG-CR0-REVALIDATION-20260825-005` is `PASS`; its separately authored decision is `APPROVED` and pinned in front matter. This transition grants no other authority and preserves every frozen scope, hash, denial, and non-equivalence state.
+This successor packet covers only the frozen continuity reconciliation; every other leaf remains unauthorized in both phases.
 
 Manifest v3 supersedes v2 only for continuation-state authority. It preserves every v2 Evidence, Resources, and revalidation identity as immutable history. The proposed repair is an in-scope narrowing of ADR-0002, `ANG-POL-LOCAL-SCAFFOLD-001@1`, and LOW assessment `ANG-ASSESS-CONSTRUCTION-RELEASE-0-001@1`: sixteen literal local documentation/test outputs, deterministic synthetic checks, no external effect, and stricter ceilings. It adds no contract, ADR, capability, data source, technical claim, or threshold and grants no model/GPU/probe, network/package, recovered/real-person data, deployment, promotion, production, or external-use authority.
 
@@ -65,23 +71,23 @@ Manifest v3 supersedes v2 only for continuation-state authority. It preserves ev
 
 | Component | Frozen identity |
 |---|---|
-| Base | clean commit `7f383939d021c4bba9dd5af046ce0838b032ff02` |
-| Baseline | `ANG-BASELINE-CR0-CONTINUITY-001`; SHA-256 `EA997CD8B78817514A906BECC85491D4ACF74BB650D0324006C6C806D7A5A9F7`; 13 present plus 4 absent targets |
-| Gate | `ANG-GATE-CR0-CONTINUITY-001@1`; SHA-256 `85DAEB5E3FE72FE37EF40A141FB7DA8B2A133590C6520B2BC1BC55D0C94E20AC` |
-| Leaf | `ANG-WORK-CR0-CONTINUITY-001@1`; SHA-256 `8175422997DAF86D287A776E45BED2D7F48F3BA79D3EBC65D42130A222419116` |
-| Validator | `docs/blueprints/work/slice-00/validate-construction-release-0-v3.ps1`; SHA-256 `EE783A80C63AF12F03D829E0F8381C7C5A964BC46FB8772D2D22DCC833683F8D` |
-| Revalidation specification | `ANG-CR0-REVALIDATION-20260825-005` at `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-005.md`; named by ID/path, not reciprocal hash |
-| Future decision | `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-005-decision.json`; `ABSENT` |
+| Base | clean commit `84ff08b484197755c3fed66e7dc06988539e456e` |
+| Baseline | `ANG-BASELINE-CR0-CONTINUITY-002`; SHA-256 `0BEF86FC8A56870E4B94BE1E057FD3C975D97D66DB1C4B775CC273AB373FFCE9`; 13 present plus 4 absent targets |
+| Gate | `ANG-GATE-CR0-CONTINUITY-002@1`; SHA-256 `947A78F2E7EA9528B5B1997A0DA178E125BF0B0E05C7192B5547E31BFF7A2919` |
+| Leaf | `ANG-WORK-CR0-CONTINUITY-002@1`; SHA-256 `67873CE6B8CF51702357ED7D8473E023FEAEF1B9459313E1955719BB1F681680` |
+| Validator | `docs/blueprints/work/slice-00/validate-construction-release-0-v3-006.ps1`; SHA-256 `866AC1E579A4D38CA898B640AF2F2F8B464352BAB759ABC38F5D3C0A6D10D21A` |
+| Revalidation specification | `ANG-CR0-REVALIDATION-20260825-006` at `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-006.md`; named by ID/path, not reciprocal hash |
+| Future decision | `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-006-decision.json`; `ABSENT` |
 
 The hash direction is baseline -> gate -> leaf -> v3 validator -> this PENDING manifest -> revalidation specification. The future independent decision must bind the PENDING manifest, specification, validator, baseline, gate, leaf, and base hashes. Root may then record only that exact decision and the predeclared phase transition. No self-hash or reciprocal packet pin is authority.
 
 ## Concrete roles and disjoint writes
 
-Executor `ANG-EXEC-CODEX-ROOT-CR0-CONTINUITY-001` is prebound to persistent task `01a03a80-bb20-7d01-acf6-f50ca4856be5`. Validator `ANG-AUTH-VALIDATOR-001`, independent gate reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-CONTINUITY-001`, independent revalidation reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-005`, and recorder `ANG-BP-ROOT` are distinct from that executor and from one another.
+Executor `ANG-EXEC-CODEX-ROOT-CR0-CONTINUITY-002` is prebound to persistent task `01a03a80-bb20-7d01-acf6-f50ca4856be5`. Validator `ANG-AUTH-VALIDATOR-001`, independent gate reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-CONTINUITY-002`, independent revalidation reviewer `ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-006`, and recorder `ANG-BP-ROOT` are distinct from that executor and from one another.
 
 The gate reviewer, at `codex-subagent:/root/safety_change_map` under role `ANG-AUTH-SAFETY-APPROVER-001`, returned a fresh `ACK_ACCEPTED` for exactly `RECONCILIATION_ACCEPTED | RECONCILIATION_REJECTED | ESCALATE`; no Resources acknowledgement is reused. Only that reviewer may later create `docs/blueprints/releases/construction-0/branch-receipts/CONTINUITY.md`, after the executor handoff. The executor and Root recorder are denied that reviewer-owned write, and the reviewer is denied packet and executor-output writes.
 
-The revalidation reviewer, at `codex-subagent:/root/flourishing_red_team` under role `ANG-AUTH-SAFETY-APPROVER-001`, returned `ACK_ACCEPTED`, is independent and reachable, and alone may later create `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-005-decision.json` with exactly `APPROVED`, `REJECTED`, or `ESCALATE`. It may not edit this manifest, specification, validator, baseline, gate, leaf, executor outputs, or continuity receipt. Root records results without altering dispositions.
+The revalidation reviewer, at `codex-subagent:/root/flourishing_red_team` under role `ANG-AUTH-SAFETY-APPROVER-001`, returned `ACK_ACCEPTED`, is independent and reachable, and alone may later create `docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-006-decision.json` with exactly `APPROVED`, `REJECTED`, or `ESCALATE`. It may not edit this manifest, specification, validator, baseline, gate, leaf, executor outputs, or continuity receipt. Root records results without altering dispositions.
 
 The future executor owns exactly these sixteen outputs:
 
@@ -100,9 +106,9 @@ The future executor owns exactly these sixteen outputs:
 13. `docs/blueprints/TRACEABILITY.md`
 14. `docs/blueprints/branches/evidence/children/evidence-schemas/handoffs/2026-08-25-cr0-scaffold-accepted.md`
 15. `tests/synthetic/slice00/continuity/Test-Cr0ContinuationConsistency.ps1`
-16. `docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-CONTINUITY-001.md`
+16. `docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-CONTINUITY-002.md`
 
-The 117 unique role-owned outputs in the complete CR0 ledger remain collision-free after adding these sixteen executor paths and one reviewer path. No undeclared output is implied.
+The active 006 role partition contains exactly sixteen executor outputs and one reviewer receipt. No undeclared output is implied.
 
 ## Immutable historical ledger
 
@@ -113,6 +119,9 @@ The 117 unique role-owned outputs in the complete CR0 ledger remain collision-fr
 - Revalidation 003 is immutable `REJECTED` history: specification SHA-256 `1AA06113B50B53327CCC79E8F06DC7F4E133AA1DA205BC762BAA677CD14F13F9`, decision SHA-256 `9C5FD13E5D7EB2B8256B703FC78F8BC2F190D2299C8523282757F7E4A559504A`, and predecessor baseline-001 SHA-256 `EF5387CDD4B652641E990DA1C1FF64B146B1D1598C9BAF9509D633A2FD1E2569`. Its stale-cache defect is not erased.
 - Revalidation 004 is immutable `APPROVED` history: specification SHA-256 `50ED004747A4DABD9D306E8931D8BFD8A558F0CDE441596645A8E028F15CF9D2` and decision SHA-256 `12EA8BB22C3F059985C1A9CEE3B90AA3469D31F2E4DD62E2F7649CA001D0CAA9`. Its authority was consumed only by the accepted Resources scaffold.
 - The historical v2 validator is immutable at SHA-256 `50C4700BE03F680DB229A325A2816DB6F0BD3EE2059507F12E159FC9EC431E94`; it is not the v3 validator and is not rerun for this packet.
+- Revalidation 005 remains immutable failed-authorization history: reviewed PENDING Manifest SHA-256 `08186187A1BE7468488250EECA8B5E78D0CAF0F1450B4A10A3B0830AB801043F`; specification SHA-256 `31144831A0D194130BF2F068CE129D045BCD0D57038855EBEB92032C73019DB9`; decision SHA-256 `467A3EDFDD83049F8B7ECF1C371CEF62E79CC226264A66B4EE32CBF90D31CBA3`; baseline/gate/leaf SHA-256 `EA997CD8B78817514A906BECC85491D4ACF74BB650D0324006C6C806D7A5A9F7` / `85DAEB5E3FE72FE37EF40A141FB7DA8B2A133590C6520B2BC1BC55D0C94E20AC` / `8175422997DAF86D287A776E45BED2D7F48F3BA79D3EBC65D42130A222419116`; validator SHA-256 `EE783A80C63AF12F03D829E0F8381C7C5A964BC46FB8772D2D22DCC833683F8D`.
+- Its attempted authorized Manifest SHA-256 is `9578BD1B97451636449254CF1496387DA9602240B51401CC85595237E657C3E5` at preserved commit `84ff08b484197755c3fed66e7dc06988539e456e`. Exact failed command: `pwsh -NoProfile -NonInteractive -File docs/blueprints/work/slice-00/validate-construction-release-0-v3.ps1`; exit 1; output `Write-Error: Manifest-v3 authority/non-equivalence is missing required literal: ready but unusable until independent revalidation approval, Root authorization, and an authorized v3-validator PASS`.
+- Exactly no leaf, test, output, or receipt ran. Revalidation 005 grants no execution authority because authorized validation failed; its APPROVED review decision cannot be reused by 006.
 
 ### Evidence scaffold — accepted history
 
@@ -155,7 +164,7 @@ These are synthetic design scaffolds only. They contain no measured inventory or
 |---|---|---|
 | `ANG-WORK-EVIDENCE-SCHEMAS-001@1` | Evidence `SCAFFOLD_ACCEPTED`; historical and non-repeatable | no |
 | `ANG-WORK-CR0-RESOURCES-001@3` | Resources `SCAFFOLD_ACCEPTED`; historical and non-repeatable | no |
-| `ANG-WORK-CR0-CONTINUITY-001@1` | sole ready specification; PENDING revalidation 005 | no |
+| `ANG-WORK-CR0-CONTINUITY-002@1` | sole ready specification; PENDING revalidation 006 | no |
 | `ANG-WORK-CR0-SAFETY-001@1` | blocked; requires a later successor manifest | no |
 | WORLDS, SCIENCE, INTEGRATION | blocked | no |
 | RUNTIME, LEARNING, TOOLS | not ready | no |
@@ -166,13 +175,13 @@ Continuity acceptance repairs only stale authority projections. It cannot activa
 
 ## Future execution sequence and ceilings
 
-If and only if revalidation 005 is independently `APPROVED`, Root performs the exact authorized/PASS transition, and the authorized v3 validator passes, the bound executor may use Codex `apply_patch` on the sixteen leaf-owned paths. It first authors or updates the thirteen projections, append-only addendum, and deterministic test as fifteen non-handoff outputs. It then runs the continuity test twice with identical case counts and zero failures, runs the tree validator once, and only then authors the executor handoff as output sixteen. The reviewer receipt follows the handoff and is reviewer-only.
+If and only if revalidation 006 is independently `APPROVED`, Root performs the exact authorized/PASS transition, and the authorized v3 validator passes, the bound executor may use Codex `apply_patch` on the sixteen leaf-owned paths. It first authors or updates the thirteen projections, append-only addendum, and deterministic test as fifteen non-handoff outputs. It then runs the continuity test twice with identical case counts and zero failures, runs the tree validator once, and only then authors the executor handoff as output sixteen. The reviewer receipt follows the handoff and is reviewer-only.
 
 One foreground command at a time; 60 seconds per command; 600 seconds aggregate active time; 1 logical CPU; 512 MiB working set; 2 MiB total changed/new bytes; 512 KiB per file; zero network, GPU, package/tool/model installation, spend, background work, probe, host enumeration, cache/temp output, staging, or commit. Only traversal performed internally by the exact declared tree-validator command is permitted; ad hoc directory enumeration is denied.
 
 ## Rollback and stop
 
-Baseline `ANG-BASELINE-CR0-CONTINUITY-001` records 17 literal targets at base `7f383939d021c4bba9dd5af046ce0838b032ff02`: thirteen present projections with exact hashes and four absent future outputs. Rollback restores the thirteen pre-existing targets individually, restores or removes only the continuity test, and preserves the append-only addendum, executor handoff, and reviewer receipt on failure. The pre-release archive remains `work/pre-construction-release-0-20260825.zip`, SHA-256 `5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C3`. Broad, recursive, globbed, directory-level, or archive-wide deletion/restoration is forbidden.
+Baseline `ANG-BASELINE-CR0-CONTINUITY-002` records 17 literal targets at base `84ff08b484197755c3fed66e7dc06988539e456e`: thirteen present projections with exact hashes and four absent future outputs. Rollback restores the thirteen pre-existing targets individually, restores or removes only the continuity test, and preserves the append-only addendum, executor handoff, and reviewer receipt on failure. The pre-release archive remains `work/pre-construction-release-0-20260825.zip`, SHA-256 `5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C3`. Broad, recursive, globbed, directory-level, or archive-wide deletion/restoration is forbidden.
 
 Any mismatch in identity, baseline state, role, scope, command, ceiling, denial, result vocabulary, or non-equivalence stops the packet. No retry may silently refresh a pin or broaden authority.
 
