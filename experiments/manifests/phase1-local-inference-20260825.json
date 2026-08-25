@@ -1,0 +1,48 @@
+{
+  "experiment": "ANG-PHASE1-LOCAL-INFERENCE-20260825",
+  "status": "PASS",
+  "purpose": "Verify the local frozen-model substrate before LoRA plasticity work.",
+  "environment": {
+    "distro": "Angler-Automation",
+    "python": "3.12.3",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.15.1",
+    "peft": "0.20.0",
+    "accelerate": "1.14.0",
+    "gpu": "NVIDIA GeForce RTX 5080",
+    "inference_network_mode": "offline",
+    "host_mounts": false,
+    "wsl_interop": false
+  },
+  "model": {
+    "repository": "Qwen/Qwen3-4B",
+    "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+    "license": "Apache-2.0",
+    "local_path": "/opt/angler/models/Qwen3-4B",
+    "local_bytes": 8060930439,
+    "dtype": "bfloat16"
+  },
+  "correctness_probe": {
+    "prompt": "What is 7 + 8? Reply with the number only.",
+    "answer": "15",
+    "input_tokens": 26,
+    "output_tokens": 3,
+    "load_seconds": 1.583,
+    "generation_seconds": 1.113,
+    "peak_reserved_bytes": 8088715264
+  },
+  "steady_state_decode_benchmark": {
+    "warmup_tokens": 32,
+    "generated_tokens": 256,
+    "generation_seconds": 5.398,
+    "tokens_per_second": 47.429,
+    "peak_allocated_bytes": 8126716928,
+    "peak_reserved_bytes": 8139046912
+  },
+  "runner": "experiments/runners/local_qwen_inference.py",
+  "non_claims": [
+    "No LoRA update was performed by this experiment.",
+    "This does not demonstrate adaptive reasoning or pass a scientific promotion gate.",
+    "No external action, personal data, host integration, or deployment was used."
+  ]
+}
