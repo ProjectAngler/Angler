@@ -1,0 +1,415 @@
+{
+  "schema_version": "1.0",
+  "revalidation_id": "ANG-CR0-REVALIDATION-20260825-005",
+  "disposition": "APPROVED",
+  "reviewer_role": "ANG-AUTH-SAFETY-APPROVER-001",
+  "reviewer_instance": "ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-005",
+  "reviewer_session_ref": "codex-subagent:/root/flourishing_red_team",
+  "reviewer_vocabulary_ack": "ACK_ACCEPTED",
+  "reviewed_on": "2026-08-25",
+  "packet_state_reviewed": "PENDING / NON-AUTHORIZING",
+  "reasons": [
+    "The pre-decision working-tree difference from frozen base commit 7f383939d021c4bba9dd5af046ce0838b032ff02 contained exactly the six declared packet paths and no out-of-packet change.",
+    "The exact Manifest, continuity baseline, continuity gate, continuity leaf, v3 validator, and revalidation specification hashes matched every frozen identity before this decision was created.",
+    "All seventeen baseline targets matched: thirteen present projections rehashed exactly and four future outputs were absent. The rollback partition was exactly thirteen restore_exact targets, the continuity test alone as restore_or_remove, and the append-only addendum, executor handoff, and reviewer receipt as preserve_on_failure.",
+    "The immutable Manifest-v2, Evidence, Resources, rejected revalidation-003, and approved revalidation-004 histories all matched their declared identities and dispositions. The Evidence receipt-bound artifact map rehashed 14/14, and the Resources seven outputs plus handoff matched 8/8.",
+    "No additional stale mandatory continuation projection was found outside the thirteen-path repair scope. Role and write separation, both fresh ACK_ACCEPTED bindings, the prebound executor task identity, the non-circular hash direction, the exact seven-edit authorized-manifest reconstruction rule, rollback, denials, and non-equivalence were internally consistent and fail closed.",
+    "Two sequential static review rounds produced identical zero-exit results: CR0 Safety PASS, Manifest-v3 PENDING / NON-AUTHORIZING PASS, and blueprint-tree PASS with 21 concrete nodes, 38 declared child nodes, and 144 Markdown files. The continuity leaf and continuity test were not executed, and no continuity output or receipt was created."
+  ],
+  "dissent": [],
+  "bindings": {
+    "base_commit": "7f383939d021c4bba9dd5af046ce0838b032ff02",
+    "pending_manifest_sha256": "08186187A1BE7468488250EECA8B5E78D0CAF0F1450B4A10A3B0830AB801043F",
+    "spec_sha256": "31144831A0D194130BF2F068CE129D045BCD0D57038855EBEB92032C73019DB9",
+    "validator_sha256": "EE783A80C63AF12F03D829E0F8381C7C5A964BC46FB8772D2D22DCC833683F8D",
+    "baseline_sha256": "EA997CD8B78817514A906BECC85491D4ACF74BB650D0324006C6C806D7A5A9F7",
+    "gate_sha256": "85DAEB5E3FE72FE37EF40A141FB7DA8B2A133590C6520B2BC1BC55D0C94E20AC",
+    "leaf_sha256": "8175422997DAF86D287A776E45BED2D7F48F3BA79D3EBC65D42130A222419116",
+    "predecessor_manifest_v2_sha256": "35936904E70CDB883ACF9A7235D943A94E5ED7EB2E3F7577654908E2E4BF4A41",
+    "evidence_execution_manifest_v2_sha256": "802D152574ABD5771CF851293F9E2240039472F61DBC78472D2BF3638CE5E5D2",
+    "historical_v2_validator_sha256": "50C4700BE03F680DB229A325A2816DB6F0BD3EE2059507F12E159FC9EC431E94",
+    "rollback_archive_sha256": "5C529A9FD4DEB7F65B0B62082FD15D0C9B1923C1DA46A18F3F1C70F4E14CC9C3"
+  },
+  "verified_predecision_packet_scope": {
+    "base_commit": "7f383939d021c4bba9dd5af046ce0838b032ff02",
+    "path_count": 6,
+    "exact_six_path_scope": true,
+    "outside_declared_packet_change": false,
+    "decision_path_absent_before_write": true,
+    "paths": [
+      {
+        "change": "M",
+        "path": "docs/blueprints/releases/construction-0/MANIFEST.md",
+        "sha256": "08186187A1BE7468488250EECA8B5E78D0CAF0F1450B4A10A3B0830AB801043F"
+      },
+      {
+        "change": "A",
+        "path": "docs/blueprints/releases/construction-0/baselines/ANG-BASELINE-CR0-CONTINUITY-001.json",
+        "sha256": "EA997CD8B78817514A906BECC85491D4ACF74BB650D0324006C6C806D7A5A9F7"
+      },
+      {
+        "change": "A",
+        "path": "docs/blueprints/releases/construction-0/gates/ANG-GATE-CR0-CONTINUITY-001.md",
+        "sha256": "85DAEB5E3FE72FE37EF40A141FB7DA8B2A133590C6520B2BC1BC55D0C94E20AC"
+      },
+      {
+        "change": "A",
+        "path": "docs/blueprints/work/slice-00/ANG-WORK-CR0-CONTINUITY-001.md",
+        "sha256": "8175422997DAF86D287A776E45BED2D7F48F3BA79D3EBC65D42130A222419116"
+      },
+      {
+        "change": "A",
+        "path": "docs/blueprints/work/slice-00/validate-construction-release-0-v3.ps1",
+        "sha256": "EE783A80C63AF12F03D829E0F8381C7C5A964BC46FB8772D2D22DCC833683F8D"
+      },
+      {
+        "change": "A",
+        "path": "docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-005.md",
+        "sha256": "31144831A0D194130BF2F068CE129D045BCD0D57038855EBEB92032C73019DB9"
+      }
+    ]
+  },
+  "verified_baseline_state": {
+    "baseline_id": "ANG-BASELINE-CR0-CONTINUITY-001",
+    "leaf_id": "ANG-WORK-CR0-CONTINUITY-001@1",
+    "target_count": 17,
+    "unique_target_count": 17,
+    "present_exact_count": 13,
+    "absent_count": 4,
+    "all_states_exact": true,
+    "no_additional_stale_mandatory_target_found": true,
+    "targets": [
+      {
+        "path": "docs/blueprints/ROOT_CAPSULE.md",
+        "state": "present",
+        "sha256": "E2DE70E2C118432A0B8B35D7F3B26E6DA116E99C5C5AC12B9192868366D00B72",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/STATUS.md",
+        "state": "present",
+        "sha256": "CBA795AFF3CA2C24E1C9373192E792F5B108D7390DF59294D3C6FEF675A11A54",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/branches/resources/CAPSULE.md",
+        "state": "present",
+        "sha256": "03DC17C85CF1076D8DB7482136A403D9EE4F7C804361C68210CC3232B2030175",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/branches/resources/STATUS.md",
+        "state": "present",
+        "sha256": "A1A221EF1FBB85EF8A41D6ECC627E8FECA2290073F849834891EDFCF92465DEA",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/branches/evidence/BLUEPRINT.md",
+        "state": "present",
+        "sha256": "56DCE997BF6F002BB9202C144913B90D2A28A64203885B8A3730671AFB16ED48",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/branches/evidence/CAPSULE.md",
+        "state": "present",
+        "sha256": "54860217CACB6DC5DEADA3763F8E35371C879BD8A0A792579211B3011EE70DD3",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/branches/evidence/STATUS.md",
+        "state": "present",
+        "sha256": "118B3D928F93F3C53B299D352B6CC5A4F2D323A2CF1297B9A06C9B0CABE34DA5",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/branches/evidence/children/evidence-schemas/BLUEPRINT.md",
+        "state": "present",
+        "sha256": "2E50B0BB3F016AC0FEA3B5E72FFCDE7E945BD1D82DDA553722986339FF1F93FB",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/branches/evidence/children/evidence-schemas/CAPSULE.md",
+        "state": "present",
+        "sha256": "A635F094C7C8F6A3FEEEF4D38918881CED1C50A12B07892D430A0D351424B90F",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/branches/evidence/children/evidence-schemas/STATUS.md",
+        "state": "present",
+        "sha256": "48CAC7F77ED0B1FF6A51E73F22C2E2E4162520204BF82A69DD9B40E34B4746FA",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/BLUEPRINT_INDEX.json",
+        "state": "present",
+        "sha256": "1A4EA38741243E24EF46B74DA78EDDE256BDE7E9BE7EDDDAAFA013CF7FF17015",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/TREE.md",
+        "state": "present",
+        "sha256": "851F849BC738AACAC17319C2210364218CEC3B499F13A33144F820A09098F195",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/TRACEABILITY.md",
+        "state": "present",
+        "sha256": "B19C6F66B60E4C0EE49A4FE61E3F592C9C90DCF434EE01C662C609A828C9F6F0",
+        "rollback_class": "restore_exact"
+      },
+      {
+        "path": "docs/blueprints/branches/evidence/children/evidence-schemas/handoffs/2026-08-25-cr0-scaffold-accepted.md",
+        "state": "absent",
+        "rollback_class": "preserve_on_failure"
+      },
+      {
+        "path": "tests/synthetic/slice00/continuity/Test-Cr0ContinuationConsistency.ps1",
+        "state": "absent",
+        "rollback_class": "restore_or_remove"
+      },
+      {
+        "path": "docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-CONTINUITY-001.md",
+        "state": "absent",
+        "rollback_class": "preserve_on_failure"
+      },
+      {
+        "path": "docs/blueprints/releases/construction-0/branch-receipts/CONTINUITY.md",
+        "state": "absent",
+        "rollback_class": "preserve_on_failure"
+      }
+    ],
+    "rollback_partition": {
+      "restore_exact_count": 13,
+      "restore_or_remove": [
+        "tests/synthetic/slice00/continuity/Test-Cr0ContinuationConsistency.ps1"
+      ],
+      "preserve_on_failure": [
+        "docs/blueprints/branches/evidence/children/evidence-schemas/handoffs/2026-08-25-cr0-scaffold-accepted.md",
+        "docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-CONTINUITY-001.md",
+        "docs/blueprints/releases/construction-0/branch-receipts/CONTINUITY.md"
+      ],
+      "broad_recursive_globbed_directory_or_archive_restore_forbidden": true
+    }
+  },
+  "immutable_history": {
+    "bootstrap_authority": {
+      "adr_0002_sha256": "C5B97294FD53AFA9F95E0C28AD6F36C9A7861DF07B50B714F489ED1F37873753",
+      "local_scaffold_policy_sha256": "23D04D544208C7273BA6C7860CC788CDD81640C8DD8236FFD1FED1F2D77495C6",
+      "assessment_sha256": "181BAC18E5EA0711F22D54BF4DE49DDA33B4DCB09C708439FE4A641366A3D8CC",
+      "construction_gate_sha256": "B768F7669241A0C3432E95E0DDB900AE5A007B2369AB3E4D073F473434DE8EEB"
+    },
+    "manifest_v2": {
+      "authorized_predecessor_sha256": "35936904E70CDB883ACF9A7235D943A94E5ED7EB2E3F7577654908E2E4BF4A41",
+      "evidence_execution_time_sha256": "802D152574ABD5771CF851293F9E2240039472F61DBC78472D2BF3638CE5E5D2",
+      "validator_sha256": "50C4700BE03F680DB229A325A2816DB6F0BD3EE2059507F12E159FC9EC431E94",
+      "state": "immutable historical predecessor; not rerun or reinterpreted by this review"
+    },
+    "evidence": {
+      "disposition": "SCAFFOLD_ACCEPTED",
+      "decision_sha256": "520472287C0406793DCAECD3DBFDEB014FAC1A60C4A6E218EA4442643DC500A0",
+      "leaf_sha256": "5CF4A9DE5337D1C52F3D8E1CFEC6404425853808F65F31DBA6BB7284EDC53289",
+      "scaffold_gate_sha256": "A883FE8799BF06390B9691F1F15F06763DAD3FB5A7210F958A2AADA7C68548F5",
+      "normal_gate_sha256": "CCDB0782B520328AA5B0A04C6684E16EB9390B8338B61FC6BBA1CB8913A49210",
+      "baseline_sha256": "F05FA1F18183D089B53CFC1EA27139775C447709D05B6C8E303DC477E3329F8F",
+      "test_receipt_sha256": "897D57E64169654F41422D70A2DA87C3E15E22A521A77437A8E80FB12B3C3E53",
+      "effect_receipt_sha256": "9808AFC82EF8B77DAABF8296E11A54C267E087566BA24ABA46999747A775C893",
+      "handoff_sha256": "017969B6E382D405EE32E73306808C82BB283A2B68E5CAC1129596439AC5C855",
+      "artifact_count": 14,
+      "artifact_hashes": {
+        "src/angler/episodes/__init__.py": "62E298AD19F52B6A620C4D62B67116B2A86B6294C68B7CD2A0B9C60BC1D6A0FE",
+        "src/angler/episodes/canonical.py": "E0E1B85D4C00CED3BB90917A4C37D3D3950ACAC9A1DB7FAA47A6AA897E869A72",
+        "src/angler/episodes/schema_validation.py": "74F9B5F3FFE248D8E0B667AF1774BE92E29F55F89E87C2983C4431017611AF3D",
+        "src/angler/episodes/visibility.py": "DBD94B64D196665048479AF4EA1B902525B2E591601B01BEB51D5C00D7F290D3",
+        "src/angler/episodes/schemas/evidence-envelope.v1.json": "E8762C3576D4DFCAF46B833905A589551089A5B606054D273EFEC31B887D6CB6",
+        "src/angler/episodes/schemas/episode.v1.json": "B9925BB0B37B43AC508535DA9635A40766C63FBBD36BEA2D04168EEAD7D79DBE",
+        "src/angler/episodes/schemas/experiment-manifest.v1.json": "4002E8FA87BEE91365A6E3CA926EEC758F7F53992DBAB2D7546A6CCA3CEFA9DF",
+        "tests/unit/evidence/test_evidence_schemas.py": "12C5014F6168D36A3D16B12B1103AACB5A2DE8DD3056D5C2325C5229844CAD5D",
+        "tests/fixtures/evidence_schemas/valid-envelope.json": "B412BC9BD060864D2154508B4ABFF5E8ADCE6D4EC4FAA1C384175EE270CB86FA",
+        "tests/fixtures/evidence_schemas/valid-episode.json": "42828EB83ACD120D1A1E9170A928A49A28006777ED4D4D8B2A3A0E97B35E6069",
+        "tests/fixtures/evidence_schemas/valid-experiment-manifest.json": "F772992D4C28DA7A323EC10DFD689DAD0ECB04297C2F9F99DD09F9526161FA65",
+        "tests/fixtures/evidence_schemas/invalid-cases.json": "F2AC89298CAB14BD0A7D3A2AB34FCE1CED991FF78431475EA5A5B1F767053B8A",
+        "tests/fixtures/evidence_schemas/visibility-matrix.json": "370783E5661A7F3B00CED93D08E1466E6704946221FE3E5680D1854AE42207C7",
+        "tests/fixtures/evidence_schemas/sealed-commitment-cases.json": "91137160496B4CA8E49D3A1110ED3C429E0DDE9B8632E4B046251B62B45FF409"
+      },
+      "all_artifacts_rehashed_exact": true,
+      "historical_and_non_repeatable": true
+    },
+    "resources": {
+      "disposition": "SCAFFOLD_ACCEPTED",
+      "receipt_sha256": "D7221A84BE404A64487E79A93B5268E5E819E153B3F07E5647473F2855A24B4B",
+      "leaf_id": "ANG-WORK-CR0-RESOURCES-001@3",
+      "leaf_sha256": "67BFE6FA3A9131D08293E8FB211504A9C9C7CCE5A4E9CF837DBBCA48AEFB7DBA",
+      "gate_id": "ANG-GATE-CR0-RESOURCES-001@2",
+      "gate_sha256": "A12017C6B84F0ED63C021482E94379F95D524825C4C0FE25C33027A6669246F2",
+      "baseline_id": "ANG-BASELINE-CR0-RESOURCES-002",
+      "baseline_sha256": "A27DE8AA7D61F0915D2D925E5D384274EC4DD1F5DBF73A09F57C46AF5F9113DE",
+      "output_and_handoff_count": 8,
+      "output_hashes": {
+        "schemas/control/v1/resources/resource-inventory.schema.json": "92055E5F07FF789FB22BC67043E3CD16BCE904AE472C2C62B80AAA571A70C98F",
+        "schemas/control/v1/resources/execution-plan.schema.json": "7B5F6EC835B8A00B1891C98E86B8195672B553FBF732DB7CD3CA5160A57F3FE2",
+        "tests/synthetic/slice00/resources/constrained.inventory.json": "CC37A0E7C6765D8B221A47F924E8413BF31E3AF0F9AE2F86D9EB741DBC9F5956",
+        "tests/synthetic/slice00/resources/workstation.inventory.json": "162FE7BAF9403F4816446D11A318FA5DB8AE8908280DA76AD0BA5DFF8A1F12F9",
+        "tests/synthetic/slice00/resources/cluster.inventory.json": "AE918EEED93A55F5C3D659AFCE6C204840D65A4D14A73852A502C9D7DA6F5F85",
+        "tests/synthetic/slice00/resources/invalid-overcommitted.plan.json": "92AFD197394C6BDF31E65590BBC30915CC974BFB0F8795D617EA506E80119E9A",
+        "tests/synthetic/slice00/resources/Test-Cr0ResourceScaffold.ps1": "047CB4AED702AFA79CE9513230F670FAE872E285031B7EB8C6DE7CB0933076BA",
+        "docs/blueprints/work/slice-00/handoffs/ANG-WORK-CR0-RESOURCES-001.md": "916C838696D18F9FA95E3BDBCE91C6A66174A87167D047F40FF2CF89617F264A"
+      },
+      "all_outputs_rehashed_exact": true,
+      "historical_and_non_repeatable": true
+    },
+    "revalidations": {
+      "revalidation_003": {
+        "disposition": "REJECTED",
+        "spec_sha256": "1AA06113B50B53327CCC79E8F06DC7F4E133AA1DA205BC762BAA677CD14F13F9",
+        "decision_sha256": "9C5FD13E5D7EB2B8256B703FC78F8BC2F190D2299C8523282757F7E4A559504A",
+        "predecessor_baseline_001_sha256": "EF5387CDD4B652641E990DA1C1FF64B146B1D1598C9BAF9509D633A2FD1E2569",
+        "preserved_as_failure_evidence": true
+      },
+      "revalidation_004": {
+        "disposition": "APPROVED",
+        "spec_sha256": "50ED004747A4DABD9D306E8931D8BFD8A558F0CDE441596645A8E028F15CF9D2",
+        "decision_sha256": "12EA8BB22C3F059985C1A9CEE3B90AA3469D31F2E4DD62E2F7649CA001D0CAA9",
+        "consumed_only_by_accepted_resources_scaffold": true
+      }
+    }
+  },
+  "role_and_write_separation": {
+    "packet_author_and_result_recorder": "ANG-BP-ROOT",
+    "continuity_executor": "ANG-EXEC-CODEX-ROOT-CR0-CONTINUITY-001",
+    "continuity_executor_task_id": "01a03a80-bb20-7d01-acf6-f50ca4856be5",
+    "deterministic_validator": "ANG-AUTH-VALIDATOR-001",
+    "continuity_gate_reviewer_role": "ANG-AUTH-SAFETY-APPROVER-001",
+    "continuity_gate_reviewer_instance": "ANG-REVIEW-CODEX-SAFETY-CR0-CONTINUITY-001",
+    "continuity_gate_reviewer_session_ref": "codex-subagent:/root/safety_change_map",
+    "continuity_gate_reviewer_vocabulary_ack": "ACK_ACCEPTED",
+    "continuity_gate_allowed_dispositions": "RECONCILIATION_ACCEPTED|RECONCILIATION_REJECTED|ESCALATE",
+    "continuity_gate_reviewer_only_path": "docs/blueprints/releases/construction-0/branch-receipts/CONTINUITY.md",
+    "revalidation_reviewer_instance": "ANG-REVIEW-CODEX-SAFETY-CR0-REVALIDATION-005",
+    "revalidation_reviewer_session_ref": "codex-subagent:/root/flourishing_red_team",
+    "revalidation_reviewer_vocabulary_ack": "ACK_ACCEPTED",
+    "revalidation_allowed_dispositions": "APPROVED|REJECTED|ESCALATE",
+    "revalidation_reviewer_only_path": "docs/blueprints/releases/construction-0/revalidations/ANG-CR0-REVALIDATION-20260825-005-decision.json",
+    "executor_output_count": 16,
+    "executor_and_reviewer_write_scopes_overlap": false,
+    "all_role_instances_disjoint": true,
+    "reviewer_is_packet_author_executor_validator_gate_reviewer_or_recorder": false,
+    "reviewer_authored_packet_inputs": false,
+    "reviewer_executed_continuity_leaf_or_test": false,
+    "reviewer_modified_baseline_targets_outputs_or_receipt": false,
+    "verified": true
+  },
+  "execution_sequence_reviewed": {
+    "pre_authorization_execution_permitted": false,
+    "future_first_phase": "executor writes exactly fifteen non-handoff outputs",
+    "future_test_sequence": "continuity test twice with identical case counts and zero failures, then blueprint-tree validator once",
+    "continuity_test_requires_not_yet_authored_handoff": false,
+    "future_last_executor_output": "executor handoff as output sixteen",
+    "future_receipt_owner": "ANG-REVIEW-CODEX-SAFETY-CR0-CONTINUITY-001",
+    "future_receipt_may_follow_only_after_handoff": true
+  },
+  "hash_direction": {
+    "verified_acyclic": true,
+    "direction": "baseline -> gate -> leaf -> v3 validator -> PENDING manifest -> revalidation specification -> this decision -> later authorized manifest",
+    "manifest_pins_spec_by_hash": false,
+    "spec_self_pins": false,
+    "decision_binds_all_frozen_packet_hashes": true,
+    "authorized_manifest_may_pin_this_decision_without_reciprocal_cycle": true
+  },
+  "authorized_manifest_transition": {
+    "approval_alone_grants_execution_authority": false,
+    "root_transition_required": true,
+    "exact_edit_count": 7,
+    "front_matter_edits": {
+      "status": "authorized",
+      "revalidation_status": "PASS",
+      "revalidation_decision_status": "APPROVED",
+      "revalidation_decision_sha256": "exact SHA-256 of this decision",
+      "pending_manifest_sha256": "08186187A1BE7468488250EECA8B5E78D0CAF0F1450B4A10A3B0830AB801043F"
+    },
+    "authorized_banner": "> **AUTHORIZED ONLY FOR `ANG-WORK-CR0-CONTINUITY-001@1`.** Revalidation 005 is independently `APPROVED`; Manifest v3 authorizes only the frozen continuity leaf after this validator passes in AUTHORIZED mode.",
+    "authorized_phase_paragraph": "Revalidation `ANG-CR0-REVALIDATION-20260825-005` is `PASS`; its separately authored decision is `APPROVED` and pinned in front matter. This transition grants no other authority and preserves every frozen scope, hash, denial, and non-equivalence state.",
+    "authorized_validator_must_reverse_exactly_seven_edits": true,
+    "reconstructed_pending_manifest_required_sha256": "08186187A1BE7468488250EECA8B5E78D0CAF0F1450B4A10A3B0830AB801043F",
+    "authorized_v3_validator_pass_required_before_any_continuity_write": true,
+    "additional_manifest_edit_permitted": false
+  },
+  "static_results": [
+    {
+      "round": 1,
+      "results": [
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File docs/blueprints/branches/safety/tests/Test-Cr0SafetyDesign.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "PASS - CR0 safety design, bootstrap non-equivalence, authority, permission ceilings, assessment, and rollback hash validated."
+        },
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File docs/blueprints/work/slice-00/validate-construction-release-0-v3.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "Construction Release 0 v3 validation PASS - PENDING / NON-AUTHORIZING continuity packet; 13 exact stale projections preserved, 4 future outputs absent, and no leaf execution authority exists."
+        },
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File tools/validate_blueprint_tree.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "Blueprint validation PASS: 21 concrete nodes, 38 declared child nodes, 144 Markdown files."
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "results": [
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File docs/blueprints/branches/safety/tests/Test-Cr0SafetyDesign.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "PASS - CR0 safety design, bootstrap non-equivalence, authority, permission ceilings, assessment, and rollback hash validated."
+        },
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File docs/blueprints/work/slice-00/validate-construction-release-0-v3.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "Construction Release 0 v3 validation PASS - PENDING / NON-AUTHORIZING continuity packet; 13 exact stale projections preserved, 4 future outputs absent, and no leaf execution authority exists."
+        },
+        {
+          "command": "pwsh -NoProfile -NonInteractive -File tools/validate_blueprint_tree.ps1",
+          "exit_code": 0,
+          "result": "PASS",
+          "output": "Blueprint validation PASS: 21 concrete nodes, 38 declared child nodes, 144 Markdown files."
+        }
+      ]
+    }
+  ],
+  "review_confirmation": {
+    "continuity_leaf_executed": false,
+    "continuity_test_executed": false,
+    "continuity_outputs_created": false,
+    "continuity_receipt_created": false
+  },
+  "forbidden_effects_and_denials": {
+    "verified": true,
+    "packet_changes_adr_policy_assessment_contract_threshold_historical_evidence_model_runtime_tool_capability_data_source_or_external_effect": false,
+    "during_revalidation_forbidden": [
+      "continuity leaf, continuity test, or construction execution",
+      "any of the sixteen continuity executor outputs or the continuity reviewer receipt",
+      "network, DNS, browser, API, telemetry, or remote Git",
+      "package, plugin, dependency, or tool installation",
+      "model, GPU, probe, host inspection, allocation, training, or adapter mutation",
+      "recovered, real-person, credential, secret, or unknown-provenance data",
+      "background process, deployment, publication, promotion, production, or external effect",
+      "staging, commit, packet repair, hash repinning, authority expansion, or cross-role write",
+      "broad, recursive, globbed, directory-level, archive-wide, or unresolved-path delete or restore"
+    ],
+    "later_successor_manifest_required_before_safety_or_any_other_leaf": true
+  },
+  "non_equivalence": {
+    "normal_evidence_schema_gate": "NOT_RUN",
+    "normal_resource_design_gate": "NOT_RUN",
+    "human_flourishing_gate": "NOT_RUN",
+    "slice_00": "NOT_PASSED",
+    "m0": "NOT_PASSED",
+    "claim": "This approval is only an independent prerequisite for Root's exact predeclared Manifest-v3 activation transition for the frozen continuity-reconciliation leaf. It is not a normal Evidence, Resources, Human-Flourishing, Slice-00, M0, scientific, measured-resource, model, deployment, production, promotion, product, or external-use pass."
+  },
+  "authorization_boundary": "APPROVED is necessary but grants no continuity execution authority by itself. Before any continuity leaf, test, output, or receipt write, ANG-BP-ROOT must separately perform only the exact seven-edit authorized/PASS Manifest-v3 transition, pin this decision's exact SHA-256 and the frozen PENDING-manifest SHA-256, and obtain a PASS from the frozen v3 validator in AUTHORIZED mode."
+}
