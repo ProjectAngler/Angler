@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:project-angler:schema:resource-inventory:1.0.0",
+  "title": "ANG-CTR-RESOURCE-INVENTORY-001@1.0.0",
+  "description": "Immutable synthetic resource inventory scaffold. It describes capacity and authority separately and never asserts that a host probe ran.",
+  "type": "object",
+  "required": [
+    "contract", "inventory_id", "evidence_envelope_ref", "synthetic",
+    "measurement_status", "measured", "profile_tier", "topology_version",
+    "capacity", "administrative_ceiling", "uncertainty",
+    "probe_provenance_refs", "redactions", "extensions"
+  ],
+  "properties": {
+    "contract": {"$ref": "#/$defs/contract"},
+    "inventory_id": {"$ref": "#/$defs/digest"},
+    "evidence_envelope_ref": {"$ref": "#/$defs/digest"},
+    "synthetic": {"const": true},
+    "measurement_status": {"const": "SYNTHETIC_NOT_MEASURED"},
+    "measured": {"const": false},
+    "profile_tier": {"enum": ["CONSTRAINED", "WORKSTATION", "CLUSTER"]},
+    "topology_version": {"type": "integer", "minimum": 1},
+    "capacity": {
+      "type": "object",
+      "required": ["cpu_logical_cores", "ram_bytes", "storage_working_bytes", "accelerators"],
+      "properties": {
+        "cpu_logical_cores": {"type": "integer", "minimum": 1},
+        "ram_bytes": {"type": "integer", "minimum": 1073741824},
+        "storage_working_bytes": {"type": "integer", "minimum": 1073741824},
+        "accelerators": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["kind", "memory_bytes", "precision_modes"],
+            "properties": {
+              "kind": {"const": "SYNTHETIC_ACCELERATOR"},
+              "memory_bytes": {"type": "integer", "minimum": 1073741824},
+              "precision_modes": {
+                "type": "array",
+                "items": {"enum": ["FP32", "BF16", "FP16", "INT8", "INT4"]},
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "administrative_ceiling": {
+      "type": "object",
+      "required": ["cpu_cores", "ram_bytes", "accelerator_count", "accelerator_memory_bytes", "storage_bytes", "time_seconds", "cost_usd", "energy_kwh"],
+      "properties": {
+        "cpu_cores": {"type": "integer", "minimum": 1},
+        "ram_bytes": {"type": "integer", "minimum": 1073741824},
+        "accelerator_count": {"type": "integer", "minimum": 0},
+        "accelerator_memory_bytes": {"type": "integer", "minimum": 0},
+        "storage_bytes": {"type": "integer", "minimum": 1073741824},
+        "time_seconds": {"type": "integer", "minimum": 1},
+        "cost_usd": {"type": "number", "minimum": 0},
+        "energy_kwh": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "uncertainty": {
+      "type": "object",
+      "required": ["classification", "basis"],
+      "properties": {
+        "classification": {"const": "SYNTHETIC_ASSUMPTION"},
+        "basis": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "probe_provenance_refs": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^ang-evid:probe:[A-Za-z0-9._-]+$"},
+      "uniqueItems": true,
+      "description": "Reserved references only; presence never asserts probe success."
+    },
+    "redactions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "extensions": {"type": "object"}
+  },
+  "$defs": {
+    "contract": {
+      "type": "object",
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"const": "ANG-CTR-RESOURCE-INVENTORY-001"},
+        "version": {"const": "1.0.0"}
+      },
+      "additionalProperties": false
+    },
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}

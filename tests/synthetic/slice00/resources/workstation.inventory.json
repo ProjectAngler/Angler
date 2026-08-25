@@ -1,0 +1,32 @@
+{
+  "contract": {"id": "ANG-CTR-RESOURCE-INVENTORY-001", "version": "1.0.0"},
+  "inventory_id": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "evidence_envelope_ref": "sha256:a222222222222222222222222222222222222222222222222222222222222222",
+  "synthetic": true,
+  "measurement_status": "SYNTHETIC_NOT_MEASURED",
+  "measured": false,
+  "profile_tier": "WORKSTATION",
+  "topology_version": 1,
+  "capacity": {
+    "cpu_logical_cores": 24,
+    "ram_bytes": 137438953472,
+    "storage_working_bytes": 2199023255552,
+    "accelerators": [
+      {"kind": "SYNTHETIC_ACCELERATOR", "memory_bytes": 17179869184, "precision_modes": ["FP32", "BF16", "FP16", "INT8", "INT4"]}
+    ]
+  },
+  "administrative_ceiling": {
+    "cpu_cores": 16,
+    "ram_bytes": 103079215104,
+    "accelerator_count": 1,
+    "accelerator_memory_bytes": 15032385536,
+    "storage_bytes": 1099511627776,
+    "time_seconds": 14400,
+    "cost_usd": 0,
+    "energy_kwh": 4
+  },
+  "uncertainty": {"classification": "SYNTHETIC_ASSUMPTION", "basis": "CR0 workstation-profile contract fixture; not a host observation"},
+  "probe_provenance_refs": [],
+  "redactions": [],
+  "extensions": {}
+}

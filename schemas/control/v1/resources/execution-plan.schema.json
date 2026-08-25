@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:project-angler:schema:execution-plan:1.0.0",
+  "title": "ANG-CTR-EXECUTION-PLAN-001@1.0.0",
+  "description": "Immutable synthetic execution-plan scaffold. Constraint validation precedes optimization, and predictions are never measurements.",
+  "type": "object",
+  "required": [
+    "contract", "plan_id", "evidence_envelope_ref", "inventory_ref",
+    "evidence_ref", "synthetic", "plan_state", "measured", "workload",
+    "topology_binding", "resource_request", "reservations", "placement",
+    "objective", "probe_provenance_refs", "routing_policy",
+    "replanning_policy", "fallback", "extensions"
+  ],
+  "properties": {
+    "contract": {"$ref": "#/$defs/contract"},
+    "plan_id": {"$ref": "#/$defs/digest"},
+    "evidence_envelope_ref": {"$ref": "#/$defs/digest"},
+    "inventory_ref": {"$ref": "#/$defs/digest"},
+    "evidence_ref": {"$ref": "#/$defs/digest"},
+    "synthetic": {"const": true},
+    "plan_state": {"const": "PLANNED_NOT_EXECUTED"},
+    "measured": {"const": false},
+    "workload": {
+      "type": "object",
+      "required": ["model_profile_ref", "precision", "plastic_state_topology_ref"],
+      "properties": {
+        "model_profile_ref": {"type": "string", "pattern": "^synthetic-profile:"},
+        "precision": {"enum": ["FP32", "BF16", "FP16", "INT8", "INT4"]},
+        "plastic_state_topology_ref": {"type": "string", "pattern": "^synthetic-topology:"}
+      },
+      "additionalProperties": false
+    },
+    "topology_binding": {
+      "type": "object",
+      "required": ["inventory_topology_version", "change_policy"],
+      "properties": {
+        "inventory_topology_version": {"type": "integer", "minimum": 1},
+        "change_policy": {"const": "ABORT_AT_TRANSACTION_BOUNDARY"}
+      },
+      "additionalProperties": false
+    },
+    "resource_request": {"$ref": "#/$defs/resourceVector"},
+    "reservations": {
+      "type": "object",
+      "required": ["host_headroom", "evaluation_headroom", "rollback_headroom"],
+      "properties": {
+        "host_headroom": {"$ref": "#/$defs/positiveReservation"},
+        "evaluation_headroom": {"$ref": "#/$defs/positiveReservation"},
+        "rollback_headroom": {"$ref": "#/$defs/positiveReservation"}
+      },
+      "additionalProperties": false
+    },
+    "placement": {
+      "type": "object",
+      "required": ["mode", "parallelism", "offload"],
+      "properties": {
+        "mode": {"enum": ["CPU_ONLY", "SINGLE_ACCELERATOR", "SHARDED", "REPLICATED_EVALUATION"]},
+        "parallelism": {"type": "integer", "minimum": 1},
+        "offload": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "objective": {
+      "type": "object",
+      "required": ["primary", "tie_breaker", "externally_selected"],
+      "properties": {
+        "primary": {"enum": ["QUALITY", "TIME", "COST", "ENERGY", "LATENCY"]},
+        "tie_breaker": {"enum": ["QUALITY", "TIME", "COST", "ENERGY", "LATENCY"]},
+        "externally_selected": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "probe_provenance_refs": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^ang-evid:probe:[A-Za-z0-9._-]+$"},
+      "uniqueItems": true,
+      "description": "Reserved references only and never a probe-success assertion."
+    },
+    "routing_policy": {
+      "type": "object",
+      "required": ["query_conditioned_model_or_adapter_selection"],
+      "properties": {"query_conditioned_model_or_adapter_selection": {"const": false}},
+      "additionalProperties": false
+    },
+    "replanning_policy": {
+      "type": "object",
+      "required": ["mid_transaction_change"],
+      "properties": {"mid_transaction_change": {"const": false}},
+      "additionalProperties": false
+    },
+    "fallback": {
+      "type": "object",
+      "required": ["on_infeasible", "on_drift"],
+      "properties": {
+        "on_infeasible": {"const": "NO_PLAN"},
+        "on_drift": {"const": "ABORT_AND_PRESERVE_STATE"}
+      },
+      "additionalProperties": false
+    },
+    "extensions": {"type": "object"}
+  },
+  "$defs": {
+    "contract": {
+      "type": "object",
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"const": "ANG-CTR-EXECUTION-PLAN-001"},
+        "version": {"const": "1.0.0"}
+      },
+      "additionalProperties": false
+    },
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "resourceVector": {
+      "type": "object",
+      "required": ["cpu_cores", "ram_bytes", "accelerator_count", "accelerator_memory_bytes", "storage_bytes"],
+      "properties": {
+        "cpu_cores": {"type": "integer", "minimum": 1},
+        "ram_bytes": {"type": "integer", "minimum": 1},
+        "accelerator_count": {"type": "integer", "minimum": 0},
+        "accelerator_memory_bytes": {"type": "integer", "minimum": 0},
+        "storage_bytes": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "positiveReservation": {
+      "type": "object",
+      "required": ["ram_bytes", "storage_bytes"],
+      "properties": {
+        "ram_bytes": {"type": "integer", "minimum": 1},
+        "storage_bytes": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

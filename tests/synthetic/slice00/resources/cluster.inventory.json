@@ -1,0 +1,35 @@
+{
+  "contract": {"id": "ANG-CTR-RESOURCE-INVENTORY-001", "version": "1.0.0"},
+  "inventory_id": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "evidence_envelope_ref": "sha256:a333333333333333333333333333333333333333333333333333333333333333",
+  "synthetic": true,
+  "measurement_status": "SYNTHETIC_NOT_MEASURED",
+  "measured": false,
+  "profile_tier": "CLUSTER",
+  "topology_version": 1,
+  "capacity": {
+    "cpu_logical_cores": 256,
+    "ram_bytes": 1099511627776,
+    "storage_working_bytes": 17592186044416,
+    "accelerators": [
+      {"kind": "SYNTHETIC_ACCELERATOR", "memory_bytes": 85899345920, "precision_modes": ["FP32", "BF16", "FP16", "INT8", "INT4"]},
+      {"kind": "SYNTHETIC_ACCELERATOR", "memory_bytes": 85899345920, "precision_modes": ["FP32", "BF16", "FP16", "INT8", "INT4"]},
+      {"kind": "SYNTHETIC_ACCELERATOR", "memory_bytes": 85899345920, "precision_modes": ["FP32", "BF16", "FP16", "INT8", "INT4"]},
+      {"kind": "SYNTHETIC_ACCELERATOR", "memory_bytes": 85899345920, "precision_modes": ["FP32", "BF16", "FP16", "INT8", "INT4"]}
+    ]
+  },
+  "administrative_ceiling": {
+    "cpu_cores": 192,
+    "ram_bytes": 824633720832,
+    "accelerator_count": 4,
+    "accelerator_memory_bytes": 322122547200,
+    "storage_bytes": 8796093022208,
+    "time_seconds": 86400,
+    "cost_usd": 500,
+    "energy_kwh": 100
+  },
+  "uncertainty": {"classification": "SYNTHETIC_ASSUMPTION", "basis": "CR0 cluster-profile contract fixture"},
+  "probe_provenance_refs": [],
+  "redactions": [],
+  "extensions": {}
+}

@@ -1,0 +1,35 @@
+{
+  "contract": {"id": "ANG-CTR-EXECUTION-PLAN-001", "version": "1.0.0"},
+  "plan_id": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+  "evidence_envelope_ref": "sha256:a444444444444444444444444444444444444444444444444444444444444444",
+  "inventory_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "evidence_ref": "sha256:b444444444444444444444444444444444444444444444444444444444444444",
+  "synthetic": true,
+  "plan_state": "PLANNED_NOT_EXECUTED",
+  "measured": false,
+  "workload": {
+    "model_profile_ref": "synthetic-profile:oversized",
+    "precision": "BF16",
+    "plastic_state_topology_ref": "synthetic-topology:single-state"
+  },
+  "topology_binding": {"inventory_topology_version": 1, "change_policy": "ABORT_AT_TRANSACTION_BOUNDARY"},
+  "resource_request": {
+    "cpu_cores": 8,
+    "ram_bytes": 17179869184,
+    "accelerator_count": 1,
+    "accelerator_memory_bytes": 17179869184,
+    "storage_bytes": 68719476736
+  },
+  "reservations": {
+    "host_headroom": {"ram_bytes": 0, "storage_bytes": 0},
+    "evaluation_headroom": {"ram_bytes": 0, "storage_bytes": 0},
+    "rollback_headroom": {"ram_bytes": 0, "storage_bytes": 0}
+  },
+  "placement": {"mode": "SINGLE_ACCELERATOR", "parallelism": 1, "offload": false},
+  "objective": {"primary": "QUALITY", "tie_breaker": "TIME", "externally_selected": true},
+  "probe_provenance_refs": [],
+  "routing_policy": {"query_conditioned_model_or_adapter_selection": false},
+  "replanning_policy": {"mid_transaction_change": false},
+  "fallback": {"on_infeasible": "NO_PLAN", "on_drift": "ABORT_AND_PRESERVE_STATE"},
+  "extensions": {"expected_rejection": "OVERCOMMITTED_AND_HEADROOM_INSUFFICIENT"}
+}

@@ -1,0 +1,30 @@
+{
+  "contract": {"id": "ANG-CTR-RESOURCE-INVENTORY-001", "version": "1.0.0"},
+  "inventory_id": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "evidence_envelope_ref": "sha256:a111111111111111111111111111111111111111111111111111111111111111",
+  "synthetic": true,
+  "measurement_status": "SYNTHETIC_NOT_MEASURED",
+  "measured": false,
+  "profile_tier": "CONSTRAINED",
+  "topology_version": 1,
+  "capacity": {
+    "cpu_logical_cores": 4,
+    "ram_bytes": 8589934592,
+    "storage_working_bytes": 68719476736,
+    "accelerators": []
+  },
+  "administrative_ceiling": {
+    "cpu_cores": 2,
+    "ram_bytes": 6442450944,
+    "accelerator_count": 0,
+    "accelerator_memory_bytes": 0,
+    "storage_bytes": 34359738368,
+    "time_seconds": 1800,
+    "cost_usd": 0,
+    "energy_kwh": 0.2
+  },
+  "uncertainty": {"classification": "SYNTHETIC_ASSUMPTION", "basis": "CR0 constrained-profile contract fixture"},
+  "probe_provenance_refs": [],
+  "redactions": [],
+  "extensions": {}
+}
