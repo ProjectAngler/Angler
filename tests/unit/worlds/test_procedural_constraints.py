@@ -62,6 +62,12 @@ class GenerationTests(unittest.TestCase):
         self.assertNotIn(str(first.hidden.generator_seed), first.learner.prompt)
         self.assertNotIn(answer_text(first.hidden.ordered_symbols), first.learner.prompt)
         self.assertNotEqual(first.learner.symbols, first.hidden.ordered_symbols)
+        self.assertNotIn("Return only", first.learner.problem_statement)
+        self.assertEqual(
+            first.learner.prompt,
+            first.learner.problem_statement
+            + "\nReturn only the final comma-separated symbol sequence.",
+        )
 
     def test_generated_constraints_have_one_accepted_permutation(self) -> None:
         instance = generate_relational_task(81, item_count=5)

@@ -13,7 +13,7 @@ import random
 from typing import Sequence
 
 FAMILY_ID = "angler.relational-order"
-FAMILY_VERSION = "1.0.0"
+FAMILY_VERSION = "1.1.0"
 
 _LABELS = (
     "amber",
@@ -74,6 +74,7 @@ class LearnerTask:
     family_version: str
     symbols: tuple[str, ...]
     constraints: tuple[PrecedenceConstraint, ...]
+    problem_statement: str
     prompt: str
 
 
@@ -123,7 +124,8 @@ def generate_relational_task(
         PrecedenceConstraint(ordered_symbols[left], ordered_symbols[right])
         for left, right in relation_pattern
     )
-    prompt = _render_prompt(display_symbols, constraints, rng)
+    problem_statement = _render_problem_statement(display_symbols, constraints, rng)
+    prompt = _render_prompt(problem_statement)
     instance_id = _instance_id(prompt)
     return GeneratedRelationalTask(
         learner=LearnerTask(
@@ -132,6 +134,7 @@ def generate_relational_task(
             family_version=FAMILY_VERSION,
             symbols=display_symbols,
             constraints=constraints,
+            problem_statement=problem_statement,
             prompt=prompt,
         ),
         hidden=HiddenOrderSolution(
@@ -173,7 +176,8 @@ def make_held_out_variant(
         for left, right in variant_pattern
     )
     display_symbols = _display_order(renamed_order, rng)
-    prompt = _render_prompt(display_symbols, constraints, rng)
+    problem_statement = _render_problem_statement(display_symbols, constraints, rng)
+    prompt = _render_prompt(problem_statement)
     instance_id = _instance_id(prompt)
     return GeneratedRelationalTask(
         learner=LearnerTask(
@@ -182,6 +186,7 @@ def make_held_out_variant(
             family_version=FAMILY_VERSION,
             symbols=display_symbols,
             constraints=constraints,
+            problem_statement=problem_statement,
             prompt=prompt,
         ),
         hidden=HiddenOrderSolution(
@@ -256,7 +261,7 @@ def _display_order(
     return tuple(display)
 
 
-def _render_prompt(
+def _render_problem_statement(
     display_symbols: tuple[str, ...],
     constraints: tuple[PrecedenceConstraint, ...],
     rng: random.Random,
@@ -275,7 +280,13 @@ def _render_prompt(
         "Arrange every symbol in one sequence from earliest to latest.\n"
         f"Symbols (display order only): {', '.join(display_symbols)}\n"
         "Constraints:\n"
-        f"{numbered}\n"
+        f"{numbered}"
+    )
+
+
+def _render_prompt(problem_statement: str) -> str:
+    return (
+        f"{problem_statement}\n"
         "Return only the final comma-separated symbol sequence."
     )
 

@@ -4,12 +4,15 @@
   "model": "Qwen3-4B",
   "foundation_digest": "sha256:f228ca26e33596461f72195fcbccfa7b873fd7a4dc7c87d19d2854484bcccd3a",
   "initial_adapter_digest": "sha256:a8c17ba76524845a188176adcb8280ad2b14f8d626fdf727e00483b3a5c82104",
-  "world": "angler.relational-order@1.0.0",
-  "task_count": 8,
-  "paired_transfer_count": 8,
+  "world_family": "angler.relational-order",
+  "world_versions": [
+    "1.0.0",
+    "1.1.0"
+  ],
   "exploratory_runs": [
     {
       "name": "corrected-trace-replay",
+      "world": "angler.relational-order@1.0.0",
       "corrected_tasks": 2,
       "learning_replays": 4,
       "optimizer_steps": 16,
@@ -22,6 +25,7 @@
     },
     {
       "name": "fresh-context-consolidation",
+      "world": "angler.relational-order@1.0.0",
       "corrected_tasks": 3,
       "fresh_presentations": 9,
       "accepted_fresh_presentations": 1,
@@ -36,6 +40,7 @@
     },
     {
       "name": "accepted-history-replay",
+      "world": "angler.relational-order@1.0.0",
       "corrected_tasks": 3,
       "retention_anchor_traces": 5,
       "fresh_presentations": 9,
@@ -49,12 +54,45 @@
       "paired_transfer_after": 4,
       "decision": "rejected_exact_rollback",
       "interaction_observation": "Replay prevented the presented-task regression seen without retention anchors, but did not yet produce transfer gain."
+    },
+    {
+      "name": "clean-context-distillation-v1",
+      "world": "angler.relational-order@1.1.0",
+      "seed": 1701,
+      "adaptation_tasks": 8,
+      "held_out_tasks": 0,
+      "item_count": 8,
+      "max_feedback_retries": 4,
+      "adapter_topology": {
+        "target_modules": [
+          "q_proj",
+          "v_proj"
+        ],
+        "rank": 8,
+        "alpha": 16,
+        "dropout": 0.0
+      },
+      "learning_rate": 0.00002,
+      "gradient_norm_limit": 1.0,
+      "adapter_delta_norm_limit": 2.0,
+      "corrected_tasks": 5,
+      "clean_context_teacher_batches": 10,
+      "learning_replays": 4,
+      "optimizer_steps": 40,
+      "adapter_delta_norm": 0.8014043449614703,
+      "presented_correct_before": 3,
+      "presented_correct_after": 3,
+      "newly_acquired_corrected_tasks": 0,
+      "initially_correct_tasks_retained": 3,
+      "decision": "rejected_exact_rollback",
+      "interaction_observation": "Rebasing accepted model corrections onto the same clean analysis context used for evaluation removed the transcript mismatch, but none of the five corrected tasks became solvable without feedback."
     }
   ],
   "current_development_policy": {
     "comparator": "immediate_parent_plastic_state",
-    "improvement_metric": "presented_correct_plus_paired_transfer_correct",
-    "frozen_reference": "historical_only_not_repeated_or_used_for_candidate_selection"
+    "improvement_metric": "presented_task_correct",
+    "frozen_reference": "historical_only_not_repeated_or_used_for_candidate_selection",
+    "claim_scope": "component_acquisition_only_not_transfer_or_m3_promotion"
   },
   "invariants_observed": {
     "foundation_parameters_trainable": 0,
@@ -63,8 +101,8 @@
     "all_rejected_candidates_restored_exact_parent_digest": true
   },
   "verification": {
-    "wsl_unit_tests": 22,
+    "wsl_unit_tests": 23,
     "wsl_unit_failures": 0
   },
-  "interpretation": "Repeated exposure and replay are functioning, but the current trace objective has not yet created reusable clean-context reasoning competence."
+  "interpretation": "Feedback correction, repeated exposure, replay, and clean-context teacher forcing are mechanically functioning, but the current q/v-only LoRA trace objective has not acquired even same-task clean-context competence. The next experiment must change the learning signal or plastic topology rather than repeat this schedule."
 }

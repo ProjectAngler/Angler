@@ -51,10 +51,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--parent-adapter")
     parser.add_argument("--seed", type=int, default=1701)
     parser.add_argument("--adaptation-tasks", type=int, default=4)
-    parser.add_argument("--held-out-tasks", type=int, default=4)
+    parser.add_argument("--held-out-tasks", type=int, default=0)
     parser.add_argument("--item-count", type=int, default=8)
     parser.add_argument("--max-retries", type=int, default=2)
-    parser.add_argument("--consolidation-presentations", type=int, default=3)
+    parser.add_argument("--consolidation-presentations", type=int, default=0)
     parser.add_argument("--retry-temperature", type=float, default=0.7)
     parser.add_argument("--max-new-tokens", type=int, default=256)
     parser.add_argument("--submission-tokens", type=int, default=48)
@@ -123,8 +123,8 @@ def outcome_feedback(task: LearnerTask, outcome: OutcomeFeedback) -> str:
     if outcome.code == "INVALID_FINAL_ANSWER":
         return (
             "Outcome feedback: the submission was not exactly one comma-separated "
-            "sequence containing every visible symbol once. Submit a new final "
-            "comma-separated sequence only."
+            "sequence containing every visible symbol once. Analyze how to correct "
+            "the format, but wait to submit the final sequence until asked."
         )
     violated = [
         (
@@ -150,6 +150,14 @@ def final_submission_request() -> str:
     return (
         "Using your analysis, submit only the final comma-separated sequence. "
         "Do not include explanation or formatting."
+    )
+
+
+def analysis_task_request(task: LearnerTask) -> str:
+    return (
+        f"{task.problem_statement}\n\n"
+        "Analyze the visible constraints carefully and derive the ordering. "
+        "Do not submit the final sequence yet; you will be asked for it next."
     )
 
 
@@ -213,6 +221,21 @@ def make_teacher_batch(
     )
 
 
+def clean_teacher_prefixes(
+    task: LearnerTask,
+    accepted_analysis: str,
+) -> tuple[tuple[dict[str, str], ...], tuple[dict[str, str], ...]]:
+    """Place a model-generated correction back under the original task context."""
+
+    analysis_prefix = ({"role": "user", "content": analysis_task_request(task)},)
+    submission_prefix = (
+        *analysis_prefix,
+        {"role": "assistant", "content": accepted_analysis},
+        {"role": "user", "content": final_submission_request()},
+    )
+    return analysis_prefix, submission_prefix
+
+
 def attempt_with_feedback(
     model: torch.nn.Module,
     tokenizer: Any,
@@ -223,7 +246,9 @@ def attempt_with_feedback(
     submission_tokens: int,
     retry_temperature: float,
 ) -> tuple[tuple[TeacherForcedReflectionBatch, ...], dict[str, Any]]:
-    messages: list[dict[str, str]] = [{"role": "user", "content": task.prompt}]
+    messages: list[dict[str, str]] = [
+        {"role": "user", "content": analysis_task_request(task)}
+    ]
     attempts: list[dict[str, Any]] = []
 
     for attempt_index in range(max_retries + 1):
@@ -263,17 +288,21 @@ def attempt_with_feedback(
             }
         )
         if outcome.correct:
+            clean_analysis_prefix, clean_submission_prefix = clean_teacher_prefixes(
+                task,
+                analysis,
+            )
             accepted_batches = (
                 make_teacher_batch(
                     tokenizer,
-                    analysis_prefix_messages,
+                    clean_analysis_prefix,
                     analysis,
                     device=model.device,
                 ),
                 make_teacher_batch(
                     tokenizer,
-                    prefix_messages,
-                    submission,
+                    clean_submission_prefix,
+                    submitted_answer,
                     device=model.device,
                 ),
             )
@@ -281,6 +310,7 @@ def attempt_with_feedback(
                 "task_id": task.instance_id,
                 "accepted": True,
                 "feedback_rounds": attempt_index,
+                "teacher_context": "original_task_without_feedback_history",
                 "attempts": attempts,
             }
 
@@ -314,7 +344,9 @@ def collect_clean_presentations(
     batches: list[TeacherForcedReflectionBatch] = []
     records: list[dict[str, Any]] = []
     for presentation_index in range(presentations):
-        analysis_prefix = ({"role": "user", "content": task.prompt},)
+        analysis_prefix = (
+            {"role": "user", "content": analysis_task_request(task)},
+        )
         analysis = generate_response(
             model,
             tokenizer,
@@ -358,7 +390,7 @@ def collect_clean_presentations(
                     make_teacher_batch(
                         tokenizer,
                         submission_prefix,
-                        submission,
+                        submitted_answer,
                         device=model.device,
                     ),
                 )
@@ -384,7 +416,7 @@ def evaluate_tasks(
     valid = 0
     for task in tasks:
         messages: list[dict[str, str]] = [
-            {"role": "user", "content": task.prompt}
+            {"role": "user", "content": analysis_task_request(task)}
         ]
         analysis = generate_response(
             model,
@@ -448,12 +480,12 @@ def main() -> None:
     args = parse_args()
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required for the 4B plastic-learning run")
-    if args.adaptation_tasks <= 0 or args.held_out_tasks <= 0:
-        raise ValueError("task counts must be positive")
+    if args.adaptation_tasks <= 0 or args.held_out_tasks < 0:
+        raise ValueError("adaptation tasks must be positive and held-out tasks nonnegative")
     if args.update_epochs <= 0:
         raise ValueError("update_epochs must be positive")
-    if args.consolidation_presentations <= 0:
-        raise ValueError("consolidation_presentations must be positive")
+    if args.consolidation_presentations < 0:
+        raise ValueError("consolidation_presentations must be nonnegative")
 
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
@@ -512,14 +544,23 @@ def main() -> None:
         for index, task in enumerate(source_tasks[: args.held_out_tasks])
     ]
 
-    print("measuring the current parent state", file=sys.stderr, flush=True)
-    parent_transfer = evaluate_tasks(
-        model,
-        tokenizer,
-        held_out,
-        max_new_tokens=args.max_new_tokens,
-        submission_tokens=args.submission_tokens,
-    )
+    if held_out:
+        print("measuring optional parent transfer", file=sys.stderr, flush=True)
+        parent_transfer = evaluate_tasks(
+            model,
+            tokenizer,
+            held_out,
+            max_new_tokens=args.max_new_tokens,
+            submission_tokens=args.submission_tokens,
+        )
+    else:
+        parent_transfer = {
+            "correct": 0,
+            "valid_submissions": 0,
+            "total": 0,
+            "accuracy": 0.0,
+            "records": [],
+        }
 
     print("collecting verifier-accepted model revisions", file=sys.stderr, flush=True)
     batches: list[TeacherForcedReflectionBatch] = []
@@ -535,9 +576,13 @@ def main() -> None:
             retry_temperature=args.retry_temperature,
         )
         experiences.append(record)
-        if accepted_batches:
-            batches.extend(accepted_batches)
         if accepted_batches and record["feedback_rounds"] > 0:
+            batches.extend(accepted_batches)
+        if (
+            accepted_batches
+            and record["feedback_rounds"] > 0
+            and args.consolidation_presentations > 0
+        ):
             clean_batches, consolidation = collect_clean_presentations(
                 model,
                 tokenizer,
@@ -552,7 +597,7 @@ def main() -> None:
 
     if not batches:
         raise RuntimeError(
-            "the model produced no verifier-accepted revision after outcome feedback"
+            "the model produced no verifier-accepted correction after outcome feedback"
         )
 
     adaptation_before = summarize_initial_adaptation(experiences)
@@ -592,19 +637,26 @@ def main() -> None:
             max_new_tokens=args.max_new_tokens,
             submission_tokens=args.submission_tokens,
         )
-        print("measuring candidate on renamed/reordered holdouts", file=sys.stderr, flush=True)
-        candidate_evaluation = evaluate_tasks(
-            model,
-            tokenizer,
-            held_out,
-            max_new_tokens=args.max_new_tokens,
-            submission_tokens=args.submission_tokens,
-        )
+        if held_out:
+            print("measuring optional paired transfer", file=sys.stderr, flush=True)
+            candidate_evaluation = evaluate_tasks(
+                model,
+                tokenizer,
+                held_out,
+                max_new_tokens=args.max_new_tokens,
+                submission_tokens=args.submission_tokens,
+            )
+        else:
+            candidate_evaluation = {
+                "correct": 0,
+                "valid_submissions": 0,
+                "total": 0,
+                "accuracy": 0.0,
+                "records": [],
+            }
 
-        parent_competence = adaptation_before["correct"] + parent_transfer["correct"]
-        candidate_competence = (
-            adaptation_after["correct"] + candidate_evaluation["correct"]
-        )
+        parent_competence = adaptation_before["correct"]
+        candidate_competence = adaptation_after["correct"]
         retained = candidate_competence > parent_competence
         if retained:
             adapter_path = save_adapter_local(model, candidate_output)
@@ -651,9 +703,7 @@ def main() -> None:
         for record in experiences
         if record["accepted"] and record["feedback_rounds"] > 0
     }
-    accepted_task_ids = {
-        record["task_id"] for record in experiences if record["accepted"]
-    }
+    accepted_task_ids = corrected_task_ids
     adaptation_task_changes = [
         {
             "task_id": record["task_id"],
@@ -670,7 +720,9 @@ def main() -> None:
         "model_path": str(Path(args.model).resolve()),
         "seed": args.seed,
         "world": {
-            "family": "angler.relational-order@1.0.0",
+            "family": (
+                f"{adaptation[0].family_id}@{adaptation[0].family_version}"
+            ),
             "item_count": args.item_count,
             "adaptation_tasks": len(adaptation),
             "held_out_tasks": len(held_out),
@@ -691,17 +743,15 @@ def main() -> None:
         "training_schedule": {
             "accepted_revision_batches": len(batches),
             "accepted_episode_traces": sum(
-                int(record["accepted"])
+                int(record["accepted"] and record["feedback_rounds"] > 0)
                 for record in experiences
             ),
             "corrected_tasks": sum(
                 int(record["accepted"] and record["feedback_rounds"] > 0)
                 for record in experiences
             ),
-            "retention_anchor_traces": sum(
-                int(record["accepted"] and record["feedback_rounds"] == 0)
-                for record in experiences
-            ),
+            "retention_anchor_traces": 0,
+            "clean_context_distillation": True,
             "fresh_consolidation_presentations_per_corrected_task": (
                 args.consolidation_presentations
             ),
@@ -725,7 +775,7 @@ def main() -> None:
         "parent_state_transfer": reported_parent_transfer,
         "candidate_held_out": reported_candidate,
         "improvement_decision": {
-            "metric": "presented_correct_plus_paired_transfer_correct",
+            "metric": "presented_task_correct",
             "parent": parent_competence,
             "candidate": candidate_competence,
             "improvement": candidate_competence - parent_competence,
