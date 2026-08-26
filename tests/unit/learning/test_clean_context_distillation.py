@@ -18,6 +18,7 @@ class CleanContextDistillationTests(unittest.TestCase):
             family_version="1.1.0",
             symbols=("amber", "birch"),
             constraints=(PrecedenceConstraint("amber", "birch"),),
+            fact_statements=("amber is before birch.",),
             problem_statement="Order the symbols using the visible constraint.",
             prompt=(
                 "Order the symbols using the visible constraint.\n"

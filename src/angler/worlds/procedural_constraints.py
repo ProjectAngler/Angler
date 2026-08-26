@@ -13,7 +13,7 @@ import random
 from typing import Sequence
 
 FAMILY_ID = "angler.relational-order"
-FAMILY_VERSION = "1.1.0"
+FAMILY_VERSION = "1.4.0"
 
 _LABELS = (
     "amber",
@@ -50,7 +50,7 @@ _LABELS = (
     "flint",
 )
 
-_SURFACE_FORMS = (
+DEFAULT_RELATION_SURFACE_FORMS = (
     "{earlier} is before {later}.",
     "{later} is after {earlier}.",
     "{earlier} precedes {later}.",
@@ -74,6 +74,7 @@ class LearnerTask:
     family_version: str
     symbols: tuple[str, ...]
     constraints: tuple[PrecedenceConstraint, ...]
+    fact_statements: tuple[str, ...]
     problem_statement: str
     prompt: str
 
@@ -107,14 +108,26 @@ class OutcomeFeedback:
     violated_visible_constraints: tuple[int, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class ScalarOutcomeFeedback:
+    """Final scalar reward that discloses neither an answer nor a failed fact."""
+
+    task_id: str
+    valid: bool
+    exact: bool
+    constraint_satisfaction: float
+
+
 def generate_relational_task(
     seed: int,
     *,
     item_count: int = 5,
+    surface_forms: Sequence[str] | None = None,
 ) -> GeneratedRelationalTask:
     """Generate one replayable, uniquely ordered relational task."""
 
     _validate_item_count(item_count)
+    selected_surface_forms = _validate_surface_forms(surface_forms)
     rng = random.Random(seed)
     ordered_symbols = tuple(rng.sample(_LABELS, item_count))
 
@@ -124,7 +137,12 @@ def generate_relational_task(
         PrecedenceConstraint(ordered_symbols[left], ordered_symbols[right])
         for left, right in relation_pattern
     )
-    problem_statement = _render_problem_statement(display_symbols, constraints, rng)
+    fact_statements = _render_fact_statements(
+        constraints,
+        rng,
+        selected_surface_forms,
+    )
+    problem_statement = _render_problem_statement(display_symbols, fact_statements)
     prompt = _render_prompt(problem_statement)
     instance_id = _instance_id(prompt)
     return GeneratedRelationalTask(
@@ -134,6 +152,7 @@ def generate_relational_task(
             family_version=FAMILY_VERSION,
             symbols=display_symbols,
             constraints=constraints,
+            fact_statements=fact_statements,
             problem_statement=problem_statement,
             prompt=prompt,
         ),
@@ -149,6 +168,7 @@ def make_held_out_variant(
     source: GeneratedRelationalTask,
     *,
     seed: int,
+    surface_forms: Sequence[str] | None = None,
 ) -> GeneratedRelationalTask:
     """Rename symbols and reorder statements while preserving relations."""
 
@@ -157,6 +177,7 @@ def make_held_out_variant(
         raise ValueError("source learner and hidden identities do not match")
 
     item_count = len(source_order)
+    selected_surface_forms = _validate_surface_forms(surface_forms)
     rng = random.Random(seed)
     available = tuple(label for label in _LABELS if label not in source_order)
     renamed_order = tuple(rng.sample(available, item_count))
@@ -176,7 +197,12 @@ def make_held_out_variant(
         for left, right in variant_pattern
     )
     display_symbols = _display_order(renamed_order, rng)
-    problem_statement = _render_problem_statement(display_symbols, constraints, rng)
+    fact_statements = _render_fact_statements(
+        constraints,
+        rng,
+        selected_surface_forms,
+    )
+    problem_statement = _render_problem_statement(display_symbols, fact_statements)
     prompt = _render_prompt(problem_statement)
     instance_id = _instance_id(prompt)
     return GeneratedRelationalTask(
@@ -186,6 +212,7 @@ def make_held_out_variant(
             family_version=FAMILY_VERSION,
             symbols=display_symbols,
             constraints=constraints,
+            fact_statements=fact_statements,
             problem_statement=problem_statement,
             prompt=prompt,
         ),
@@ -235,17 +262,37 @@ def verify_final_answer(
     )
 
 
+def score_constraint_satisfaction(
+    task: LearnerTask,
+    answer: str | Sequence[str],
+) -> ScalarOutcomeFeedback:
+    """Score a complete outcome while withholding solution and relation details."""
+
+    outcome = verify_final_answer(task, answer)
+    valid = outcome.disposition == "VALID_RESULT"
+    satisfied = (
+        len(task.constraints) - len(outcome.violated_visible_constraints)
+        if valid
+        else 0
+    )
+    return ScalarOutcomeFeedback(
+        task_id=task.instance_id,
+        valid=valid,
+        exact=outcome.correct,
+        constraint_satisfaction=(
+            satisfied / len(task.constraints) if task.constraints else 0.0
+        ),
+    )
+
+
 def _relation_pattern(item_count: int, rng: random.Random) -> tuple[tuple[int, int], ...]:
-    chain = [(index, index + 1) for index in range(item_count - 1)]
-    redundant = [
-        (left, right)
-        for left in range(item_count)
-        for right in range(left + 2, item_count)
-    ]
-    extra_count = min(max(1, item_count // 2), len(redundant))
-    pattern = chain + rng.sample(redundant, extra_count)
+    # Adjacent links make the complete order unique without leaking rank through
+    # the in/out-degree counts created by redundant forward edges.  The learner
+    # must combine the shuffled links; no one-fact or local-degree shortcut can
+    # recover the interior order.
+    pattern = [(index, index + 1) for index in range(item_count - 1)]
     rng.shuffle(pattern)
-    if pattern == chain + pattern[len(chain) :]:
+    if pattern == [(index, index + 1) for index in range(item_count - 1)]:
         pattern = pattern[1:] + pattern[:1]
     return tuple(pattern)
 
@@ -261,20 +308,27 @@ def _display_order(
     return tuple(display)
 
 
-def _render_problem_statement(
-    display_symbols: tuple[str, ...],
+def _render_fact_statements(
     constraints: tuple[PrecedenceConstraint, ...],
     rng: random.Random,
-) -> str:
-    statements = [
-        rng.choice(_SURFACE_FORMS).format(
+    surface_forms: tuple[str, ...],
+) -> tuple[str, ...]:
+    return tuple(
+        rng.choice(surface_forms).format(
             earlier=constraint.earlier,
             later=constraint.later,
         )
         for constraint in constraints
-    ]
+    )
+
+
+def _render_problem_statement(
+    display_symbols: tuple[str, ...],
+    fact_statements: tuple[str, ...],
+) -> str:
     numbered = "\n".join(
-        f"{index}. {statement}" for index, statement in enumerate(statements, 1)
+        f"{index}. {statement}"
+        for index, statement in enumerate(fact_statements, 1)
     )
     return (
         "Arrange every symbol in one sequence from earliest to latest.\n"
@@ -305,3 +359,26 @@ def _instance_id(prompt: str) -> str:
 def _validate_item_count(item_count: int) -> None:
     if not 4 <= item_count <= 8:
         raise ValueError("item_count must be between 4 and 8")
+
+
+def _validate_surface_forms(
+    surface_forms: Sequence[str] | None,
+) -> tuple[str, ...]:
+    selected = (
+        DEFAULT_RELATION_SURFACE_FORMS
+        if surface_forms is None
+        else tuple(surface_forms)
+    )
+    if not selected:
+        raise ValueError("surface_forms must not be empty")
+    for template in selected:
+        valid_template = (
+            isinstance(template, str)
+            and template.count("{earlier}") == 1
+            and template.count("{later}") == 1
+        )
+        if not valid_template:
+            raise ValueError(
+                "every surface form must contain {earlier} and {later} exactly once"
+            )
+    return selected

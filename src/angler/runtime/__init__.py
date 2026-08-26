@@ -1,4 +1,4 @@
-"""Runtime primitives for Project Angler's single plastic LoRA state."""
+"""Frozen-model connectors and reversible plastic-state runtime primitives."""
 
 from .qwen_peft import (
     DEFAULT_ADAPTER_NAME,
@@ -15,6 +15,7 @@ from .qwen_peft import (
     save_adapter_local,
     validate_foundation_frozen,
 )
+from .qwen_knowledge import encode_detached_segments, freeze_knowledge_model
 
 __all__ = [
     "DEFAULT_ADAPTER_NAME",
@@ -30,4 +31,6 @@ __all__ = [
     "reload_adapter_local",
     "save_adapter_local",
     "validate_foundation_frozen",
+    "encode_detached_segments",
+    "freeze_knowledge_model",
 ]

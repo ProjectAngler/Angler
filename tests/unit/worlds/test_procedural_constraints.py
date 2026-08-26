@@ -17,8 +17,10 @@ from angler.worlds import (  # noqa: E402 - explicit src path for local tests
     HiddenOrderSolution,
     LearnerTask,
     OutcomeFeedback,
+    ScalarOutcomeFeedback,
     generate_relational_task,
     make_held_out_variant,
+    score_constraint_satisfaction,
     verify_final_answer,
 )
 
@@ -62,6 +64,16 @@ class GenerationTests(unittest.TestCase):
         self.assertNotIn(str(first.hidden.generator_seed), first.learner.prompt)
         self.assertNotIn(answer_text(first.hidden.ordered_symbols), first.learner.prompt)
         self.assertNotEqual(first.learner.symbols, first.hidden.ordered_symbols)
+        self.assertEqual(
+            len(first.learner.fact_statements),
+            len(first.learner.constraints),
+        )
+        self.assertTrue(
+            all(
+                statement in first.learner.problem_statement
+                for statement in first.learner.fact_statements
+            )
+        )
         self.assertNotIn("Return only", first.learner.problem_statement)
         self.assertEqual(
             first.learner.prompt,
@@ -78,11 +90,40 @@ class GenerationTests(unittest.TestCase):
         ]
         self.assertEqual(accepted, [instance.hidden.ordered_symbols])
 
+    def test_constraints_are_only_shuffled_adjacent_links(self) -> None:
+        instance = generate_relational_task(917, item_count=7)
+
+        self.assertEqual(len(instance.learner.constraints), 6)
+        self.assertEqual(
+            sorted(structural_pattern(instance)),
+            [(index, index + 1) for index in range(6)],
+        )
+
     def test_item_count_is_bounded(self) -> None:
         for invalid in (3, 9):
             with self.subTest(item_count=invalid):
                 with self.assertRaises(ValueError):
                     generate_relational_task(1, item_count=invalid)
+
+    def test_surface_language_can_change_without_exposing_structure(self) -> None:
+        custom = ("In the timeline, {earlier} occurs ahead of {later}.",)
+        instance = generate_relational_task(
+            812,
+            item_count=5,
+            surface_forms=custom,
+        )
+
+        self.assertTrue(
+            all("occurs ahead of" in fact for fact in instance.learner.fact_statements)
+        )
+        self.assertTrue(
+            verify_final_answer(
+                instance.learner,
+                instance.hidden.ordered_symbols,
+            ).correct
+        )
+        with self.assertRaises(ValueError):
+            generate_relational_task(812, surface_forms=("missing placeholders",))
 
 
 class HeldOutVariantTests(unittest.TestCase):
@@ -174,6 +215,33 @@ class OutcomeVerifierTests(unittest.TestCase):
             self.assertNotIn(answer_text(self.instance.hidden.ordered_symbols), rendered)
             self.assertNotIn("reason", rendered.lower())
             self.assertNotIn("strategy", rendered.lower())
+
+    def test_scalar_reward_withholds_failed_fact_identity(self) -> None:
+        correct = score_constraint_satisfaction(
+            self.instance.learner,
+            answer_text(self.instance.hidden.ordered_symbols),
+        )
+        wrong = score_constraint_satisfaction(
+            self.instance.learner,
+            tuple(reversed(self.instance.hidden.ordered_symbols)),
+        )
+
+        self.assertEqual(
+            correct,
+            ScalarOutcomeFeedback(
+                task_id=self.instance.learner.instance_id,
+                valid=True,
+                exact=True,
+                constraint_satisfaction=1.0,
+            ),
+        )
+        self.assertTrue(wrong.valid)
+        self.assertFalse(wrong.exact)
+        self.assertGreaterEqual(wrong.constraint_satisfaction, 0.0)
+        self.assertLess(wrong.constraint_satisfaction, 1.0)
+        self.assertNotIn("violat", repr(wrong).lower())
+        self.assertNotIn("earlier", repr(wrong).lower())
+        self.assertNotIn("later", repr(wrong).lower())
 
 
 if __name__ == "__main__":
