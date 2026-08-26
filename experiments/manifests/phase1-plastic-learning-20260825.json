@@ -1,0 +1,70 @@
+{
+  "experiment_family": "ANGLER-PHASE1-PLASTIC-LEARNING",
+  "date": "2026-08-25",
+  "model": "Qwen3-4B",
+  "foundation_digest": "sha256:f228ca26e33596461f72195fcbccfa7b873fd7a4dc7c87d19d2854484bcccd3a",
+  "initial_adapter_digest": "sha256:a8c17ba76524845a188176adcb8280ad2b14f8d626fdf727e00483b3a5c82104",
+  "world": "angler.relational-order@1.0.0",
+  "task_count": 8,
+  "paired_transfer_count": 8,
+  "exploratory_runs": [
+    {
+      "name": "corrected-trace-replay",
+      "corrected_tasks": 2,
+      "learning_replays": 4,
+      "optimizer_steps": 16,
+      "adapter_delta_norm": 0.30282263579574015,
+      "presented_correct_before": 5,
+      "presented_correct_after": 5,
+      "paired_transfer_before": 5,
+      "paired_transfer_after": 4,
+      "decision": "rejected_exact_rollback"
+    },
+    {
+      "name": "fresh-context-consolidation",
+      "corrected_tasks": 3,
+      "fresh_presentations": 9,
+      "accepted_fresh_presentations": 1,
+      "learning_replays": 4,
+      "optimizer_steps": 32,
+      "adapter_delta_norm": 0.617602968966005,
+      "presented_correct_before": 5,
+      "presented_correct_after": 4,
+      "paired_transfer_before": 5,
+      "paired_transfer_after": 3,
+      "decision": "rejected_exact_rollback"
+    },
+    {
+      "name": "accepted-history-replay",
+      "corrected_tasks": 3,
+      "retention_anchor_traces": 5,
+      "fresh_presentations": 9,
+      "accepted_fresh_presentations": 1,
+      "learning_replays": 3,
+      "optimizer_steps": 54,
+      "adapter_delta_norm": 0.2774980419895939,
+      "presented_correct_before": 5,
+      "presented_correct_after": 5,
+      "paired_transfer_before": 5,
+      "paired_transfer_after": 4,
+      "decision": "rejected_exact_rollback",
+      "interaction_observation": "Replay prevented the presented-task regression seen without retention anchors, but did not yet produce transfer gain."
+    }
+  ],
+  "current_development_policy": {
+    "comparator": "immediate_parent_plastic_state",
+    "improvement_metric": "presented_correct_plus_paired_transfer_correct",
+    "frozen_reference": "historical_only_not_repeated_or_used_for_candidate_selection"
+  },
+  "invariants_observed": {
+    "foundation_parameters_trainable": 0,
+    "adapter_parameters_trainable": 2949120,
+    "hidden_solutions_exposed": false,
+    "all_rejected_candidates_restored_exact_parent_digest": true
+  },
+  "verification": {
+    "wsl_unit_tests": 22,
+    "wsl_unit_failures": 0
+  },
+  "interpretation": "Repeated exposure and replay are functioning, but the current trace objective has not yet created reusable clean-context reasoning competence."
+}

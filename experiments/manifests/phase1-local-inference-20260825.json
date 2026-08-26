@@ -31,13 +31,22 @@
     "generation_seconds": 1.113,
     "peak_reserved_bytes": 8088715264
   },
-  "steady_state_decode_benchmark": {
+  "dynamic_cache_decode_benchmark": {
     "warmup_tokens": 32,
     "generated_tokens": 256,
     "generation_seconds": 5.398,
     "tokens_per_second": 47.429,
     "peak_allocated_bytes": 8126716928,
     "peak_reserved_bytes": 8139046912
+  },
+  "compiled_static_cache_decode_benchmark": {
+    "warmup_tokens": 256,
+    "generated_tokens": 256,
+    "generation_seconds": 3.106,
+    "tokens_per_second": 82.42,
+    "peak_allocated_bytes": 8169466368,
+    "peak_reserved_bytes": 8321499136,
+    "improvement_over_dynamic_percent": 73.79
   },
   "runner": "experiments/runners/local_qwen_inference.py",
   "non_claims": [

@@ -17,6 +17,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-new-tokens", type=int, default=128)
     parser.add_argument("--min-new-tokens", type=int, default=0)
     parser.add_argument("--warmup-tokens", type=int, default=0)
+    parser.add_argument(
+        "--cache-implementation", choices=("dynamic", "static"), default="dynamic"
+    )
     return parser.parse_args()
 
 
@@ -57,6 +60,7 @@ def main() -> None:
                 max_new_tokens=args.warmup_tokens,
                 do_sample=False,
                 pad_token_id=tokenizer.eos_token_id,
+                cache_implementation=args.cache_implementation,
             )
         torch.cuda.synchronize()
         torch.cuda.reset_peak_memory_stats()
@@ -69,6 +73,7 @@ def main() -> None:
             min_new_tokens=args.min_new_tokens,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
+            cache_implementation=args.cache_implementation,
         )
     torch.cuda.synchronize()
     finished = time.perf_counter()
@@ -84,6 +89,7 @@ def main() -> None:
         "input_tokens": int(inputs.input_ids.shape[1]),
         "output_tokens": int(new_ids.shape[0]),
         "warmup_tokens": args.warmup_tokens,
+        "cache_implementation": args.cache_implementation,
         "load_seconds": round(loaded - started, 3),
         "generation_seconds": round(finished - generated_started, 3),
         "tokens_per_second": round(new_ids.shape[0] / (finished - generated_started), 3),
