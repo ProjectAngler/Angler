@@ -1,5 +1,11 @@
 """Trainable processing cores kept separate from foundation-model knowledge."""
 
+from .adaptive_core import (
+    AdaptiveFeedbackContext,
+    AdaptiveFeedbackWrite,
+    AdaptiveReasoningCore,
+    AdaptiveReasoningTrajectory,
+)
 from .recurrent_core import (
     ReasoningCoreConfig,
     ReasoningTrajectory,
@@ -18,6 +24,10 @@ from .self_referential_memory import (
 )
 
 __all__ = [
+    "AdaptiveFeedbackContext",
+    "AdaptiveFeedbackWrite",
+    "AdaptiveReasoningCore",
+    "AdaptiveReasoningTrajectory",
     "ReasoningCoreConfig",
     "ReasoningTrajectory",
     "RecurrentReasoningCore",

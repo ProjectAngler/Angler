@@ -358,6 +358,49 @@ class RecurrentReasoningCore(nn.Module):
             mention_entity_indices,
             reasoning_steps=reasoning_steps,
         )
+        return self.act_encoded(
+            entities,
+            entity_mask,
+            samples_per_task=samples_per_task,
+            greedy=greedy,
+            temperature=temperature,
+        )
+
+    def act_encoded(
+        self,
+        entities: torch.Tensor,
+        entity_mask: torch.Tensor,
+        *,
+        samples_per_task: int = 1,
+        greedy: bool = False,
+        temperature: float = 1.0,
+    ) -> ReasoningTrajectory:
+        """Decode an action from already-reasoned public entity states."""
+
+        if samples_per_task <= 0:
+            raise ValueError("samples_per_task must be positive")
+        if not math.isfinite(temperature) or temperature <= 0.0:
+            raise ValueError("temperature must be finite and positive")
+        if entities.ndim != 3 or entities.shape[-1] != self.config.core_width:
+            raise ValueError(
+                "entities must have shape [batch, entities, core_width]"
+            )
+        if (
+            entity_mask.shape != entities.shape[:2]
+            or entity_mask.dtype != torch.bool
+        ):
+            raise ValueError("entity_mask must be bool with the entity shape")
+        if entity_mask.device != entities.device:
+            raise ValueError("entities and entity_mask must share a device")
+        if entities.device != self.pointer_keys.weight.device:
+            raise ValueError("encoded entities must share the core device")
+        if entities.dtype != self.pointer_keys.weight.dtype:
+            raise ValueError("encoded entities must share the core dtype")
+        if entities.shape[1] > self.config.maximum_entities:
+            raise ValueError("entity count exceeds maximum_entities")
+        if bool((entity_mask.sum(dim=1) == 0).any().item()):
+            raise ValueError("every task requires at least one entity")
+
         batch_size, maximum_entities, width = entities.shape
         entity_summary = _masked_mean(entities, entity_mask)
         value = self.value_head(entity_summary).squeeze(-1)

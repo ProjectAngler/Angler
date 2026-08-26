@@ -105,6 +105,24 @@ class RecurrentReasoningCoreTests(unittest.TestCase):
             self.core.reasoning_step.edge_to_entity.weight.grad
         )
 
+    def test_public_encoded_decoder_preserves_ordinary_greedy_action(self) -> None:
+        ordinary = self.core.act(*self.inputs(), greedy=True)
+        entities, _ = self.core.encode(*self.inputs())
+        extracted = self.core.act_encoded(
+            entities,
+            self.entity_mask,
+            greedy=True,
+        )
+
+        self.assertTrue(
+            torch.equal(ordinary.order_indices, extracted.order_indices)
+        )
+        self.assertTrue(
+            torch.equal(ordinary.log_probability, extracted.log_probability)
+        )
+        self.assertTrue(torch.equal(ordinary.entropy, extracted.entropy))
+        self.assertTrue(torch.equal(ordinary.value, extracted.value))
+
     def test_zero_one_and_multiple_steps_have_distinct_information_paths(self) -> None:
         entities_without_steps, slots_without_steps = self.core.encode(
             *self.inputs(),
