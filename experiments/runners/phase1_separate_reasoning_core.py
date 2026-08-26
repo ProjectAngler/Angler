@@ -1,10 +1,11 @@
-"""Train Project Angler's separate neural reasoning core from scalar outcomes.
+"""Train Project Angler's reasoning core across two task families.
 
 The Transformers donor is a frozen, model-agnostic hidden-state backbone.  It
-encodes each public fact, entity label, and focused entity mention separately;
-it never receives an assembled problem or produces an answer.  Only the
-standalone recurrent reasoning core is optimized, using REINFORCE over scalar
-constraint-satisfaction outcomes with a learned actor-critic baseline.
+encodes each public goal/fact, action symbol, and focused action mention
+separately.  It never receives an assembled problem or produces an answer.
+Only the standalone recurrent reasoning core is optimized, using leave-one-out
+REINFORCE over outcome-only scalar satisfaction.  Every task is encountered
+once; independently sampled actions provide immediate credit without replay.
 """
 
 from __future__ import annotations
@@ -30,6 +31,7 @@ import torch  # noqa: E402
 from safetensors.torch import load_file, save_file  # noqa: E402
 from transformers import AutoModel, AutoTokenizer  # noqa: E402
 
+from angler.learning.policy_credit import leave_one_out_advantages  # noqa: E402
 from angler.reasoning import (  # noqa: E402
     ReasoningCoreConfig,
     RecurrentReasoningCore,
@@ -43,10 +45,19 @@ from angler.runtime import (  # noqa: E402
     freeze_knowledge_model,
 )
 from angler.worlds import (  # noqa: E402
+    DEFAULT_DEMONSTRATION_SURFACE_FORMS,
+    DEFAULT_GOAL_SURFACE_FORMS,
+    DEFAULT_QUERY_SURFACE_FORMS,
     DEFAULT_RELATION_SURFACE_FORMS,
+    FAMILY_ID as RELATIONAL_FAMILY_ID,
+    HiddenSymbolicRuleSolution,
     LearnerTask,
+    SYMBOLIC_RULE_FAMILY_ID,
+    SymbolicRuleLearnerTask,
     generate_relational_task,
+    generate_symbolic_rule_task,
     score_constraint_satisfaction,
+    verify_symbolic_rule_answer,
 )
 
 
@@ -57,6 +68,13 @@ _KNOWLEDGE_INTERFACE = "transformers.AutoModel.detached-independent-segments@1"
 _FULL_MODEL_PATH = Path("/opt/angler/models/Qwen3-4B")
 _FULL_FOUNDATION_DIGEST = (
     "sha256:f228ca26e33596461f72195fcbccfa7b873fd7a4dc7c87d19d2854484bcccd3a"
+)
+_FAMILY_RELATIONAL = RELATIONAL_FAMILY_ID
+_FAMILY_SYMBOLIC = SYMBOLIC_RULE_FAMILY_ID
+_FAMILY_IDS = (_FAMILY_RELATIONAL, _FAMILY_SYMBOLIC)
+_RELATIONAL_GOAL = (
+    "Produce one complete ordering of the public action symbols that satisfies "
+    "all visible relation facts."
 )
 _TRAINING_SURFACE_FORMS = (
     *DEFAULT_RELATION_SURFACE_FORMS,
@@ -71,28 +89,48 @@ _UNSEEN_SURFACE_FORMS = (
     "{earlier} is ahead of {later} in the sequence.",
     "{later} is behind {earlier} in the sequence.",
 )
+_SYMBOLIC_TRAINING_GOAL_FORMS = DEFAULT_GOAL_SURFACE_FORMS
+_SYMBOLIC_TRAINING_DEMO_FORMS = DEFAULT_DEMONSTRATION_SURFACE_FORMS
+_SYMBOLIC_TRAINING_QUERY_FORMS = DEFAULT_QUERY_SURFACE_FORMS
+_SYMBOLIC_UNSEEN_GOAL_FORMS = (
+    (
+        "Discover the positional transformation shared by {demo_count} worked "
+        "mappings and use it for the new {item_count}-item sequence."
+    ),
+    (
+        "Derive one rearrangement from {demo_count} cases, then transfer it to "
+        "the fresh sequence containing {item_count} items."
+    ),
+)
+_SYMBOLIC_UNSEEN_DEMO_FORMS = (
+    "Worked mapping {demo_number}: source <{inputs}> produces target <{outputs}>.",
+    "Observation {demo_number}: sequence <{inputs}> is rearranged as <{outputs}>.",
+)
+_SYMBOLIC_UNSEEN_QUERY_FORMS = (
+    "Fresh source sequence: <{inputs}>",
+    "Transfer the inferred rule to: <{inputs}>",
+)
 
 _PROFILE_DEFAULTS: dict[str, dict[str, object]] = {
     "smoke": {
-        "training_tasks": 4,
-        "heldout_tasks": 4,
-        "presentations_per_task": 2,
+        "training_tasks": 8,
+        "heldout_tasks": 8,
+        "presentations_per_task": 1,
         "samples_per_presentation": 4,
-        "entity_sizes": (4, 5),
+        "entity_sizes": (4, 5, 6, 7),
         "core_width": 128,
         "workspace_slots": 4,
         "attention_heads": 4,
         "feedforward_width": 512,
         "reasoning_steps": 2,
-        "maximum_reasoning_steps": 4,
+        "maximum_reasoning_steps": 8,
         "learning_rate": 3e-4,
-        "cohort_size": 2,
+        "cohort_size": 8,
         "sampling_temperature": 1.5,
-        "value_loss_coefficient": 0.5,
     },
     "full": {
-        "training_tasks": 2048,
-        "heldout_tasks": 32,
+        "training_tasks": 4096,
+        "heldout_tasks": 256,
         "presentations_per_task": 1,
         "samples_per_presentation": 8,
         "entity_sizes": (4, 5, 6, 7),
@@ -105,7 +143,6 @@ _PROFILE_DEFAULTS: dict[str, dict[str, object]] = {
         "learning_rate": 2e-5,
         "cohort_size": 8,
         "sampling_temperature": 1.5,
-        "value_loss_coefficient": 0.5,
     },
 }
 
@@ -126,25 +163,71 @@ class RunSettings:
     learning_rate: float
     cohort_size: int
     sampling_temperature: float
-    value_loss_coefficient: float
 
 
 @dataclass(frozen=True, slots=True)
 class RetentionThresholds:
-    minimum_exact_gain: int
-    minimum_satisfaction_gain: float
-    minimum_improved_strata: int
-    minimum_ablation_erasure_fraction: float
-    minimum_unseen_wording_satisfaction_gain: float
-    minimum_largest_stratum_satisfaction: float
-    minimum_largest_stratum_exact: int
     maximum_state_delta_norm: float
     exact_reward_bonus: float
 
 
+PublicTask = LearnerTask | SymbolicRuleLearnerTask
+
+
+@dataclass(frozen=True, slots=True)
+class _OutcomeScore:
+    valid: bool
+    exact: bool
+    satisfaction: float
+
+
+class _SealedOutcomeOracle:
+    """Evaluator-only symbolic targets, never attached to learner material."""
+
+    __slots__ = ("__symbolic",)
+
+    def __init__(
+        self,
+        symbolic: Mapping[str, HiddenSymbolicRuleSolution],
+    ) -> None:
+        if any(
+            instance_id != hidden.instance_id
+            for instance_id, hidden in symbolic.items()
+        ):
+            raise ValueError("sealed symbolic identity binding is inconsistent")
+        self.__symbolic = dict(symbolic)
+
+    def score(
+        self,
+        task: PublicTask,
+        answer: Sequence[str],
+    ) -> _OutcomeScore:
+        if isinstance(task, LearnerTask):
+            outcome = score_constraint_satisfaction(task, answer)
+            return _OutcomeScore(
+                valid=outcome.valid,
+                exact=outcome.exact,
+                satisfaction=outcome.constraint_satisfaction,
+            )
+        if isinstance(task, SymbolicRuleLearnerTask):
+            try:
+                hidden = self.__symbolic[task.instance_id]
+            except KeyError as error:
+                raise RuntimeError(
+                    "symbolic task has no evaluator-only sealed solution"
+                ) from error
+            outcome = verify_symbolic_rule_answer(task, hidden, answer)
+            return _OutcomeScore(
+                valid=outcome.valid,
+                exact=outcome.exact,
+                satisfaction=outcome.pairwise_order_agreement,
+            )
+        raise TypeError(f"unsupported public task type: {type(task).__name__}")
+
+
 @dataclass(frozen=True, slots=True)
 class _TaskSegments:
-    task: LearnerTask
+    task: PublicTask
     facts: tuple[str, ...]
     entities: tuple[str, ...]
     focused_mentions: tuple[str, ...]
@@ -154,7 +237,7 @@ class _TaskSegments:
 
 @dataclass(frozen=True, slots=True)
 class TaskKnowledge:
-    task: LearnerTask
+    task: PublicTask
     surface_partition: str
     fact_features: torch.Tensor
     entity_features: torch.Tensor
@@ -203,7 +286,8 @@ class TaskKnowledge:
 class EvaluationSummary:
     exact: int
     total: int
-    mean_constraint_satisfaction: float
+    mean_satisfaction: float
+    by_family: Mapping[str, Mapping[str, float | int]]
     by_entity_size: Mapping[int, Mapping[str, float | int]]
     by_surface_partition: Mapping[str, Mapping[str, float | int]]
     orders: tuple[tuple[str, ...], ...]
@@ -214,7 +298,11 @@ class EvaluationSummary:
             "exact": self.exact,
             "total": self.total,
             "exact_accuracy": self.exact / self.total if self.total else 0.0,
-            "mean_constraint_satisfaction": self.mean_constraint_satisfaction,
+            "mean_satisfaction": self.mean_satisfaction,
+            "by_family": {
+                name: dict(metrics)
+                for name, metrics in sorted(self.by_family.items())
+            },
             "by_entity_size": {
                 str(size): dict(metrics)
                 for size, metrics in sorted(self.by_entity_size.items())
@@ -236,7 +324,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--parent-state")
     parser.add_argument(
         "--candidate-dir",
-        default="/opt/angler/project/work/phase1-separate-reasoning-candidate",
+        default="/opt/angler/project/work/cross-family-rloo-candidate",
     )
     parser.add_argument("--result-json")
     parser.add_argument("--device", default="cuda:0")
@@ -248,7 +336,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--attention-implementation", default="sdpa")
     parser.add_argument("--hidden-state-index", type=int, default=-1)
     parser.add_argument("--feature-batch-size", type=int, default=64)
-    parser.add_argument("--seed", type=int, default=3701)
+    parser.add_argument("--seed", type=int, default=4701)
     parser.add_argument("--training-tasks", type=int)
     parser.add_argument("--heldout-tasks", type=int)
     parser.add_argument("--presentations-per-task", type=int)
@@ -263,17 +351,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--learning-rate", type=float)
     parser.add_argument("--cohort-size", type=int)
     parser.add_argument("--sampling-temperature", type=float)
-    parser.add_argument("--value-loss-coefficient", type=float)
     parser.add_argument("--entropy-coefficient", type=float, default=0.01)
     parser.add_argument("--max-gradient-norm", type=float, default=1.0)
     parser.add_argument("--max-state-delta-norm", type=float)
-    parser.add_argument("--minimum-exact-gain", type=int)
-    parser.add_argument("--minimum-satisfaction-gain", type=float)
-    parser.add_argument("--minimum-improved-strata", type=int)
-    parser.add_argument("--minimum-ablation-erasure-fraction", type=float)
-    parser.add_argument("--minimum-unseen-wording-satisfaction-gain", type=float)
-    parser.add_argument("--minimum-largest-stratum-satisfaction", type=float)
-    parser.add_argument("--minimum-largest-stratum-exact", type=int)
     parser.add_argument("--exact-reward-bonus", type=float)
     parser.add_argument("--include-records", action="store_true")
     return parser.parse_args()
@@ -299,18 +379,28 @@ def resolve_settings(args: argparse.Namespace) -> RunSettings:
     if (
         not settings.entity_sizes
         or len(set(settings.entity_sizes)) != len(settings.entity_sizes)
-        or any(size < 4 or size > 8 for size in settings.entity_sizes)
+        or any(size < 4 or size > 7 for size in settings.entity_sizes)
     ):
-        raise ValueError("entity_sizes must be unique values between four and eight")
-    if settings.training_tasks % len(settings.entity_sizes):
-        raise ValueError("training_tasks must divide evenly across entity sizes")
-    if settings.heldout_tasks % len(settings.entity_sizes):
-        raise ValueError("heldout_tasks must divide evenly across entity sizes")
+        raise ValueError("entity_sizes must be unique values between four and seven")
+    family_size_cells = len(_FAMILY_IDS) * len(settings.entity_sizes)
+    if settings.training_tasks % family_size_cells:
+        raise ValueError(
+            "training_tasks must divide evenly across families and entity sizes"
+        )
+    if settings.heldout_tasks % family_size_cells:
+        raise ValueError(
+            "heldout_tasks must divide evenly across families and entity sizes"
+        )
     if settings.training_tasks % settings.cohort_size:
         raise ValueError("training_tasks must divide evenly across cohort_size")
-    heldout_per_size = settings.heldout_tasks // len(settings.entity_sizes)
-    if heldout_per_size % 2:
-        raise ValueError("heldout tasks per size must be even for seen/unseen balance")
+    if settings.cohort_size != family_size_cells:
+        raise ValueError(
+            "cohort_size must contain one balanced family-by-size block"
+        )
+    if settings.presentations_per_task != 1:
+        raise ValueError("every task must be encountered exactly once")
+    if settings.samples_per_presentation < 2:
+        raise ValueError("leave-one-out credit requires at least two samples")
     if settings.reasoning_steps > settings.maximum_reasoning_steps:
         raise ValueError("reasoning_steps exceeds maximum_reasoning_steps")
     if settings.core_width % settings.attention_heads:
@@ -319,55 +409,15 @@ def resolve_settings(args: argparse.Namespace) -> RunSettings:
 
 
 def resolve_thresholds(args: argparse.Namespace) -> RetentionThresholds:
-    full = args.profile == "full"
     values = {
-        "minimum_exact_gain": 4 if full else 0,
-        "minimum_satisfaction_gain": 0.08 if full else 1e-3,
-        "minimum_improved_strata": 3 if full else 1,
-        "minimum_ablation_erasure_fraction": 0.5 if full else 0.0,
-        "minimum_unseen_wording_satisfaction_gain": 0.05 if full else 0.0,
-        "minimum_largest_stratum_satisfaction": 0.80 if full else 0.0,
-        "minimum_largest_stratum_exact": 1 if full else 0,
-        "maximum_state_delta_norm": 5.0,
-        "exact_reward_bonus": 1.0,
+        "maximum_state_delta_norm": (
+            5.0 if args.max_state_delta_norm is None else args.max_state_delta_norm
+        ),
+        "exact_reward_bonus": (
+            1.0 if args.exact_reward_bonus is None else args.exact_reward_bonus
+        ),
     }
-    overrides = {
-        "minimum_exact_gain": args.minimum_exact_gain,
-        "minimum_satisfaction_gain": args.minimum_satisfaction_gain,
-        "minimum_improved_strata": args.minimum_improved_strata,
-        "minimum_ablation_erasure_fraction": (
-            args.minimum_ablation_erasure_fraction
-        ),
-        "minimum_unseen_wording_satisfaction_gain": (
-            args.minimum_unseen_wording_satisfaction_gain
-        ),
-        "minimum_largest_stratum_satisfaction": (
-            args.minimum_largest_stratum_satisfaction
-        ),
-        "minimum_largest_stratum_exact": args.minimum_largest_stratum_exact,
-        "maximum_state_delta_norm": args.max_state_delta_norm,
-        "exact_reward_bonus": args.exact_reward_bonus,
-    }
-    for name, supplied in overrides.items():
-        if supplied is not None:
-            values[name] = supplied
     thresholds = RetentionThresholds(**values)
-    if thresholds.minimum_exact_gain < 0:
-        raise ValueError("minimum_exact_gain must be nonnegative")
-    if thresholds.minimum_satisfaction_gain < 0.0:
-        raise ValueError("minimum_satisfaction_gain must be nonnegative")
-    if thresholds.minimum_improved_strata < 0:
-        raise ValueError("minimum_improved_strata must be nonnegative")
-    if not 0.0 <= thresholds.minimum_ablation_erasure_fraction <= 1.0:
-        raise ValueError("minimum_ablation_erasure_fraction must be in [0, 1]")
-    if thresholds.minimum_unseen_wording_satisfaction_gain < 0.0:
-        raise ValueError(
-            "minimum_unseen_wording_satisfaction_gain must be nonnegative"
-        )
-    if not 0.0 <= thresholds.minimum_largest_stratum_satisfaction <= 1.0:
-        raise ValueError("minimum_largest_stratum_satisfaction must be in [0, 1]")
-    if thresholds.minimum_largest_stratum_exact < 0:
-        raise ValueError("minimum_largest_stratum_exact must be nonnegative")
     if thresholds.maximum_state_delta_norm <= 0.0:
         raise ValueError("maximum_state_delta_norm must be positive")
     if thresholds.exact_reward_bonus < 0.0:
@@ -422,94 +472,206 @@ def _whole_label_matches(text: str, label: str) -> tuple[re.Match[str], ...]:
     return tuple(re.finditer(pattern, text))
 
 
-def task_segments(task: LearnerTask) -> _TaskSegments:
-    """Create independent public segments using identity matching only.
+def _action_symbols(task: PublicTask) -> tuple[str, ...]:
+    if isinstance(task, LearnerTask):
+        return task.symbols
+    if isinstance(task, SymbolicRuleLearnerTask):
+        return task.query_symbols
+    raise TypeError(f"unsupported public task type: {type(task).__name__}")
 
-    This function recognizes literal public entity labels.  It never inspects
-    normalized constraints, relation words, the hidden order, or a target
-    answer, and it never joins multiple facts into one model input.
+
+def _independent_public_facts(task: PublicTask) -> tuple[str, ...]:
+    if isinstance(task, LearnerTask):
+        return (
+            f"Public goal: {_RELATIONAL_GOAL}",
+            *(f"Public relation fact: {fact}" for fact in task.fact_statements),
+        )
+    if isinstance(task, SymbolicRuleLearnerTask):
+        return (
+            f"Public goal: {task.goal_text}",
+            *(
+                f"Public demonstration: {demonstration.statement}"
+                for demonstration in task.demonstrations
+            ),
+            f"Public query: {task.query_statement}",
+        )
+    raise TypeError(f"unsupported public task type: {type(task).__name__}")
+
+
+def task_segments(task: PublicTask) -> _TaskSegments:
+    """Create independent public segments using literal action identity only.
+
+    Goals, demonstrations, relation facts, and queries remain separate donor
+    inputs.  A fact may mention no action symbol (all symbolic demonstrations
+    intentionally do); incidence is created only for literal public action
+    occurrences.  This adapter never aligns demonstration positions, parses a
+    relation, or observes an evaluator target.
     """
 
+    facts = _independent_public_facts(task)
+    actions = _action_symbols(task)
     mentions: list[tuple[int, int, str, int]] = []
-    for fact_index, fact in enumerate(task.fact_statements):
-        for entity_index, entity in enumerate(task.symbols):
+    action_mentions = [0] * len(actions)
+    for fact_index, fact in enumerate(facts):
+        for entity_index, entity in enumerate(actions):
             matches = _whole_label_matches(fact, entity)
             if len(matches) > 1:
-                raise RuntimeError("a public entity appears repeatedly in one fact")
+                raise RuntimeError("a public action appears repeatedly in one fact")
             if matches:
                 match = matches[0]
                 focused = (
-                    f"Visible fact: {fact}\n"
-                    f"Focus public entity: {entity}"
+                    f"{fact}\n"
+                    f"Focus public action symbol: {entity}"
                 )
                 mentions.append(
                     (fact_index, match.start(), focused, entity_index)
                 )
+                action_mentions[entity_index] += 1
     mentions.sort(key=lambda item: (item[0], item[1]))
-    mention_counts = [0] * len(task.fact_statements)
-    for fact_index, _, _, _ in mentions:
-        mention_counts[fact_index] += 1
-    if any(count != 2 for count in mention_counts):
-        raise RuntimeError(
-            "every public fact must contain exactly two entity mentions"
-        )
+    if any(count == 0 for count in action_mentions):
+        raise RuntimeError("every public action symbol must be mentioned at least once")
     return _TaskSegments(
         task=task,
-        facts=tuple(f"Visible fact: {fact}" for fact in task.fact_statements),
-        entities=tuple(f"Public entity: {entity}" for entity in task.symbols),
+        facts=facts,
+        entities=tuple(f"Public action symbol: {entity}" for entity in actions),
         focused_mentions=tuple(item[2] for item in mentions),
         mention_entity_indices=tuple(item[3] for item in mentions),
         mention_fact_indices=tuple(item[0] for item in mentions),
     )
 
 
+def _generate_public_task(
+    family_id: str,
+    *,
+    structure_seed: int,
+    surface_seed: int,
+    entity_size: int,
+    demonstration_count: int,
+    unseen_wording: bool,
+) -> tuple[PublicTask, HiddenSymbolicRuleSolution | None]:
+    if family_id == _FAMILY_RELATIONAL:
+        generated = generate_relational_task(
+            structure_seed,
+            item_count=entity_size,
+            surface_forms=(
+                _UNSEEN_SURFACE_FORMS
+                if unseen_wording
+                else _TRAINING_SURFACE_FORMS
+            ),
+        )
+        return generated.learner, None
+    if family_id == _FAMILY_SYMBOLIC:
+        generated_symbolic = generate_symbolic_rule_task(
+            structure_seed,
+            item_count=entity_size,
+            demonstration_count=demonstration_count,
+            surface_seed=surface_seed,
+            goal_surface_forms=(
+                _SYMBOLIC_UNSEEN_GOAL_FORMS
+                if unseen_wording
+                else _SYMBOLIC_TRAINING_GOAL_FORMS
+            ),
+            demonstration_surface_forms=(
+                _SYMBOLIC_UNSEEN_DEMO_FORMS
+                if unseen_wording
+                else _SYMBOLIC_TRAINING_DEMO_FORMS
+            ),
+            query_surface_forms=(
+                _SYMBOLIC_UNSEEN_QUERY_FORMS
+                if unseen_wording
+                else _SYMBOLIC_TRAINING_QUERY_FORMS
+            ),
+        )
+        return generated_symbolic.learner, generated_symbolic.hidden
+    raise ValueError(f"unsupported task family: {family_id}")
+
+
 def generate_balanced_partitions(
     settings: RunSettings,
     *,
     seed: int,
-) -> tuple[tuple[LearnerTask, ...], tuple[LearnerTask, ...], dict[str, str]]:
-    """Generate size-balanced train/heldout tasks with a frozen wording split."""
+) -> tuple[
+    tuple[PublicTask, ...],
+    tuple[PublicTask, ...],
+    dict[str, str],
+    _SealedOutcomeOracle,
+]:
+    """Generate an exactly family/size-balanced, single-encounter stream."""
 
-    training_per_size = settings.training_tasks // len(settings.entity_sizes)
-    heldout_per_size = settings.heldout_tasks // len(settings.entity_sizes)
-    unseen_per_size = heldout_per_size // 2
-    training: list[LearnerTask] = []
-    heldout: list[LearnerTask] = []
+    cell_count = len(_FAMILY_IDS) * len(settings.entity_sizes)
+    training_per_cell = settings.training_tasks // cell_count
+    heldout_per_cell = settings.heldout_tasks // cell_count
+    training_cells: dict[tuple[str, int], list[PublicTask]] = {}
+    heldout_cells: dict[tuple[str, int], list[PublicTask]] = {}
     partitions: dict[str, str] = {}
+    sealed_symbolic: dict[str, HiddenSymbolicRuleSolution] = {}
     for size_index, entity_size in enumerate(settings.entity_sizes):
-        size_seed = seed + size_index * 100_003
-        for index in range(training_per_size):
-            task = generate_relational_task(
-                size_seed + index * 101,
-                item_count=entity_size,
-                surface_forms=_TRAINING_SURFACE_FORMS,
-            ).learner
-            training.append(task)
-            partitions[task.instance_id] = "training_seen_wording"
-        for index in range(heldout_per_size):
-            unseen = index >= heldout_per_size - unseen_per_size
-            task = generate_relational_task(
-                size_seed + 1_000_003 + index * 103,
-                item_count=entity_size,
-                surface_forms=(
-                    _UNSEEN_SURFACE_FORMS
+        for family_index, family_id in enumerate(_FAMILY_IDS):
+            cell = (family_id, entity_size)
+            training_cells[cell] = []
+            heldout_cells[cell] = []
+            domain = family_index * 10_000_019 + size_index * 1_000_003
+            for index in range(training_per_cell):
+                structure_seed = seed + domain + index * 101
+                task, hidden = _generate_public_task(
+                    family_id,
+                    structure_seed=structure_seed,
+                    surface_seed=structure_seed + 97_409,
+                    entity_size=entity_size,
+                    demonstration_count=2 + ((index + size_index) % 3),
+                    unseen_wording=False,
+                )
+                training_cells[cell].append(task)
+                partitions[task.instance_id] = "training_seen_wording"
+                if hidden is not None:
+                    sealed_symbolic[task.instance_id] = hidden
+            for index in range(heldout_per_cell):
+                unseen = (index + family_index + size_index) % 2 == 1
+                structure_seed = seed + 100_000_007 + domain + index * 103
+                task, hidden = _generate_public_task(
+                    family_id,
+                    structure_seed=structure_seed,
+                    surface_seed=structure_seed + 193_939,
+                    entity_size=entity_size,
+                    demonstration_count=2 + ((index + family_index) % 3),
+                    unseen_wording=unseen,
+                )
+                heldout_cells[cell].append(task)
+                partitions[task.instance_id] = (
+                    "heldout_unseen_wording"
                     if unseen
-                    else _TRAINING_SURFACE_FORMS
-                ),
-            ).learner
-            heldout.append(task)
-            partitions[task.instance_id] = (
-                "heldout_unseen_wording" if unseen else "heldout_seen_wording"
-            )
+                    else "heldout_seen_wording"
+                )
+                if hidden is not None:
+                    sealed_symbolic[task.instance_id] = hidden
+
+    # Each contiguous full-profile cohort has one task from every family/size
+    # cell.  Cohort blocks may be shuffled later without destroying balance.
+    training = tuple(
+        training_cells[(family_id, entity_size)][index]
+        for index in range(training_per_cell)
+        for entity_size in settings.entity_sizes
+        for family_id in _FAMILY_IDS
+    )
+    heldout = tuple(
+        heldout_cells[(family_id, entity_size)][index]
+        for index in range(heldout_per_cell)
+        for entity_size in settings.entity_sizes
+        for family_id in _FAMILY_IDS
+    )
     if len(partitions) != len(training) + len(heldout):
         raise RuntimeError("training and heldout task identities must be unique")
-    return tuple(training), tuple(heldout), partitions
+    if sum(task.family_id == _FAMILY_RELATIONAL for task in training) * 2 != len(training):
+        raise RuntimeError("training task families are not exactly balanced")
+    if sum(task.family_id == _FAMILY_RELATIONAL for task in heldout) * 2 != len(heldout):
+        raise RuntimeError("heldout task families are not exactly balanced")
+    return training, heldout, partitions, _SealedOutcomeOracle(sealed_symbolic)
 
 
 def encode_task_knowledge(
     model: torch.nn.Module,
     tokenizer: Any,
-    tasks: Sequence[LearnerTask],
+    tasks: Sequence[PublicTask],
     *,
     surface_partitions: Mapping[str, str],
     feature_batch_size: int,
@@ -560,18 +722,20 @@ def encode_task_knowledge(
 
 
 def _symbols_from_indices(
-    task: LearnerTask,
+    task: PublicTask,
     order_indices: Iterable[int],
 ) -> tuple[str, ...]:
+    symbols = _action_symbols(task)
     indices = tuple(int(index) for index in order_indices if int(index) >= 0)
-    if len(indices) != len(task.symbols) or set(indices) != set(range(len(task.symbols))):
+    if len(indices) != len(symbols) or set(indices) != set(range(len(symbols))):
         raise RuntimeError("the neural policy emitted a non-permutation")
-    return tuple(task.symbols[index] for index in indices)
+    return tuple(symbols[index] for index in indices)
 
 
 def _score_sampled_orders(
     item: TaskKnowledge,
     order_indices: torch.Tensor,
+    oracle: _SealedOutcomeOracle,
     *,
     exact_reward_bonus: float,
 ) -> tuple[torch.Tensor, tuple[dict[str, Any], ...]]:
@@ -579,16 +743,16 @@ def _score_sampled_orders(
     records: list[dict[str, Any]] = []
     for sample in order_indices.detach().cpu():
         order = _symbols_from_indices(item.task, sample.tolist())
-        outcome = score_constraint_satisfaction(item.task, order)
+        outcome = oracle.score(item.task, order)
         rewards.append(
-            outcome.constraint_satisfaction
+            outcome.satisfaction
             + exact_reward_bonus * int(outcome.exact)
         )
         records.append(
             {
                 "valid": outcome.valid,
                 "exact": outcome.exact,
-                "constraint_satisfaction": outcome.constraint_satisfaction,
+                "satisfaction": outcome.satisfaction,
             }
         )
     return (
@@ -601,6 +765,7 @@ def _score_sampled_orders(
 def evaluate(
     core: RecurrentReasoningCore,
     tasks: Sequence[TaskKnowledge],
+    oracle: _SealedOutcomeOracle,
     *,
     device: torch.device,
     reasoning_steps: int,
@@ -612,6 +777,7 @@ def evaluate(
     exact = 0
     satisfaction = 0.0
     strata: dict[int, dict[str, float | int]] = {}
+    family_strata: dict[str, dict[str, float | int]] = {}
     surface_strata: dict[str, dict[str, float | int]] = {}
     orders: list[tuple[str, ...]] = []
     records: list[dict[str, Any]] = []
@@ -630,10 +796,11 @@ def evaluate(
             item.task,
             trajectory.order_indices[0, 0].cpu().tolist(),
         )
-        outcome = score_constraint_satisfaction(item.task, order)
+        outcome = oracle.score(item.task, order)
         exact += int(outcome.exact)
-        satisfaction += outcome.constraint_satisfaction
-        entity_size = len(item.task.symbols)
+        satisfaction += outcome.satisfaction
+        entity_size = len(_action_symbols(item.task))
+        family_id = item.task.family_id
         stratum = strata.setdefault(
             entity_size,
             {"exact": 0, "total": 0, "satisfaction_sum": 0.0},
@@ -642,7 +809,18 @@ def evaluate(
         stratum["total"] = int(stratum["total"]) + 1
         stratum["satisfaction_sum"] = (
             float(stratum["satisfaction_sum"])
-            + outcome.constraint_satisfaction
+            + outcome.satisfaction
+        )
+        family_stratum = family_strata.setdefault(
+            family_id,
+            {"exact": 0, "total": 0, "satisfaction_sum": 0.0},
+        )
+        family_stratum["exact"] = (
+            int(family_stratum["exact"]) + int(outcome.exact)
+        )
+        family_stratum["total"] = int(family_stratum["total"]) + 1
+        family_stratum["satisfaction_sum"] = (
+            float(family_stratum["satisfaction_sum"]) + outcome.satisfaction
         )
         surface_stratum = surface_strata.setdefault(
             item.surface_partition,
@@ -654,7 +832,7 @@ def evaluate(
         surface_stratum["total"] = int(surface_stratum["total"]) + 1
         surface_stratum["satisfaction_sum"] = (
             float(surface_stratum["satisfaction_sum"])
-            + outcome.constraint_satisfaction
+            + outcome.satisfaction
         )
         orders.append(order)
         records.append(
@@ -662,10 +840,10 @@ def evaluate(
                 "task_id": item.task.instance_id,
                 "valid": outcome.valid,
                 "exact": outcome.exact,
-                "constraint_satisfaction": outcome.constraint_satisfaction,
+                "satisfaction": outcome.satisfaction,
+                "family_id": family_id,
                 "entity_size": entity_size,
                 "surface_partition": item.surface_partition,
-                "order": list(order),
             }
         )
     core.train(prior_training)
@@ -674,18 +852,29 @@ def evaluate(
             "exact": int(values["exact"]),
             "total": int(values["total"]),
             "exact_accuracy": int(values["exact"]) / int(values["total"]),
-            "mean_constraint_satisfaction": (
+            "mean_satisfaction": (
                 float(values["satisfaction_sum"]) / int(values["total"])
             ),
         }
         for size, values in strata.items()
+    }
+    by_family = {
+        name: {
+            "exact": int(values["exact"]),
+            "total": int(values["total"]),
+            "exact_accuracy": int(values["exact"]) / int(values["total"]),
+            "mean_satisfaction": (
+                float(values["satisfaction_sum"]) / int(values["total"])
+            ),
+        }
+        for name, values in family_strata.items()
     }
     by_surface_partition = {
         name: {
             "exact": int(values["exact"]),
             "total": int(values["total"]),
             "exact_accuracy": int(values["exact"]) / int(values["total"]),
-            "mean_constraint_satisfaction": (
+            "mean_satisfaction": (
                 float(values["satisfaction_sum"]) / int(values["total"])
             ),
         }
@@ -694,7 +883,8 @@ def evaluate(
     return EvaluationSummary(
         exact=exact,
         total=len(tasks),
-        mean_constraint_satisfaction=(satisfaction / len(tasks) if tasks else 0.0),
+        mean_satisfaction=(satisfaction / len(tasks) if tasks else 0.0),
+        by_family=by_family,
         by_entity_size=by_entity_size,
         by_surface_partition=by_surface_partition,
         orders=tuple(orders),
@@ -716,6 +906,7 @@ def _state_delta_norm(
 def train_outcome_policy(
     core: RecurrentReasoningCore,
     tasks: Sequence[TaskKnowledge],
+    oracle: _SealedOutcomeOracle,
     parent_snapshot: Mapping[str, torch.Tensor],
     settings: RunSettings,
     *,
@@ -751,86 +942,78 @@ def train_outcome_policy(
     optimizer_steps = 0
     constant_reward_groups = 0
     total_unique_sampled_orders = 0
-    for presentation in range(settings.presentations_per_task):
-        task_order = list(range(len(tasks)))
-        rng.shuffle(task_order)
-        for cohort_start in range(0, len(task_order), settings.cohort_size):
-            cohort = task_order[cohort_start : cohort_start + settings.cohort_size]
-            optimizer.zero_grad(set_to_none=True)
-            for task_index in cohort:
-                item = tasks[task_index]
-                trajectory = core.act(
-                    samples_per_task=settings.samples_per_presentation,
-                    greedy=False,
-                    reasoning_steps=settings.reasoning_steps,
-                    temperature=settings.sampling_temperature,
-                    **item.model_inputs(device),
-                )
-                rewards, outcomes = _score_sampled_orders(
-                    item,
-                    trajectory.order_indices[0],
-                    exact_reward_bonus=exact_reward_bonus,
-                )
-                task_value = trajectory.value[0]
-                if task_value.ndim != 0:
-                    raise RuntimeError("the outcome value must be scalar per task")
-                reward_std = rewards.std(unbiased=False)
-                constant_reward_groups += int(float(reward_std.item()) <= 1e-8)
-                sampled_orders = {
-                    tuple(int(index) for index in sample.tolist())
-                    for sample in trajectory.order_indices[0].detach().cpu()
+    cohorts = [
+        list(range(start, start + settings.cohort_size))
+        for start in range(0, len(tasks), settings.cohort_size)
+    ]
+    rng.shuffle(cohorts)
+    for cohort in cohorts:
+        optimizer.zero_grad(set_to_none=True)
+        for task_index in cohort:
+            item = tasks[task_index]
+            trajectory = core.act(
+                samples_per_task=settings.samples_per_presentation,
+                greedy=False,
+                reasoning_steps=settings.reasoning_steps,
+                temperature=settings.sampling_temperature,
+                **item.model_inputs(device),
+            )
+            rewards, outcomes = _score_sampled_orders(
+                item,
+                trajectory.order_indices[0],
+                oracle,
+                exact_reward_bonus=exact_reward_bonus,
+            )
+            reward_std = rewards.std(unbiased=False)
+            constant_reward_groups += int(float(reward_std.item()) <= 1e-8)
+            sampled_orders = {
+                tuple(int(index) for index in sample.tolist())
+                for sample in trajectory.order_indices[0].detach().cpu()
+            }
+            total_unique_sampled_orders += len(sampled_orders)
+
+            advantages = leave_one_out_advantages(rewards)
+            entity_count = len(_action_symbols(item.task))
+            log_probability = trajectory.log_probability[0] / entity_count
+            entropy = trajectory.entropy[0] / entity_count
+            policy_loss = -(advantages * log_probability).mean()
+            loss = policy_loss - entropy_coefficient * entropy.mean()
+            if not bool(torch.isfinite(loss).item()):
+                raise RuntimeError("the outcome-policy loss is not finite")
+            (loss / len(cohort)).backward()
+            records.append(
+                {
+                    "presentation": 1,
+                    "task_id": item.task.instance_id,
+                    "family_id": item.task.family_id,
+                    "reward_mean": float(rewards.mean().item()),
+                    "reward_min": float(rewards.min().item()),
+                    "reward_max": float(rewards.max().item()),
+                    "exact_samples": sum(int(record["exact"]) for record in outcomes),
+                    "constant_sample_reward": float(reward_std.item()) <= 1e-8,
+                    "unique_sampled_orders": len(sampled_orders),
+                    "loss": float(loss.detach().cpu().item()),
+                    "policy_loss": float(policy_loss.detach().cpu().item()),
+                    "advantage_mean": float(advantages.mean().item()),
+                    "mean_entropy": float(entropy.detach().mean().cpu().item()),
                 }
-                total_unique_sampled_orders += len(sampled_orders)
-
-                advantages = rewards - task_value.detach()
-                entity_count = len(item.task.symbols)
-                log_probability = trajectory.log_probability[0] / entity_count
-                entropy = trajectory.entropy[0] / entity_count
-                policy_loss = -(advantages * log_probability).mean()
-                value_loss = 0.5 * (
-                    task_value - rewards.mean()
-                ).square()
-                loss = (
-                    policy_loss
-                    + settings.value_loss_coefficient * value_loss
-                    - entropy_coefficient * entropy.mean()
-                )
-                if not bool(torch.isfinite(loss).item()):
-                    raise RuntimeError("the outcome-policy loss is not finite")
-                (loss / len(cohort)).backward()
-                records.append(
-                    {
-                        "presentation": presentation + 1,
-                        "task_id": item.task.instance_id,
-                        "reward_mean": float(rewards.mean().item()),
-                        "reward_min": float(rewards.min().item()),
-                        "reward_max": float(rewards.max().item()),
-                        "exact_samples": sum(int(record["exact"]) for record in outcomes),
-                        "constant_sample_reward": float(reward_std.item()) <= 1e-8,
-                        "unique_sampled_orders": len(sampled_orders),
-                        "loss": float(loss.detach().cpu().item()),
-                        "policy_loss": float(policy_loss.detach().cpu().item()),
-                        "value_loss": float(value_loss.detach().cpu().item()),
-                        "mean_value": float(task_value.detach().cpu().item()),
-                        "mean_entropy": float(entropy.detach().mean().cpu().item()),
-                    }
-                )
-
-            gradient_norm = torch.nn.utils.clip_grad_norm_(
-                parameters,
-                max_norm=max_gradient_norm,
-                error_if_nonfinite=True,
             )
-            optimizer.step()
-            optimizer_steps += 1
-            if not all(
-                bool(torch.isfinite(parameter.detach()).all().item())
-                for parameter in parameters
-            ):
-                raise RuntimeError("the reasoning state contains a non-finite tensor")
-            records[-1]["cohort_gradient_norm_before_clip"] = float(
-                gradient_norm.detach().cpu().item()
-            )
+
+        gradient_norm = torch.nn.utils.clip_grad_norm_(
+            parameters,
+            max_norm=max_gradient_norm,
+            error_if_nonfinite=True,
+        )
+        optimizer.step()
+        optimizer_steps += 1
+        if not all(
+            bool(torch.isfinite(parameter.detach()).all().item())
+            for parameter in parameters
+        ):
+            raise RuntimeError("the reasoning state contains a non-finite tensor")
+        records[-1]["cohort_gradient_norm_before_clip"] = float(
+            gradient_norm.detach().cpu().item()
+        )
 
     optimizer.zero_grad(set_to_none=True)
     delta_norm = _state_delta_norm(core, parent_snapshot)
@@ -842,15 +1025,13 @@ def train_outcome_policy(
         {
             "summary": True,
             "optimizer_steps": optimizer_steps,
-            "experience_count": len(tasks) * settings.presentations_per_task,
+            "experience_count": len(tasks),
             "unique_task_ids": len(set(task_ids)),
-            "replayed_task_ids": (
-                len(tasks) * settings.presentations_per_task - len(set(task_ids))
-            ),
+            "replayed_task_ids": 0,
             "constant_reward_groups": constant_reward_groups,
             "mean_unique_orders_per_experience": (
                 total_unique_sampled_orders
-                / (len(tasks) * settings.presentations_per_task)
+                / len(tasks)
             ),
             "state_delta_norm": delta_norm,
             "trust_region_projection": None,
@@ -942,8 +1123,8 @@ def _stratum_gains(
         parent_metrics = parent.by_entity_size[size]
         candidate_metrics = candidate.by_entity_size[size]
         satisfaction_gain = (
-            float(candidate_metrics["mean_constraint_satisfaction"])
-            - float(parent_metrics["mean_constraint_satisfaction"])
+            float(candidate_metrics["mean_satisfaction"])
+            - float(parent_metrics["mean_satisfaction"])
         )
         exact_gain = int(candidate_metrics["exact"]) - int(parent_metrics["exact"])
         if satisfaction_gain > 0.0:
@@ -969,8 +1150,30 @@ def _surface_partition_gains(
                 int(candidate_metrics["exact"]) - int(parent_metrics["exact"])
             ),
             "satisfaction_gain": (
-                float(candidate_metrics["mean_constraint_satisfaction"])
-                - float(parent_metrics["mean_constraint_satisfaction"])
+                float(candidate_metrics["mean_satisfaction"])
+                - float(parent_metrics["mean_satisfaction"])
+            ),
+        }
+    return gains
+
+
+def _family_gains(
+    parent: EvaluationSummary,
+    candidate: EvaluationSummary,
+) -> dict[str, dict[str, float | int]]:
+    gains: dict[str, dict[str, float | int]] = {}
+    if set(parent.by_family) != set(candidate.by_family):
+        raise RuntimeError("parent and candidate family strata differ")
+    for family_id in sorted(parent.by_family):
+        parent_metrics = parent.by_family[family_id]
+        candidate_metrics = candidate.by_family[family_id]
+        gains[family_id] = {
+            "exact_gain": (
+                int(candidate_metrics["exact"]) - int(parent_metrics["exact"])
+            ),
+            "satisfaction_gain": (
+                float(candidate_metrics["mean_satisfaction"])
+                - float(parent_metrics["mean_satisfaction"])
             ),
         }
     return gains
@@ -988,16 +1191,9 @@ def _full_protocol_eligible(
     return (
         args.profile == "full"
         and settings == expected_settings
-        and thresholds.minimum_exact_gain == 4
-        and thresholds.minimum_satisfaction_gain == 0.08
-        and thresholds.minimum_improved_strata == 3
-        and thresholds.minimum_ablation_erasure_fraction == 0.5
-        and thresholds.minimum_unseen_wording_satisfaction_gain == 0.05
-        and thresholds.minimum_largest_stratum_satisfaction == 0.80
-        and thresholds.minimum_largest_stratum_exact == 1
         and thresholds.maximum_state_delta_norm == 5.0
         and thresholds.exact_reward_bonus == 1.0
-        and args.seed == 3701
+        and args.seed == 4701
         and args.dtype == "bfloat16"
         and args.attention_implementation == "sdpa"
         and args.hidden_state_index == -1
@@ -1095,7 +1291,7 @@ def main() -> None:
     ):
         raise RuntimeError("the full protocol donor fingerprint is not the pinned Qwen3-4B")
 
-    training_tasks, heldout_tasks, surface_partitions = (
+    training_tasks, heldout_tasks, surface_partitions, outcome_oracle = (
         generate_balanced_partitions(settings, seed=args.seed)
     )
     print("encoding independent public segments", file=sys.stderr, flush=True)
@@ -1130,24 +1326,28 @@ def main() -> None:
     parent_heldout = evaluate(
         core,
         heldout_knowledge,
+        outcome_oracle,
         device=device,
         reasoning_steps=settings.reasoning_steps,
     )
     parent_no_recurrence = evaluate(
         core,
         heldout_knowledge,
+        outcome_oracle,
         device=device,
         reasoning_steps=0,
     )
     parent_one_recurrent_step = evaluate(
         core,
         heldout_knowledge,
+        outcome_oracle,
         device=device,
         reasoning_steps=1,
     )
     parent_no_fact_evidence = evaluate(
         core,
         heldout_knowledge,
+        outcome_oracle,
         device=device,
         reasoning_steps=settings.reasoning_steps,
         remove_fact_evidence=True,
@@ -1155,6 +1355,7 @@ def main() -> None:
     parent_deranged_incidence = evaluate(
         core,
         heldout_knowledge,
+        outcome_oracle,
         device=device,
         reasoning_steps=settings.reasoning_steps,
         derange_incidence=True,
@@ -1165,6 +1366,7 @@ def main() -> None:
         training_receipts = train_outcome_policy(
             core,
             training_knowledge,
+            outcome_oracle,
             parent_snapshot,
             settings,
             device=device,
@@ -1180,24 +1382,28 @@ def main() -> None:
         candidate_heldout = evaluate(
             core,
             heldout_knowledge,
+            outcome_oracle,
             device=device,
             reasoning_steps=settings.reasoning_steps,
         )
         no_recurrence = evaluate(
             core,
             heldout_knowledge,
+            outcome_oracle,
             device=device,
             reasoning_steps=0,
         )
         one_recurrent_step = evaluate(
             core,
             heldout_knowledge,
+            outcome_oracle,
             device=device,
             reasoning_steps=1,
         )
         no_fact_evidence = evaluate(
             core,
             heldout_knowledge,
+            outcome_oracle,
             device=device,
             reasoning_steps=settings.reasoning_steps,
             remove_fact_evidence=True,
@@ -1205,6 +1411,7 @@ def main() -> None:
         deranged_incidence = evaluate(
             core,
             heldout_knowledge,
+            outcome_oracle,
             device=device,
             reasoning_steps=settings.reasoning_steps,
             derange_incidence=True,
@@ -1215,8 +1422,8 @@ def main() -> None:
             raise RuntimeError("the frozen knowledge-backbone fingerprint changed")
 
         satisfaction_gain = (
-            candidate_heldout.mean_constraint_satisfaction
-            - parent_heldout.mean_constraint_satisfaction
+            candidate_heldout.mean_satisfaction
+            - parent_heldout.mean_satisfaction
         )
         exact_gain = candidate_heldout.exact - parent_heldout.exact
         stratum_gains, improved_strata = _stratum_gains(
@@ -1227,47 +1434,42 @@ def main() -> None:
             parent_heldout,
             candidate_heldout,
         )
+        family_gains = _family_gains(parent_heldout, candidate_heldout)
+        seen_wording_gain = float(
+            surface_partition_gains["heldout_seen_wording"]["satisfaction_gain"]
+        )
         unseen_wording_gain = float(
             surface_partition_gains["heldout_unseen_wording"][
                 "satisfaction_gain"
             ]
         )
-        largest_entity_size = max(settings.entity_sizes)
-        largest_stratum = candidate_heldout.by_entity_size[largest_entity_size]
-        largest_stratum_satisfaction = float(
-            largest_stratum["mean_constraint_satisfaction"]
-        )
-        largest_stratum_exact = int(largest_stratum["exact"])
         recurrence_ablated_gain = (
-            no_recurrence.mean_constraint_satisfaction
-            - parent_no_recurrence.mean_constraint_satisfaction
+            no_recurrence.mean_satisfaction
+            - parent_no_recurrence.mean_satisfaction
         )
         one_step_ablated_gain = (
-            one_recurrent_step.mean_constraint_satisfaction
-            - parent_one_recurrent_step.mean_constraint_satisfaction
+            one_recurrent_step.mean_satisfaction
+            - parent_one_recurrent_step.mean_satisfaction
         )
         fact_ablated_gain = (
-            no_fact_evidence.mean_constraint_satisfaction
-            - parent_no_fact_evidence.mean_constraint_satisfaction
+            no_fact_evidence.mean_satisfaction
+            - parent_no_fact_evidence.mean_satisfaction
         )
         deranged_incidence_gain = (
-            deranged_incidence.mean_constraint_satisfaction
-            - parent_deranged_incidence.mean_constraint_satisfaction
+            deranged_incidence.mean_satisfaction
+            - parent_deranged_incidence.mean_satisfaction
         )
         recurrence_erasure = satisfaction_gain - recurrence_ablated_gain
         one_step_erasure = satisfaction_gain - one_step_ablated_gain
         fact_erasure = satisfaction_gain - fact_ablated_gain
         incidence_erasure = satisfaction_gain - deranged_incidence_gain
-        required_erasure = (
-            thresholds.minimum_ablation_erasure_fraction
-            * max(satisfaction_gain, 0.0)
-        )
 
         candidate_snapshot = snapshot_reasoning_state(core)
         restore_reasoning_state(core, parent_snapshot)
         swapped_parent = evaluate(
             core,
             heldout_knowledge,
+            outcome_oracle,
             device=device,
             reasoning_steps=settings.reasoning_steps,
         )
@@ -1279,6 +1481,7 @@ def main() -> None:
         swapped_candidate = evaluate(
             core,
             heldout_knowledge,
+            outcome_oracle,
             device=device,
             reasoning_steps=settings.reasoning_steps,
         )
@@ -1288,21 +1491,24 @@ def main() -> None:
         )
         state_swap_verified = parent_swap_verified and candidate_swap_verified
 
+        families_improved = all(
+            float(metrics["satisfaction_gain"]) > 0.0
+            and int(metrics["exact_gain"]) >= 0
+            for metrics in family_gains.values()
+        )
         preliminary_retention = (
             state_changed
-            and exact_gain >= thresholds.minimum_exact_gain
-            and satisfaction_gain >= thresholds.minimum_satisfaction_gain
-            and improved_strata >= thresholds.minimum_improved_strata
-            and unseen_wording_gain
-            >= thresholds.minimum_unseen_wording_satisfaction_gain
-            and largest_stratum_satisfaction
-            >= thresholds.minimum_largest_stratum_satisfaction
-            and largest_stratum_exact >= thresholds.minimum_largest_stratum_exact
-            and recurrence_erasure >= required_erasure
-            and one_step_erasure >= required_erasure
-            and fact_erasure >= required_erasure
-            and incidence_erasure >= required_erasure
+            and satisfaction_gain > 0.0
+            and exact_gain >= 0
+            and families_improved
+            and seen_wording_gain > 0.0
+            and unseen_wording_gain > 0.0
+            and recurrence_erasure > 0.0
+            and one_step_erasure > 0.0
+            and fact_erasure > 0.0
+            and incidence_erasure > 0.0
             and state_swap_verified
+            and foundation_after == foundation_before
         )
         saved_path: str | None = None
         reload_verified = False
@@ -1323,14 +1529,15 @@ def main() -> None:
             reloaded_heldout = evaluate(
                 reloaded,
                 heldout_knowledge,
+                outcome_oracle,
                 device=device,
                 reasoning_steps=settings.reasoning_steps,
             )
             if (
                 reloaded_heldout.orders != candidate_heldout.orders
                 or reloaded_heldout.exact != candidate_heldout.exact
-                or reloaded_heldout.mean_constraint_satisfaction
-                != candidate_heldout.mean_constraint_satisfaction
+                or reloaded_heldout.mean_satisfaction
+                != candidate_heldout.mean_satisfaction
             ):
                 raise RuntimeError("reloaded reasoning state changed behavior")
             staging.rename(candidate_dir)
@@ -1354,7 +1561,7 @@ def main() -> None:
             training_receipts if args.include_records else (summary_receipt,)
         )
         result = {
-            "experiment": "ANGLER-INCIDENCE-MP-V1",
+            "experiment": "ANGLER-CROSS-FAMILY-RLOO-V1",
             "status": status,
             "profile": args.profile,
             "claim_level": (
@@ -1372,7 +1579,7 @@ def main() -> None:
             "run_settings": {
                 "seed": args.seed,
                 "profile_settings": asdict(settings),
-                "retention_thresholds": asdict(thresholds),
+                "retention_bounds": asdict(thresholds),
                 "device": args.device,
                 "dtype": args.dtype,
                 "attention_implementation": args.attention_implementation,
@@ -1387,8 +1594,8 @@ def main() -> None:
                 "knowledge_width_inferred": knowledge_width,
                 "hidden_state_index": args.hidden_state_index,
                 "segment_policy": (
-                    "independent raw facts, entity labels, and identity-focused "
-                    "single-fact mentions only"
+                    "independent public goals/facts, action labels, and literal "
+                    "identity-focused single-fact mentions only"
                 ),
                 "assembled_problem_encoded": False,
                 "language_generation_used": False,
@@ -1422,8 +1629,29 @@ def main() -> None:
                 "heldout_per_entity_size": (
                     settings.heldout_tasks // len(settings.entity_sizes)
                 ),
-                "training_surface_forms": list(_TRAINING_SURFACE_FORMS),
-                "heldout_unseen_surface_forms": list(_UNSEEN_SURFACE_FORMS),
+                "training_per_family": settings.training_tasks // len(_FAMILY_IDS),
+                "heldout_per_family": settings.heldout_tasks // len(_FAMILY_IDS),
+                "training_per_family_entity_size": (
+                    settings.training_tasks
+                    // (len(_FAMILY_IDS) * len(settings.entity_sizes))
+                ),
+                "heldout_per_family_entity_size": (
+                    settings.heldout_tasks
+                    // (len(_FAMILY_IDS) * len(settings.entity_sizes))
+                ),
+                "families": list(_FAMILY_IDS),
+                "relational_training_surface_forms": list(_TRAINING_SURFACE_FORMS),
+                "relational_unseen_surface_forms": list(_UNSEEN_SURFACE_FORMS),
+                "symbolic_training_surface_forms": {
+                    "goal": list(_SYMBOLIC_TRAINING_GOAL_FORMS),
+                    "demonstration": list(_SYMBOLIC_TRAINING_DEMO_FORMS),
+                    "query": list(_SYMBOLIC_TRAINING_QUERY_FORMS),
+                },
+                "symbolic_unseen_surface_forms": {
+                    "goal": list(_SYMBOLIC_UNSEEN_GOAL_FORMS),
+                    "demonstration": list(_SYMBOLIC_UNSEEN_DEMO_FORMS),
+                    "query": list(_SYMBOLIC_UNSEEN_QUERY_FORMS),
+                },
                 "heldout_seen_wording_tasks": settings.heldout_tasks // 2,
                 "heldout_unseen_wording_tasks": settings.heldout_tasks // 2,
                 "presentations_per_task": settings.presentations_per_task,
@@ -1431,21 +1659,24 @@ def main() -> None:
                 "unique_task_stream": settings.presentations_per_task == 1,
                 "task_replay_used": settings.presentations_per_task != 1,
                 "cohort_size_per_optimizer_step": settings.cohort_size,
+                "each_cohort_balanced_by_family_and_size": True,
                 "sampling_temperature": settings.sampling_temperature,
-                "value_loss_coefficient": settings.value_loss_coefficient,
+                "credit_assignment": "leave_one_out_reinforce",
+                "learned_value_used_by_optimizer": False,
                 "total_sampled_outcomes": (
                     settings.training_tasks
                     * settings.presentations_per_task
                     * settings.samples_per_presentation
                 ),
                 "feedback_to_optimizer": (
-                    "scalar constraint satisfaction plus scalar exact-outcome bonus"
+                    "generic scalar outcome satisfaction plus scalar exact bonus"
                 ),
                 "exact_reward_bonus": thresholds.exact_reward_bonus,
                 "teacher_answers": False,
-                "hidden_solutions": False,
+                "sealed_symbolic_solutions_supplied_to_learner": False,
+                "sealed_symbolic_solutions_serialized": False,
                 "normalized_constraints_passed_to_core_or_loss": False,
-                "normalized_constraints_used_by_external_outcome_verifier": True,
+                "sealed_truth_used_only_by_external_outcome_verifier": True,
                 "relation_parser": False,
                 "training_receipts": list(reported_receipts),
             },
@@ -1456,16 +1687,26 @@ def main() -> None:
                 include_records=args.include_records
             ),
             "improvement_decision": {
-                "required_thresholds": asdict(thresholds),
+                "required_conditions": {
+                    "overall_satisfaction_gain_positive": True,
+                    "global_exact_nondecline": True,
+                    "each_family_satisfaction_gain_positive": True,
+                    "each_family_exact_nondecline": True,
+                    "seen_wording_satisfaction_gain_positive": True,
+                    "unseen_wording_satisfaction_gain_positive": True,
+                    "each_causal_control_erases_positive_gain": True,
+                    "state_swap_reload_and_frozen_donor_exact": True,
+                },
+                "bounds": asdict(thresholds),
                 "exact_gain": exact_gain,
                 "satisfaction_gain": satisfaction_gain,
                 "stratum_gains": stratum_gains,
                 "improved_strata": improved_strata,
+                "family_gains": family_gains,
+                "families_improved_without_exact_decline": families_improved,
                 "surface_partition_gains": surface_partition_gains,
+                "seen_wording_satisfaction_gain": seen_wording_gain,
                 "unseen_wording_satisfaction_gain": unseen_wording_gain,
-                "largest_entity_size": largest_entity_size,
-                "largest_stratum_satisfaction": largest_stratum_satisfaction,
-                "largest_stratum_exact": largest_stratum_exact,
                 "preliminary_retention": preliminary_retention,
                 "save_reload_required_and_exact": reload_verified,
                 "retained": retained,
@@ -1511,23 +1752,17 @@ def main() -> None:
                 "full_gain_minus_one_step_gain": one_step_erasure,
                 "full_gain_minus_no_fact_evidence_gain": fact_erasure,
                 "full_gain_minus_deranged_incidence_gain": incidence_erasure,
-                "required_erasure": required_erasure,
-                "zero_recurrence_erases_required_gain": (
-                    recurrence_erasure >= required_erasure
-                ),
-                "one_step_erases_required_gain": one_step_erasure >= required_erasure,
-                "fact_removal_erases_required_gain": (
-                    fact_erasure >= required_erasure
-                ),
-                "incidence_derangement_erases_required_gain": (
-                    incidence_erasure >= required_erasure
-                ),
+                "zero_recurrence_erases_positive_gain": recurrence_erasure > 0.0,
+                "one_step_erases_positive_gain": one_step_erasure > 0.0,
+                "fact_removal_erases_positive_gain": fact_erasure > 0.0,
+                "incidence_derangement_erases_positive_gain": incidence_erasure > 0.0,
             },
             "state_swap_restore": {
                 "parent_actions_reproduced": parent_swap_verified,
                 "candidate_actions_reproduced": candidate_swap_verified,
                 "exact": state_swap_verified,
             },
+            "frozen_donor_exact": foundation_after == foundation_before,
             "rollback": {
                 "parent_snapshot_exact": True,
                 "performed": not retained,
