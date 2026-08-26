@@ -123,6 +123,32 @@ class RecurrentReasoningCoreTests(unittest.TestCase):
         self.assertTrue(torch.equal(ordinary.entropy, extracted.entropy))
         self.assertTrue(torch.equal(ordinary.value, extracted.value))
 
+    def test_evaluator_can_score_a_prescribed_training_order(self) -> None:
+        entities, _ = self.core.encode(*self.inputs())
+        prescribed = torch.tensor(
+            [[3, 2, 1, 0], [2, 1, 0, -1]],
+            dtype=torch.long,
+        )
+        scored = self.core.score_encoded_order(
+            entities,
+            self.entity_mask,
+            prescribed,
+        )
+
+        self.assertTrue(torch.equal(scored.order_indices[:, 0], prescribed))
+        self.assertTrue(bool(torch.isfinite(scored.log_probability).all().item()))
+        (-scored.log_probability.mean()).backward()
+        self.assertIsNotNone(self.core.pointer_keys.weight.grad)
+
+        invalid = prescribed.clone()
+        invalid[0, 1] = invalid[0, 0]
+        with self.assertRaisesRegex(ValueError, "every active entity once"):
+            self.core.score_encoded_order(
+                entities.detach(),
+                self.entity_mask,
+                invalid,
+            )
+
     def test_zero_one_and_multiple_steps_have_distinct_information_paths(self) -> None:
         entities_without_steps, slots_without_steps = self.core.encode(
             *self.inputs(),

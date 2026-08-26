@@ -377,29 +377,57 @@ class RecurrentReasoningCore(nn.Module):
     ) -> ReasoningTrajectory:
         """Decode an action from already-reasoned public entity states."""
 
-        if samples_per_task <= 0:
-            raise ValueError("samples_per_task must be positive")
-        if not math.isfinite(temperature) or temperature <= 0.0:
-            raise ValueError("temperature must be finite and positive")
-        if entities.ndim != 3 or entities.shape[-1] != self.config.core_width:
-            raise ValueError(
-                "entities must have shape [batch, entities, core_width]"
-            )
-        if (
-            entity_mask.shape != entities.shape[:2]
-            or entity_mask.dtype != torch.bool
-        ):
-            raise ValueError("entity_mask must be bool with the entity shape")
-        if entity_mask.device != entities.device:
-            raise ValueError("entities and entity_mask must share a device")
-        if entities.device != self.pointer_keys.weight.device:
-            raise ValueError("encoded entities must share the core device")
-        if entities.dtype != self.pointer_keys.weight.dtype:
-            raise ValueError("encoded entities must share the core dtype")
-        if entities.shape[1] > self.config.maximum_entities:
-            raise ValueError("entity count exceeds maximum_entities")
-        if bool((entity_mask.sum(dim=1) == 0).any().item()):
-            raise ValueError("every task requires at least one entity")
+        self._validate_decoding_inputs(
+            entities,
+            entity_mask,
+            samples_per_task=samples_per_task,
+            temperature=temperature,
+        )
+        return self._decode_encoded(
+            entities,
+            entity_mask,
+            samples_per_task=samples_per_task,
+            greedy=greedy,
+            temperature=temperature,
+            prescribed_order=None,
+        )
+
+    def score_encoded_order(
+        self,
+        entities: torch.Tensor,
+        entity_mask: torch.Tensor,
+        prescribed_order: torch.Tensor,
+        *,
+        temperature: float = 1.0,
+    ) -> ReasoningTrajectory:
+        """Score an evaluator-prescribed training order without sampling."""
+
+        self._validate_decoding_inputs(
+            entities,
+            entity_mask,
+            samples_per_task=1,
+            temperature=temperature,
+        )
+        self._validate_prescribed_order(prescribed_order, entity_mask)
+        return self._decode_encoded(
+            entities,
+            entity_mask,
+            samples_per_task=1,
+            greedy=False,
+            temperature=temperature,
+            prescribed_order=prescribed_order,
+        )
+
+    def _decode_encoded(
+        self,
+        entities: torch.Tensor,
+        entity_mask: torch.Tensor,
+        *,
+        samples_per_task: int,
+        greedy: bool,
+        temperature: float,
+        prescribed_order: torch.Tensor | None,
+    ) -> ReasoningTrajectory:
 
         batch_size, maximum_entities, width = entities.shape
         entity_summary = _masked_mean(entities, entity_mask)
@@ -435,7 +463,9 @@ class RecurrentReasoningCore(nn.Module):
                 logits[~active, 0] = 0.0
             log_probs = F.log_softmax(logits, dim=-1)
             probabilities = log_probs.exp()
-            if greedy:
+            if prescribed_order is not None:
+                action = prescribed_order[:, position].masked_fill(~active, 0)
+            elif greedy:
                 action = torch.argmax(logits, dim=-1)
             else:
                 action = torch.multinomial(probabilities, 1).squeeze(-1)
@@ -479,6 +509,65 @@ class RecurrentReasoningCore(nn.Module):
         log_probability = log_probability.view(batch_size, samples_per_task)
         entropy = entropy.view(batch_size, samples_per_task)
         return ReasoningTrajectory(order_tensor, log_probability, entropy, value)
+
+    def _validate_decoding_inputs(
+        self,
+        entities: torch.Tensor,
+        entity_mask: torch.Tensor,
+        *,
+        samples_per_task: int,
+        temperature: float,
+    ) -> None:
+        if samples_per_task <= 0:
+            raise ValueError("samples_per_task must be positive")
+        if not math.isfinite(temperature) or temperature <= 0.0:
+            raise ValueError("temperature must be finite and positive")
+        if entities.ndim != 3 or entities.shape[-1] != self.config.core_width:
+            raise ValueError(
+                "entities must have shape [batch, entities, core_width]"
+            )
+        if (
+            entity_mask.shape != entities.shape[:2]
+            or entity_mask.dtype != torch.bool
+        ):
+            raise ValueError("entity_mask must be bool with the entity shape")
+        if entity_mask.device != entities.device:
+            raise ValueError("entities and entity_mask must share a device")
+        if entities.device != self.pointer_keys.weight.device:
+            raise ValueError("encoded entities must share the core device")
+        if entities.dtype != self.pointer_keys.weight.dtype:
+            raise ValueError("encoded entities must share the core dtype")
+        if entities.shape[1] > self.config.maximum_entities:
+            raise ValueError("entity count exceeds maximum_entities")
+        if bool((entity_mask.sum(dim=1) == 0).any().item()):
+            raise ValueError("every task requires at least one entity")
+
+    @staticmethod
+    def _validate_prescribed_order(
+        prescribed_order: torch.Tensor,
+        entity_mask: torch.Tensor,
+    ) -> None:
+        if (
+            prescribed_order.shape != entity_mask.shape
+            or prescribed_order.dtype != torch.long
+            or prescribed_order.device != entity_mask.device
+        ):
+            raise ValueError(
+                "prescribed_order must use torch.long with the entity shape"
+            )
+        for row in range(entity_mask.shape[0]):
+            count = int(entity_mask[row].sum().item())
+            active_order = prescribed_order[row, :count].tolist()
+            expected = torch.nonzero(
+                entity_mask[row],
+                as_tuple=False,
+            ).squeeze(-1).tolist()
+            if sorted(active_order) != expected:
+                raise ValueError(
+                    "prescribed_order must contain every active entity once"
+                )
+            if not bool((prescribed_order[row, count:] == -1).all().item()):
+                raise ValueError("prescribed_order padding must be -1")
 
     def _validate_inputs(
         self,

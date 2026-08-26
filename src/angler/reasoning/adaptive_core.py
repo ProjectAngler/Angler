@@ -108,6 +108,91 @@ class AdaptiveReasoningCore(nn.Module):
     ) -> AdaptiveReasoningTrajectory:
         """Read the state and act without mutating the state."""
 
+        adapted_entities, observation_summary, plastic_context = (
+            self._condition_entities(
+                fact_features,
+                fact_mask,
+                entity_features,
+                entity_mask,
+                mention_features,
+                mention_mask,
+                mention_fact_indices,
+                mention_entity_indices,
+                state=state,
+                reasoning_steps=reasoning_steps,
+            )
+        )
+        action = self.core.act_encoded(
+            adapted_entities,
+            entity_mask,
+            samples_per_task=1,
+            greedy=greedy,
+            temperature=temperature,
+        )
+        action_summary = self._summarize_action(
+            adapted_entities,
+            action.order_indices[:, 0],
+        )
+        return AdaptiveReasoningTrajectory(
+            action=action,
+            feedback_context=AdaptiveFeedbackContext(
+                observation_summary=observation_summary,
+                action_summary=action_summary,
+            ),
+            plastic_context=plastic_context,
+        )
+
+    def score_training_order(
+        self,
+        fact_features: torch.Tensor,
+        fact_mask: torch.Tensor,
+        entity_features: torch.Tensor,
+        entity_mask: torch.Tensor,
+        mention_features: torch.Tensor,
+        mention_mask: torch.Tensor,
+        mention_fact_indices: torch.Tensor,
+        mention_entity_indices: torch.Tensor,
+        prescribed_order: torch.Tensor,
+        *,
+        state: SelfReferentialState,
+        reasoning_steps: int | None = None,
+        temperature: float = 1.0,
+    ) -> ReasoningTrajectory:
+        """Score a visible meta-training target without writing state."""
+
+        adapted_entities, _, _ = self._condition_entities(
+            fact_features,
+            fact_mask,
+            entity_features,
+            entity_mask,
+            mention_features,
+            mention_mask,
+            mention_fact_indices,
+            mention_entity_indices,
+            state=state,
+            reasoning_steps=reasoning_steps,
+        )
+        return self.core.score_encoded_order(
+            adapted_entities,
+            entity_mask,
+            prescribed_order,
+            temperature=temperature,
+        )
+
+    def _condition_entities(
+        self,
+        fact_features: torch.Tensor,
+        fact_mask: torch.Tensor,
+        entity_features: torch.Tensor,
+        entity_mask: torch.Tensor,
+        mention_features: torch.Tensor,
+        mention_mask: torch.Tensor,
+        mention_fact_indices: torch.Tensor,
+        mention_entity_indices: torch.Tensor,
+        *,
+        state: SelfReferentialState,
+        reasoning_steps: int | None,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         entities, slots = self.core.encode(
             fact_features,
             fact_mask,
@@ -138,24 +223,10 @@ class AdaptiveReasoningCore(nn.Module):
             ~entity_mask.unsqueeze(-1),
             0.0,
         )
-        action = self.core.act_encoded(
+        return (
             adapted_entities,
-            entity_mask,
-            samples_per_task=1,
-            greedy=greedy,
-            temperature=temperature,
-        )
-        action_summary = self._summarize_action(
-            adapted_entities,
-            action.order_indices[:, 0],
-        )
-        return AdaptiveReasoningTrajectory(
-            action=action,
-            feedback_context=AdaptiveFeedbackContext(
-                observation_summary=observation_summary,
-                action_summary=action_summary,
-            ),
-            plastic_context=plastic_context,
+            observation_summary,
+            plastic_context,
         )
 
     def incorporate_feedback(

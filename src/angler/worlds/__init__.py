@@ -1,5 +1,8 @@
-"""Procedural task worlds with learner-visible and hidden state separation."""
+"""Public procedural-world API.
 
+Evaluator-private latent-program internals are intentionally not re-exported
+from this learner-facing namespace.
+"""
 from .procedural_constraints import (
     FAMILY_ID,
     FAMILY_VERSION,

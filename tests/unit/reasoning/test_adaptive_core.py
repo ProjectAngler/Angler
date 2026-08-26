@@ -173,12 +173,22 @@ class AdaptiveReasoningCoreTests(unittest.TestCase):
             state=state,
             **self.feedback(),
         )
-        later = model.act(
-            *query_inputs,
-            state=write.state,
-            greedy=True,
+        prescribed = torch.tensor(
+            [[3, 2, 1, 0], [2, 1, 0, -1]],
+            dtype=torch.long,
         )
-        outer_loss = -later.action.log_probability.mean()
+        state_before_query = self_referential_state_digest(write.state)
+        later = model.score_training_order(
+            *query_inputs,
+            prescribed,
+            state=write.state,
+        )
+        self.assertTrue(torch.equal(later.order_indices[:, 0], prescribed))
+        self.assertEqual(
+            self_referential_state_digest(write.state),
+            state_before_query,
+        )
+        outer_loss = -later.log_probability.mean()
         parameters = (
             model.memory.base_q,
             model.memory.base_k,
