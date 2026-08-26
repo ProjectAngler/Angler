@@ -1,6 +1,6 @@
 # WORLDS status
 
-Freshness: 2026-08-25  
+Freshness: 2026-08-26
 Revision: 2  
 Design: approved_for_cr0  
 Delivery: blocked_by_cr0_predecessors  
@@ -12,3 +12,7 @@ Blocker beyond CR0: fixed-family generators, executable verifiers, and environme
 Next: after both CR0 predecessors, execute only `ANG-WORK-CR0-WORLDS-001` for protocol schemas and synthetic fixtures.  
 Evidence: design review via CR0 release manifest; no task/runtime evidence.  
 Rollback: restore the ADR-0002 archive and retire any emitted schema version.
+
+Experimental successor: `ANG-WORK-WORLDS-REVERSIBLE-TRANSITION-001` is
+complete as a contained solver-free procedure-learning laboratory (12/12
+world tests).  This does not pass the normal WORLDS or Human-Flourishing gate.
