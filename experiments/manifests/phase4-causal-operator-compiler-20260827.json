@@ -1,0 +1,70 @@
+{
+  "experiment": "ANG-PHASE4-CAUSAL-OPERATOR-COMPILER-V5-20260827",
+  "status": "EXPERIMENTAL_PASS_WITH_KNOWN_LIMITATIONS",
+  "purpose": "Test clean horizon-agnostic procedural acquisition, transfer, selection-only adaptation, retention, and causal necessity without training a language model.",
+  "runner": "angler.phase4.causal-operator-compiler.v5",
+  "seed": 642017,
+  "device": "NVIDIA GeForce RTX 5080",
+  "foundation_model": null,
+  "foundation_parameters_trained": 0,
+  "training": {
+    "initial_domain": "tokens",
+    "initial_optimizer_steps": 720,
+    "initial_multi_step_trajectories": 64,
+    "incremental_multi_step_trajectories_per_domain": 64,
+    "incremental_max_optimizer_steps": 480,
+    "incremental_learning_rate": 0.0005,
+    "incremental_replay_ratio": 0.25,
+    "incremental_teacher_forcing": 0.0,
+    "incremental_changed_tensors": 22,
+    "unexpected_changed_tensors": 0
+  },
+  "adaptation": {
+    "files": {
+      "before": "34/40",
+      "after": "34/40",
+      "prior_tokens_before": 0.95,
+      "prior_tokens_after": 0.95
+    },
+    "boxes": {
+      "before": "18/40",
+      "after": "33/40",
+      "prior_tokens_before": 0.95,
+      "prior_tokens_after": 0.95,
+      "prior_files_before": 0.85,
+      "prior_files_after": 0.85
+    }
+  },
+  "untouched_final": {
+    "overall": "114/120",
+    "success_rate": 0.95,
+    "tokens": "38/40",
+    "files": "38/40",
+    "boxes": "38/40",
+    "two_step": "59/60",
+    "four_step": "55/60",
+    "proposal_time_world_executions": 0
+  },
+  "causal_controls": {
+    "untrained": "0/120",
+    "binding_permuted": "0/120",
+    "proposer_removed": "101/120",
+    "mirror_removed": "0/120",
+    "alias_removed": "41/120",
+    "boxes_operator_retired": "76/120"
+  },
+  "verification": {
+    "unit_tests": 238,
+    "unit_failures": 0,
+    "result_digest": "sha256:b902a6c0e0dbded9213d433f90b646ff934d7c5a2e9e43fdb5077b5106789aeb",
+    "result_json_sha256": "E687FF2DB6050CA50B0273383087B7DBB0D56E954FA4B256D119CFCB0D9B7D85",
+    "checkpoint_sha256": "CBB470051BC56D84A128A163AD646F8FE83AB3D15335A8A9E5A53522036A2407",
+    "checkpoint_bytes": 1786811
+  },
+  "limitations": [
+    "This is a bounded synthetic procedural-learning result, not AGI.",
+    "Files adaptation did not improve its fixed adaptation partition.",
+    "Neither incremental domain crossed the 90-percent threshold on every adaptation stratum.",
+    "Persistent skill-local consolidation and broad real-task integration remain unbuilt."
+  ]
+}
