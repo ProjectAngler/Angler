@@ -1,6 +1,8 @@
 # Private recovery/context artifacts; retained locally, never published by default.
 /outputs/
 /work/
+/AGENTS_SYNC.md
+/CLAUDE_PROJECT_CORRECTIONS.md
 
 # Secrets and local configuration.
 .env

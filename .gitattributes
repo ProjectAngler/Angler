@@ -1,0 +1,28 @@
+# Preserve the exact working-tree bytes used by evidence hashes on every host.
+* text eol=lf
+
+# These frozen control-plane files were authored and hashed with CRLF bytes.
+docs/blueprints/BLUEPRINT_INDEX.json text eol=crlf
+docs/blueprints/ROOT_CAPSULE.md text eol=crlf
+docs/blueprints/STATUS.md text eol=crlf
+docs/blueprints/TRACEABILITY.md text eol=crlf
+docs/blueprints/TREE.md text eol=crlf
+docs/blueprints/branches/evidence/BLUEPRINT.md text eol=crlf
+docs/blueprints/branches/evidence/CAPSULE.md text eol=crlf
+docs/blueprints/branches/evidence/STATUS.md text eol=crlf
+docs/blueprints/branches/evidence/children/evidence-schemas/BLUEPRINT.md text eol=crlf
+docs/blueprints/branches/evidence/children/evidence-schemas/CAPSULE.md text eol=crlf
+docs/blueprints/branches/evidence/children/evidence-schemas/STATUS.md text eol=crlf
+docs/blueprints/branches/resources/CAPSULE.md text eol=crlf
+docs/blueprints/branches/resources/STATUS.md text eol=crlf
+
+# Generated or binary research payloads must never undergo text conversion.
+*.zip binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.pt binary
+*.pth binary
+*.ckpt binary
+*.safetensors binary

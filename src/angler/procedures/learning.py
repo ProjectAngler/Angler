@@ -511,16 +511,33 @@ class CompositeOperatorLearner(nn.Module):
         mask: torch.Tensor,
         *,
         include_proposer: bool = True,
+        memory_bias: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        """Use the one learned evidence calibration shared with inference."""
+        """Use the learned evidence calibration shared with inference.
 
-        return self.candidate_fusion(
+        ``memory_bias`` is an optional candidate-local residual produced and
+        bounded by a procedural-memory module.  Omitting it preserves the
+        original scoring path exactly.
+        """
+
+        logits = self.candidate_fusion(
             initiation_logits,
             proposer_logits,
             join_scores,
             mask,
             include_proposer=include_proposer,
         )
+        if memory_bias is None:
+            return logits
+        if not isinstance(memory_bias, torch.Tensor):
+            raise TypeError("memory_bias must be a tensor or None")
+        if memory_bias.shape != logits.shape:
+            raise ValueError("memory_bias must match the candidate-logit shape")
+        if memory_bias.device != logits.device or memory_bias.dtype != logits.dtype:
+            raise ValueError("memory_bias must share candidate-logit device and dtype")
+        if not bool(torch.isfinite(memory_bias).all().item()):
+            raise ValueError("memory_bias must contain only finite values")
+        return (logits + memory_bias).masked_fill(~mask, -torch.inf)
 
     def horizon_agnostic_join_scores(
         self,

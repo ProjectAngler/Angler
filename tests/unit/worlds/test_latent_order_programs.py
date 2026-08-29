@@ -303,6 +303,16 @@ class LatentOrderProgramTests(unittest.TestCase):
                 True,
                 ("gamma", "epsilon", "beta", "delta", "alpha"),
             ),
+            (
+                OrderingProgram("IF_NOT_FLAG", (a_asc, b_asc)),
+                False,
+                ("gamma", "epsilon", "beta", "delta", "alpha"),
+            ),
+            (
+                OrderingProgram("IF_NOT_FLAG", (a_asc, b_asc)),
+                True,
+                ("beta", "delta", "alpha", "epsilon", "gamma"),
+            ),
         )
         for index, (program, flag, expected) in enumerate(fixtures):
             with self.subTest(operator=program.operator, flag=flag):
@@ -329,7 +339,7 @@ def _operators(program: object) -> set[str]:
 
 def _conditional_children(program: OrderingProgram) -> tuple[OrderingProgram, ...]:
     nested: list[OrderingProgram] = []
-    if program.operator == "IF_FLAG":
+    if program.operator in {"IF_FLAG", "IF_NOT_FLAG"}:
         nested.extend(program.children)
     for child in program.children:
         nested.extend(_conditional_children(child))

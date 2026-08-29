@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "project-angler"
+version = "0.1.0.dev0"
+description = "A research prototype for persistent procedural learning in adaptive AI"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+dependencies = [
+    "torch>=2.4",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.optional-dependencies]
+qwen = [
+    "accelerate>=1.0",
+    "peft>=0.13",
+    "safetensors>=0.4",
+    "transformers>=4.45",
+]
+dev = [
+    "pytest>=8",
+]
+
+[project.urls]
+Homepage = "https://github.com/ProjectAngler/Angler"
+Repository = "https://github.com/ProjectAngler/Angler"
+Issues = "https://github.com/ProjectAngler/Angler/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["angler*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"angler.episodes" = ["schemas/*.json"]

@@ -147,6 +147,74 @@ class SymbolicRuleGenerationTests(unittest.TestCase):
                         demonstration_count=demonstration_count,
                     )
 
+    def test_evaluator_can_hold_one_sealed_permutation_across_fresh_symbols(self) -> None:
+        permutation = (2, 4, 1, 0, 3)
+        first = generate_symbolic_rule_task(
+            101,
+            position_permutation=permutation,
+        )
+        second = generate_symbolic_rule_task(
+            202,
+            position_permutation=permutation,
+        )
+
+        self.assertEqual(first.hidden.position_permutation, permutation)
+        self.assertEqual(second.hidden.position_permutation, permutation)
+        self.assertNotEqual(first.learner.query_symbols, second.learner.query_symbols)
+        for instance in (first, second):
+            for demonstration in instance.learner.demonstrations:
+                self.assertEqual(
+                    demonstration.output_symbols,
+                    tuple(
+                        demonstration.input_symbols[position]
+                        for position in permutation
+                    ),
+                )
+
+    def test_supplied_permutation_is_validated_without_entering_learner_view(self) -> None:
+        identity = tuple(range(5))
+        generated = generate_symbolic_rule_task(
+            303,
+            position_permutation=identity,
+        )
+        self.assertEqual(generated.hidden.position_permutation, identity)
+        self.assertNotIn("position_permutation", repr(generated.learner))
+
+        for malformed in ((0, 1, 2, 3), (0, 1, 2, 3, 3), (0, 1, 2, 3, True)):
+            with self.subTest(malformed=malformed):
+                with self.assertRaises((TypeError, ValueError)):
+                    generate_symbolic_rule_task(
+                        303,
+                        position_permutation=malformed,
+                    )
+
+    def test_evaluator_can_supply_fresh_public_symbol_namespace(self) -> None:
+        symbols = tuple(f"fresh_entity_{index}" for index in range(20))
+        generated = generate_symbolic_rule_task(
+            404,
+            demonstration_count=3,
+            public_symbols=symbols,
+        )
+        visible = tuple(
+            symbol
+            for demonstration in generated.learner.demonstrations
+            for symbol in demonstration.input_symbols
+        ) + generated.learner.query_symbols
+
+        self.assertEqual(visible, symbols)
+        for malformed in (
+            symbols[:-1],
+            (*symbols[:-1], symbols[0]),
+            (*symbols[:-1], "contains,comma"),
+        ):
+            with self.subTest(malformed=malformed[-1]):
+                with self.assertRaises(ValueError):
+                    generate_symbolic_rule_task(
+                        404,
+                        demonstration_count=3,
+                        public_symbols=malformed,
+                    )
+
     def test_surface_forms_vary_independently_of_structure(self) -> None:
         first = generate_symbolic_rule_task(
             500,

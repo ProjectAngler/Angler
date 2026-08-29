@@ -30,7 +30,7 @@ _SYMBOLS = (
 
 _LEAF_OPERATORS = frozenset(("A_ASC", "A_DESC", "B_ASC", "B_DESC"))
 _UNARY_OPERATORS = frozenset(("GROUP_01", "GROUP_10", "ZIGZAG", "ROTATE"))
-_BINARY_OPERATORS = frozenset(("IF_FLAG",))
+_BINARY_OPERATORS = frozenset(("IF_FLAG", "IF_NOT_FLAG"))
 
 
 @dataclass(frozen=True, slots=True, repr=False)
@@ -143,6 +143,13 @@ def _conditional(
     return OrderingProgram("IF_FLAG", (when_false, when_true))
 
 
+def _inverse_conditional(
+    when_false: OrderingProgram,
+    when_true: OrderingProgram,
+) -> OrderingProgram:
+    return OrderingProgram("IF_NOT_FLAG", (when_false, when_true))
+
+
 A_ASC = _leaf("A_ASC")
 A_DESC = _leaf("A_DESC")
 B_ASC = _leaf("B_ASC")
@@ -161,12 +168,15 @@ TRAIN_PROGRAMS = (
     _unary("ROTATE", B_DESC),
     _conditional(A_ASC, B_ASC),
     _conditional(A_DESC, B_DESC),
+    _inverse_conditional(A_ASC, B_DESC),
+    _inverse_conditional(A_DESC, B_ASC),
 )
 
 VALIDATION_PROGRAMS = (
     _unary("GROUP_01", _unary("ZIGZAG", B_ASC)),
     _unary("ROTATE", _unary("GROUP_10", A_ASC)),
     _conditional(_unary("ZIGZAG", A_DESC), B_ASC),
+    _inverse_conditional(_unary("GROUP_01", B_DESC), A_ASC),
     _unary("ZIGZAG", _unary("ROTATE", B_DESC)),
 )
 
@@ -336,6 +346,9 @@ def _execute_program(
         return tuple(sorted(items, key=lambda item: item.rank_b, reverse=True))
     if operator == "IF_FLAG":
         selected = program.children[int(public_flag)]
+        return _execute_program(selected, items, public_flag)
+    if operator == "IF_NOT_FLAG":
+        selected = program.children[1 - int(public_flag)]
         return _execute_program(selected, items, public_flag)
 
     base = _execute_program(program.children[0], items, public_flag)

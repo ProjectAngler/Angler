@@ -26,6 +26,13 @@ def _conditional(
     return OrderingProgram("IF_FLAG", (when_false, when_true))
 
 
+def _inverse_conditional(
+    when_false: OrderingProgram,
+    when_true: OrderingProgram,
+) -> OrderingProgram:
+    return OrderingProgram("IF_NOT_FLAG", (when_false, when_true))
+
+
 def evaluator_programs() -> tuple[OrderingProgram, ...]:
     """Return the exact changing-mechanism evaluation sequence candidates."""
 
@@ -38,6 +45,10 @@ def evaluator_programs() -> tuple[OrderingProgram, ...]:
             _unary("ROTATE", a_asc),
             _unary("GROUP_10", b_desc),
         ),
+        _inverse_conditional(
+            _unary("GROUP_01", a_asc),
+            _unary("ROTATE", b_desc),
+        ),
         _unary("ROTATE", _unary("ZIGZAG", _unary("GROUP_01", a_desc))),
         _unary(
             "GROUP_10",
@@ -48,6 +59,13 @@ def evaluator_programs() -> tuple[OrderingProgram, ...]:
             _conditional(
                 _unary("ROTATE", b_desc),
                 _unary("GROUP_01", a_asc),
+            ),
+        ),
+        _unary(
+            "ROTATE",
+            _inverse_conditional(
+                a_asc,
+                _unary("ZIGZAG", b_desc),
             ),
         ),
     )

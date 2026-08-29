@@ -1,0 +1,18 @@
+Project Angler
+Copyright notices for protectable contributions are held by their respective
+contributors.
+
+Project Angler is distributed under the Apache License, Version 2.0.
+
+The self-referential weight-memory implementation in
+src/angler/reasoning/self_referential_memory.py adapts work from
+IDSIA/automated-cl, Copyright (c) 2023 Kazuki Irie, under the MIT License.
+The full preserved notice is in
+third_party/licenses/IDSIA-automated-cl-MIT.txt.
+
+Project Angler also independently reimplements paper-level ideas described in
+THIRD_PARTY_NOTICES.md. Those citations do not imply endorsement by, or
+affiliation with, the cited authors or organizations.
+
+Project Angler is an independent research project and is not affiliated with
+similarly named commercial or research organizations.

@@ -173,6 +173,8 @@ def generate_symbolic_rule_task(
     *,
     item_count: int = 5,
     demonstration_count: int = 3,
+    position_permutation: Sequence[int] | None = None,
+    public_symbols: Sequence[str] | None = None,
     surface_seed: int | None = None,
     goal_surface_forms: Sequence[str] | None = None,
     demonstration_surface_forms: Sequence[str] | None = None,
@@ -183,6 +185,10 @@ def generate_symbolic_rule_task(
     Structural sampling and surface rendering use domain-separated random
     streams.  Callers can therefore vary wording through ``surface_seed`` or
     injected templates without changing symbols, demonstrations, or solution.
+    An evaluator may supply a sealed position permutation to generate a stream
+    of fresh-symbol instances governed by one persistent procedure.  The
+    supplied value remains generator-side and is never added to the learner
+    projection.
     """
 
     _validate_item_count(item_count)
@@ -206,12 +212,17 @@ def generate_symbolic_rule_task(
         label="query_surface_forms",
     )
 
-    structure_rng = random.Random(seed)
     public_symbol_count = (demonstration_count + 1) * item_count
-    sampled_symbols = structure_rng.sample(_SYMBOLS, public_symbol_count)
-    position_permutation = _sample_non_identity_permutation(
-        item_count,
-        structure_rng,
+    structure_rng = random.Random(seed)
+    sampled_symbols = (
+        structure_rng.sample(_SYMBOLS, public_symbol_count)
+        if public_symbols is None
+        else _validate_public_symbols(public_symbols, public_symbol_count)
+    )
+    selected_permutation = (
+        _sample_non_identity_permutation(item_count, structure_rng)
+        if position_permutation is None
+        else _validate_position_permutation(position_permutation, item_count)
     )
 
     effective_surface_seed = seed if surface_seed is None else surface_seed
@@ -225,7 +236,7 @@ def generate_symbolic_rule_task(
         input_symbols = tuple(sampled_symbols[start : start + item_count])
         output_symbols = _apply_position_permutation(
             input_symbols,
-            position_permutation,
+            selected_permutation,
         )
         statement = demo_rng.choice(demo_forms).format(
             demo_number=index + 1,
@@ -244,7 +255,7 @@ def generate_symbolic_rule_task(
     query_symbols = tuple(sampled_symbols[query_start:])
     target_order = _apply_position_permutation(
         query_symbols,
-        position_permutation,
+        selected_permutation,
     )
     goal_text = goal_rng.choice(goal_forms).format(
         demo_count=demonstration_count,
@@ -277,7 +288,7 @@ def generate_symbolic_rule_task(
         ),
         hidden=HiddenSymbolicRuleSolution(
             instance_id=instance_id,
-            position_permutation=position_permutation,
+            position_permutation=selected_permutation,
             target_order=target_order,
             generator_seed=seed,
             surface_seed=effective_surface_seed,
@@ -342,6 +353,40 @@ def _sample_non_identity_permutation(
     if tuple(permutation) == identity:
         permutation[0], permutation[1] = permutation[1], permutation[0]
     return tuple(permutation)
+
+
+def _validate_position_permutation(
+    supplied: Sequence[int],
+    item_count: int,
+) -> tuple[int, ...]:
+    if isinstance(supplied, (str, bytes)) or not isinstance(supplied, Sequence):
+        raise TypeError("position_permutation must be an integer sequence")
+    permutation = tuple(supplied)
+    if any(isinstance(value, bool) or not isinstance(value, int) for value in permutation):
+        raise TypeError("position_permutation must contain only integers")
+    if sorted(permutation) != list(range(item_count)):
+        raise ValueError("position_permutation must cover every item position once")
+    return permutation
+
+
+def _validate_public_symbols(
+    supplied: Sequence[str],
+    required_count: int,
+) -> tuple[str, ...]:
+    if isinstance(supplied, (str, bytes)) or not isinstance(supplied, Sequence):
+        raise TypeError("public_symbols must be a sequence of text tokens")
+    symbols = tuple(supplied)
+    if len(symbols) != required_count:
+        raise ValueError(
+            f"public_symbols must contain exactly {required_count} tokens"
+        )
+    if any(not isinstance(symbol, str) or not symbol.strip() for symbol in symbols):
+        raise ValueError("public_symbols must contain non-empty text tokens")
+    if any("," in symbol or "\n" in symbol or "\r" in symbol for symbol in symbols):
+        raise ValueError("public_symbols cannot contain commas or line breaks")
+    if len(set(symbols)) != len(symbols):
+        raise ValueError("public_symbols must be unique")
+    return symbols
 
 
 def _domain_rng(seed: int, domain: str) -> random.Random:

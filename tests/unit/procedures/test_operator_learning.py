@@ -192,6 +192,110 @@ class CompositeOperatorLearnerTests(unittest.TestCase):
             hidden_width=40,
         )
 
+    def test_optional_memory_bias_is_neutral_or_added_exactly(self) -> None:
+        initiation = torch.tensor((0.5, -0.5, 1.0))
+        proposer = torch.tensor((1.5, 0.25, -1.0))
+        join = torch.tensor((-0.1, -2.0, -0.5))
+        mask = torch.tensor((True, True, True))
+        original = self.learner.candidate_fusion(
+            initiation,
+            proposer,
+            join,
+            mask,
+        )
+        neutral = self.learner.candidate_selection_logits(
+            initiation,
+            proposer,
+            join,
+            mask,
+            memory_bias=None,
+        )
+        self.assertTrue(torch.equal(neutral, original))
+
+        memory_bias = torch.tensor((0.125, -0.25, 0.5))
+        biased = self.learner.candidate_selection_logits(
+            initiation,
+            proposer,
+            join,
+            mask,
+            memory_bias=memory_bias,
+        )
+        self.assertTrue(torch.equal(biased, original + memory_bias))
+
+    def test_memory_bias_preserves_candidate_masking(self) -> None:
+        mask = torch.tensor((True, False, True))
+        logits = self.learner.candidate_selection_logits(
+            torch.tensor((0.2, 100.0, -0.1)),
+            torch.tensor((0.4, 100.0, -0.3)),
+            torch.tensor((-0.2, 100.0, -0.8)),
+            mask,
+            memory_bias=torch.tensor((0.1, 1_000_000.0, -0.2)),
+        )
+        self.assertTrue(bool(torch.isfinite(logits[mask]).all().item()))
+        self.assertTrue(bool(torch.isneginf(logits[~mask]).all().item()))
+
+    def test_memory_bias_validation_fails_closed(self) -> None:
+        evidence = torch.zeros(2)
+        mask = torch.ones(2, dtype=torch.bool)
+        with self.assertRaises(TypeError):
+            self.learner.candidate_selection_logits(
+                evidence,
+                evidence,
+                evidence,
+                mask,
+                memory_bias=(0.0, 0.0),  # type: ignore[arg-type]
+            )
+        with self.assertRaises(ValueError):
+            self.learner.candidate_selection_logits(
+                evidence,
+                evidence,
+                evidence,
+                mask,
+                memory_bias=torch.zeros(3),
+            )
+        with self.assertRaises(ValueError):
+            self.learner.candidate_selection_logits(
+                evidence,
+                evidence,
+                evidence,
+                mask,
+                memory_bias=torch.zeros(2, dtype=torch.float64),
+            )
+        with self.assertRaises(ValueError):
+            self.learner.candidate_selection_logits(
+                evidence,
+                evidence,
+                evidence,
+                mask,
+                memory_bias=torch.zeros(2, device="meta"),
+            )
+        with self.assertRaises(ValueError):
+            self.learner.candidate_selection_logits(
+                evidence,
+                evidence,
+                evidence,
+                mask,
+                memory_bias=torch.tensor((0.0, float("nan"))),
+            )
+
+    def test_memory_bias_receives_candidate_selection_gradients(self) -> None:
+        memory_bias = torch.tensor((0.2, -0.1), requires_grad=True)
+        logits = self.learner.candidate_selection_logits(
+            torch.tensor((0.2, -0.4)),
+            torch.tensor((0.6, -0.1)),
+            torch.tensor((-0.2, -0.8)),
+            torch.ones(2, dtype=torch.bool),
+            memory_bias=memory_bias,
+        )
+        torch.nn.functional.cross_entropy(
+            logits.unsqueeze(0),
+            torch.tensor((0,)),
+        ).backward()
+
+        self.assertIsNotNone(memory_bias.grad)
+        self.assertTrue(bool(torch.isfinite(memory_bias.grad).all().item()))
+        self.assertTrue(bool((memory_bias.grad != 0).all().item()))
+
     def test_horizon_agnostic_join_uses_learned_termination_gate(self) -> None:
         forward = torch.randn(3, self.learner.core.width)
         backward = torch.randn(3, self.learner.core.width)
