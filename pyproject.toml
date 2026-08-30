@@ -29,6 +29,9 @@ qwen = [
     "safetensors>=0.4",
     "transformers>=4.45",
 ]
+memory = [
+    "cognee>=1.5,<2",
+]
 dev = [
     "pytest>=8",
 ]

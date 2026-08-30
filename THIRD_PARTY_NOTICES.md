@@ -84,6 +84,7 @@ checkpoints, or hyperparameter files.
 | Graph Matching Networks | Cross-graph attention and mismatch messages | <https://arxiv.org/abs/1904.12787> | <https://github.com/google-deepmind/deepmind-research> repository commit `f5de0ede8430809180254ee957abf36ed62579ef`, GMN subtree commit `451d2964904a4e71d8d28ac45cdc5f33c1db1b19`, Apache-2.0, notebook copyright 2019 Google LLC; independently reimplemented in PyTorch |
 | OML | Slow representation / fast prediction-head meta-learning | <https://arxiv.org/abs/1905.12588> | <https://github.com/kjaved0/mrcl> commit `2855a6b7e820f171432981b58c49664fcdbf00ed`; no LICENSE, COPYING, or NOTICE found, so no repository source was used |
 | ANML | Learned neuromodulation of online plasticity | <https://arxiv.org/abs/2002.09571> | <https://github.com/uvm-neurobotics-lab/ANML> commit `cabaaf7f2336496cd51065847c524a705408d562` and <https://github.com/uvm-neurobotics-lab/higherANML> commit `ce088d9efc7d9298bced02352e81ece81c3530b4`; neither inspected tree contained a LICENSE, COPYING, or NOTICE file, so no repository source was used |
+| Moving Origin Research | Monotonic autobiographical origin, self-relative temporal coordinates, frozen-origin and fair-naive causal controls | Local Git repository `moving-origin-research-restored`, commit `cee97538893989e055f49a894f066d2083da4eb5` | Apache-2.0, copyright 2026 Rebecca R. McClintic; Angler independently implements the bounded E1 mechanism and copies no donor source or governance artifacts |
 
 The LoRA technique is described by Hu et al., *LoRA: Low-Rank Adaptation of
 Large Language Models*, <https://arxiv.org/abs/2106.09685>. Angler uses the
@@ -110,6 +111,7 @@ provenance review at the exact commit it proposes to adopt.
 | [Darwin Godel Machine](https://github.com/jennyzzt/dgm) | Optional late controller/tool evolution | Apache-2.0 |
 | [Titans](https://arxiv.org/abs/2501.00663) | Test-time neural long-term memory | Paper reference only; no source incorporated |
 | [Nested Learning / Hope](https://research.google/blog/introducing-nested-learning-a-new-ml-paradigm-for-continual-learning/) | Multi-timescale architecture, memory, and optimization | Research reference only; no source incorporated |
+| [Cognee](https://github.com/topoteretes/cognee) | Optional rebuildable graph/vector candidate memory behind `angler.memory` | Apache-2.0; inspected commit `690c0ec023719a2a277dc893cdecfec1ca8012cc`, package `1.5.3`; installed separately, no Cognee source vendored |
 
 ## Source-similarity audit
 
@@ -129,6 +131,7 @@ run:
 | Bidirectional/HER/SGT | Backward Learning, SGT-PG, OpenAI Baselines | No exact 16-token match; only generic normalized training/test boilerplate matches |
 | Graph matching | DeepMind GMN notebook | No exact 16-token or normalized 40-token match |
 | SRWM | `IDSIA/automated-cl` | No exact 16-token match; an 80-token normalized structural match in the donor layer confirms the declared equation-level adaptation and is covered by the preserved MIT notice |
+| Situated memory | Moving Origin E1 source and Cognee Python package | No exact 16-token match against either inspected tree; the longest exact Moving Origin match was six generic annotation tokens |
 
 This is evidence against direct textual copying at the tested thresholds, not
 a legal conclusion and not proof that shorter or non-Python fragments can

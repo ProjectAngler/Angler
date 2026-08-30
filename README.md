@@ -60,6 +60,15 @@ Angler separates four responsibilities:
 The full design adds consolidation, skill composition, continual tool
 acquisition, resource-elastic execution, causal evaluation, and exact rollback.
 
+An experimental situated-memory boundary now composes three distinct roles:
+Moving Origin supplies one monotonic autobiographical position, Cognee can
+supply replaceable semantic/graph retrieval candidates, and Angler remains the
+learned procedural core. Retrieved content is revalidated against canonical
+Angler evidence and augmented with acquisition age, landmark relations, and
+separate world-validity time. It cannot select a model or procedural state and
+does not hard-code a recency answer rule. See
+[`ANG-ADR-0006`](docs/blueprints/decisions/ANG-ADR-0006-MOVING-ORIGIN-COGNEE-SITUATED-MEMORY.md).
+
 ## Current evidence
 
 | Experiment | Bounded result | Essential limitation |
@@ -110,6 +119,17 @@ needed:
 python -m pip install -e ".[qwen,dev]"
 python -m unittest discover -s tests -p "test_*.py"
 ```
+
+Cognee is an optional, separately installed memory backend:
+
+```bash
+python -m pip install -e ".[memory]"
+```
+
+The adapter does not silently accept provider defaults. Before any Cognee
+operation, disable Cognee telemetry with `TELEMETRY_DISABLED=1` (or explicitly
+authorize it); before ingestion or retrieval, also declare either a local
+model configuration or authorization for external embedding/LLM calls.
 
 CUDA-enabled PyTorch installation varies by operating system, driver, and CUDA
 runtime. Select the appropriate official PyTorch build for the target machine
