@@ -5,6 +5,7 @@ import unittest
 import torch
 
 from angler.reasoning import (
+    PlasticProcedureState,
     ScalableProceduralCore,
     plastic_state_digest,
     procedural_core_config,
@@ -58,6 +59,42 @@ class ScalableProceduralCoreTests(unittest.TestCase):
             reset = core(query[:1], candidates[:1], temporal[:1], mask[:1], plastic_state=initial)
         self.assertFalse(torch.equal(live.procedure_slots, reset.procedure_slots))
         self.assertEqual(plastic_state_digest(initial.detached_clone()), initial_digest)
+
+    def test_plastic_keys_control_which_values_are_read(self) -> None:
+        torch.manual_seed(17)
+        core = self._core()
+        query, candidates, temporal, mask = self._inputs()
+        base = core.initial_plastic_state()
+        strengths = torch.zeros_like(base.strengths)
+        strengths[:2] = 1.0
+        values = torch.zeros_like(base.values)
+        values[0] = 1.0
+        values[1] = -1.0
+        first_keys = torch.zeros_like(base.keys)
+        first_keys[0] = 2.0
+        first_keys[1] = -2.0
+        second_keys = -first_keys
+        first = PlasticProcedureState(first_keys, values, strengths, 2)
+        second = PlasticProcedureState(second_keys, values, strengths, 2)
+
+        first_output = core(
+            query,
+            candidates,
+            temporal,
+            mask,
+            plastic_state=first,
+        )
+        second_output = core(
+            query,
+            candidates,
+            temporal,
+            mask,
+            plastic_state=second,
+        )
+
+        self.assertFalse(
+            torch.equal(first_output.procedure_slots, second_output.procedure_slots)
+        )
 
     def test_tiers_scale_all_core_dimensions_and_parameters(self) -> None:
         configs = [

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import torch
+from torch.nn import functional as F
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,6 +14,14 @@ class ProceduralQwenGeneration:
     response: str
     generated_token_ids: tuple[int, ...]
     prompt_tokens: int
+    procedure_tokens: int
+
+
+@dataclass(frozen=True, slots=True)
+class ProceduralQwenTrainingLoss:
+    loss: torch.Tensor
+    prompt_tokens: int
+    target_tokens: int
     procedure_tokens: int
 
 
@@ -91,8 +100,65 @@ def generate_with_procedural_prefix(
     )
 
 
+def procedural_prefix_language_loss(
+    model: torch.nn.Module,
+    tokenizer: Any,
+    prompt: str,
+    target: str,
+    procedure_prefix: torch.Tensor,
+) -> ProceduralQwenTrainingLoss:
+    """Backpropagate a frozen LM consequence only into Angler's soft prefix."""
+
+    if type(target) is not str or not target.strip():
+        raise ValueError("target must be non-empty text")
+    prompt_inputs, prompt_mask, prompt_tokens = qwen_inputs_with_procedural_prefix(
+        model,
+        tokenizer,
+        prompt,
+        procedure_prefix,
+    )
+    encoded_target = tokenizer(
+        target,
+        return_tensors="pt",
+        add_special_tokens=False,
+    ).to(prompt_inputs.device)
+    target_ids = encoded_target["input_ids"]
+    if target_ids.ndim != 2 or target_ids.shape[0] != 1 or target_ids.shape[1] < 1:
+        raise ValueError("target tokenizer output must contain one non-empty row")
+    target_embeddings = model.get_input_embeddings()(target_ids)
+    inputs = torch.cat((prompt_inputs, target_embeddings), dim=1)
+    attention_mask = torch.cat(
+        (prompt_mask, encoded_target["attention_mask"]),
+        dim=1,
+    )
+    outputs = model(
+        inputs_embeds=inputs,
+        attention_mask=attention_mask,
+        use_cache=False,
+    )
+    logits = outputs.logits
+    if logits.ndim != 3 or logits.shape[:2] != inputs.shape[:2]:
+        raise RuntimeError("Qwen returned logits with an incompatible shape")
+    first_prediction = prompt_inputs.shape[1] - 1
+    prediction_logits = logits[
+        :, first_prediction : first_prediction + target_ids.shape[1], :
+    ]
+    loss = F.cross_entropy(
+        prediction_logits.reshape(-1, prediction_logits.shape[-1]).float(),
+        target_ids.reshape(-1),
+    )
+    return ProceduralQwenTrainingLoss(
+        loss=loss,
+        prompt_tokens=prompt_tokens,
+        target_tokens=int(target_ids.shape[1]),
+        procedure_tokens=int(procedure_prefix.shape[1]),
+    )
+
+
 __all__ = [
     "ProceduralQwenGeneration",
+    "ProceduralQwenTrainingLoss",
     "generate_with_procedural_prefix",
+    "procedural_prefix_language_loss",
     "qwen_inputs_with_procedural_prefix",
 ]

@@ -27,7 +27,9 @@ from .situated_qwen import (
 )
 from .procedural_qwen import (
     ProceduralQwenGeneration,
+    ProceduralQwenTrainingLoss,
     generate_with_procedural_prefix,
+    procedural_prefix_language_loss,
     qwen_inputs_with_procedural_prefix,
 )
 
@@ -55,6 +57,8 @@ __all__ = [
     "package_outcome_feedback",
     "select_situated_evidence",
     "ProceduralQwenGeneration",
+    "ProceduralQwenTrainingLoss",
     "generate_with_procedural_prefix",
+    "procedural_prefix_language_loss",
     "qwen_inputs_with_procedural_prefix",
 ]

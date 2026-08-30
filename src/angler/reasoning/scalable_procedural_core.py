@@ -104,7 +104,8 @@ class _ProceduralBlock(nn.Module):
         slots: torch.Tensor,
         evidence: torch.Tensor,
         evidence_padding: torch.Tensor,
-        memory: torch.Tensor,
+        memory_keys: torch.Tensor,
+        memory_values: torch.Tensor,
         memory_padding: torch.Tensor,
     ) -> torch.Tensor:
         normalized = self.slot_norm(slots)
@@ -122,8 +123,8 @@ class _ProceduralBlock(nn.Module):
         normalized = self.memory_norm(slots)
         delta, _ = self.memory_attention(
             normalized,
-            memory,
-            memory,
+            memory_keys,
+            memory_values,
             key_padding_mask=memory_padding,
             need_weights=False,
         )
@@ -215,14 +216,22 @@ class ScalableProceduralCore(nn.Module):
         evidence = self.evidence_projection(candidate_features) + self.temporal_projection(temporal_features)
         batch = query.shape[0]
         slots = self.initial_slots.unsqueeze(0).expand(batch, -1, -1) + query.unsqueeze(1)
-        memory = torch.cat((self.null_memory, state.values), dim=0).unsqueeze(0).expand(batch, -1, -1)
+        memory_keys = torch.cat((self.null_memory, state.keys), dim=0).unsqueeze(0).expand(batch, -1, -1)
+        memory_values = torch.cat((self.null_memory, state.values), dim=0).unsqueeze(0).expand(batch, -1, -1)
         active = state.strengths > 1.0e-6
         memory_padding = torch.cat(
             (torch.zeros(1, device=active.device, dtype=torch.bool), ~active), dim=0
         ).unsqueeze(0).expand(batch, -1)
         evidence_padding = ~candidate_mask
         for block in self.blocks:
-            slots = block(slots, evidence, evidence_padding, memory, memory_padding)
+            slots = block(
+                slots,
+                evidence,
+                evidence_padding,
+                memory_keys,
+                memory_values,
+                memory_padding,
+            )
         slots = self.final_norm(slots)
         summary = slots.mean(dim=1)
         expanded = summary.unsqueeze(1).expand_as(evidence)

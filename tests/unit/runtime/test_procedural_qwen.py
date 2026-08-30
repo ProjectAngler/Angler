@@ -7,6 +7,7 @@ from torch import nn
 
 from angler.runtime import (
     generate_with_procedural_prefix,
+    procedural_prefix_language_loss,
     qwen_inputs_with_procedural_prefix,
 )
 
@@ -34,6 +35,7 @@ class _Model(nn.Module):
     def __init__(self):
         super().__init__()
         self.embedding = nn.Embedding(10, 8)
+        self.output = nn.Linear(8, 10, bias=False)
         self.last_inputs = None
         self.last_mask = None
 
@@ -44,6 +46,11 @@ class _Model(nn.Module):
         self.last_inputs = inputs_embeds
         self.last_mask = attention_mask
         return torch.tensor([[4, 5, 9]], device=inputs_embeds.device)
+
+    def forward(self, *, inputs_embeds, attention_mask, **kwargs):
+        del attention_mask, kwargs
+        contextual = inputs_embeds.cumsum(dim=1)
+        return type("Output", (), {"logits": self.output(contextual)})()
 
 
 class ProceduralQwenTests(unittest.TestCase):
@@ -78,6 +85,27 @@ class ProceduralQwenTests(unittest.TestCase):
                 "problem",
                 torch.randn(1, 4, 7),
             )
+
+    def test_teacher_forced_loss_reaches_prefix_but_not_qwen(self) -> None:
+        model = _Model()
+        model.requires_grad_(False)
+        prefix = torch.randn(1, 4, 8, requires_grad=True)
+
+        measured = procedural_prefix_language_loss(
+            model,
+            _Tokenizer(),
+            "problem",
+            "A B STOP",
+            prefix,
+        )
+        measured.loss.backward()
+
+        self.assertTrue(torch.isfinite(measured.loss))
+        self.assertGreater(float(prefix.grad.abs().sum()), 0.0)
+        self.assertTrue(all(parameter.grad is None for parameter in model.parameters()))
+        self.assertEqual(measured.prompt_tokens, 3)
+        self.assertEqual(measured.target_tokens, 3)
+        self.assertEqual(measured.procedure_tokens, 4)
 
 
 if __name__ == "__main__":
