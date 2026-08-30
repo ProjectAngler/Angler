@@ -1,6 +1,6 @@
 # LEARNING status
 
-Freshness: 2026-08-29
+Freshness: 2026-08-30
 Design: draft  
 Delivery: not_started  
 Current gate: `ANG-GATE-LEARNING-DESIGN-001`
@@ -439,3 +439,30 @@ conditional and cannot be authorized by V11-D2; it requires all separately
 frozen V20 trigger operands.  Next action is final leaf audit, isolated
 implementation/tests, one synthetic CUDA preflight, and then the one frozen GPU
 pilot if every preflight passes.
+
+The subsequent bounded line produced three relevant retained results. V20
+showed strong OML-style meta-representation benefit. V22 learned useful gated
+plasticity but did not establish a material second-order ANML advantage at the
+4,096-update horizon; V23-D1-R1 found that a 20-step credit horizon increased
+the indirect-gradient contribution while the absolute second-order advantage
+remained tiny. These identities are consumed and are not promoted normal-gate
+evidence.
+
+The current product-facing experimental successor composes a monotonic Moving
+Origin, disposable Cognee candidate recall, Angler's learned situated reader,
+and frozen Qwen3-4B. The reader's accepted V2 result reached `0.9951` synthetic
+fresh-instance accuracy and selected `7/8` target-bearing experiences through
+fresh live Cognee recall without retraining. The first same-Qwen generation
+identity was preserved `NOT_SUPPORTED` at `4/8`, versus `2/8` Qwen alone and
+`0/8` unordered fair RAG, partly because Qwen exhausted its 12-token ceiling.
+
+The separate observed-row interface-hardening successor is
+`QWEN_INTERFACE_BENEFIT_SUPPORTED`: the same frozen Qwen produced `7/8` with
+Angler-selected experience, versus `1/8` alone and `3/8` with unordered fair
+retrieval. Result SHA-256 is
+`A3E9E04C7A709C913E05682055C0317A2AD8C28EAAE30D370433F4BA686A1A42`.
+No weights changed. This validates the local runtime boundary, not independent
+cross-domain improvement, because V2 deliberately reused V1's observed rows.
+The next scientific action is a fresh complex-task online-feedback trial using
+the completed recall-selection-generation-feedback coordinator; do not tune
+the eight interface rows further.

@@ -16,6 +16,15 @@ from .qwen_peft import (
     validate_foundation_frozen,
 )
 from .qwen_knowledge import encode_detached_segments, freeze_knowledge_model
+from .situated_qwen import (
+    LocalQwenIO,
+    SituatedQwenCoordinator,
+    SituatedEvidenceSelection,
+    SituatedQwenTurn,
+    build_qwen_prompt,
+    package_outcome_feedback,
+    select_situated_evidence,
+)
 
 __all__ = [
     "DEFAULT_ADAPTER_NAME",
@@ -33,4 +42,11 @@ __all__ = [
     "validate_foundation_frozen",
     "encode_detached_segments",
     "freeze_knowledge_model",
+    "LocalQwenIO",
+    "SituatedQwenCoordinator",
+    "SituatedEvidenceSelection",
+    "SituatedQwenTurn",
+    "build_qwen_prompt",
+    "package_outcome_feedback",
+    "select_situated_evidence",
 ]

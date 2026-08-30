@@ -16,9 +16,11 @@ future behavior.
 
 > **Current status:** preserved research prototype. Angler has bounded learned-
 > mechanism results, including strong OML-style representation evidence and
-> useful causally active gated plasticity. It has not demonstrated AGI,
-> unrestricted cross-domain reasoning, reliable lifelong learning, or a
-> product-level improvement to Qwen or another foundation model.
+> useful causally active gated plasticity. Its first bounded situated-memory
+> interface improved frozen Qwen3-4B from 1/8 alone and 3/8 with unordered
+> retrieval to 7/8 with Angler-selected experience. It has not demonstrated
+> AGI, unrestricted cross-domain reasoning, reliable lifelong learning, or
+> general product-level improvement to a foundation model.
 
 > **AI-assistance disclosure:** OpenAI Codex materially assisted with the
 > repository's source, documentation, testing, and audit under sustained human
@@ -80,6 +82,7 @@ does not hard-code a recency answer rule. See
 | V22 gated plasticity | Beat several open/forward/mean/permuted controls; resetting live state removed the measured advantage | No material second-order ANML advantage at the 4,096-step horizon |
 | V23-D1-R1 | A 20-step credit horizon increased measurable indirect meta-gradient contribution | Absolute second-order advantage remained tiny |
 | Situated memory V2 | 99.5% synthetic fresh-instance accuracy; sealed reader reached 87.5% through live Cognee recall with 100% target coverage | Eight synthetic mechanism families; one live family error; not unrestricted transfer |
+| Situated Qwen V2 interface | Same frozen Qwen3-4B reached 7/8 with Angler-selected experience versus 1/8 alone and 3/8 with unordered fair retrieval | Reuses eight observed rows to validate the I/O boundary; not independent general reasoning evidence |
 
 These are causal, synthetic research results—not a claim of general intelligence.
 Detailed identities, frozen interpretations, and hashes live in the Learning
