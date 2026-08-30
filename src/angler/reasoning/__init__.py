@@ -28,6 +28,21 @@ from .situated_reader import (
     SituatedReaderOutput,
     encode_situated_features,
 )
+from .situated_feedback import (
+    OMLSituatedFeedbackPolicy,
+    SituatedFeedbackOutput,
+    SituatedFeedbackPolicy,
+    situated_outcome_loss,
+)
+from .scalable_procedural_core import (
+    PlasticProcedureState,
+    ProceduralCoreConfig,
+    ProceduralCoreOutput,
+    ScalableProceduralCore,
+    plastic_state_digest,
+    procedural_core_config,
+    select_procedural_core_tier,
+)
 
 __all__ = [
     "AdaptiveFeedbackContext",
@@ -50,4 +65,15 @@ __all__ = [
     "SituatedFeatureSpec",
     "SituatedReaderOutput",
     "encode_situated_features",
+    "SituatedFeedbackOutput",
+    "OMLSituatedFeedbackPolicy",
+    "SituatedFeedbackPolicy",
+    "situated_outcome_loss",
+    "PlasticProcedureState",
+    "ProceduralCoreConfig",
+    "ProceduralCoreOutput",
+    "ScalableProceduralCore",
+    "plastic_state_digest",
+    "procedural_core_config",
+    "select_procedural_core_tier",
 ]

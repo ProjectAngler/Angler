@@ -83,6 +83,7 @@ does not hard-code a recency answer rule. See
 | V23-D1-R1 | A 20-step credit horizon increased measurable indirect meta-gradient contribution | Absolute second-order advantage remained tiny |
 | Situated memory V2 | 99.5% synthetic fresh-instance accuracy; sealed reader reached 87.5% through live Cognee recall with 100% target coverage | Eight synthetic mechanism families; one live family error; not unrestricted transfer |
 | Situated Qwen V2 interface | Same frozen Qwen3-4B reached 7/8 with Angler-selected experience versus 1/8 alone and 3/8 with unordered fair retrieval | Reuses eight observed rows to validate the I/O boundary; not independent general reasoning evidence |
+| Scalable procedural core V1 | Stable tiers scale from 7.7M to 151.9M parameters; the largest tier ran beside Qwen3-4B at 9.36 GB peak and supplied 32 latent procedure tokens | Capacity/interface evidence only; the scaled weights are not yet trained for complex tasks |
 
 These are causal, synthetic research results—not a claim of general intelligence.
 Detailed identities, frozen interpretations, and hashes live in the Learning

@@ -25,6 +25,11 @@ from .situated_qwen import (
     package_outcome_feedback,
     select_situated_evidence,
 )
+from .procedural_qwen import (
+    ProceduralQwenGeneration,
+    generate_with_procedural_prefix,
+    qwen_inputs_with_procedural_prefix,
+)
 
 __all__ = [
     "DEFAULT_ADAPTER_NAME",
@@ -49,4 +54,7 @@ __all__ = [
     "build_qwen_prompt",
     "package_outcome_feedback",
     "select_situated_evidence",
+    "ProceduralQwenGeneration",
+    "generate_with_procedural_prefix",
+    "qwen_inputs_with_procedural_prefix",
 ]
