@@ -22,6 +22,12 @@ from .self_referential_memory import (
     self_referential_state_digest,
     snapshot_self_referential_state,
 )
+from .situated_reader import (
+    LearnedSituatedMemoryReader,
+    SituatedFeatureSpec,
+    SituatedReaderOutput,
+    encode_situated_features,
+)
 
 __all__ = [
     "AdaptiveFeedbackContext",
@@ -40,4 +46,8 @@ __all__ = [
     "restore_self_referential_state",
     "self_referential_state_digest",
     "snapshot_self_referential_state",
+    "LearnedSituatedMemoryReader",
+    "SituatedFeatureSpec",
+    "SituatedReaderOutput",
+    "encode_situated_features",
 ]

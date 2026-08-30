@@ -33,6 +33,10 @@ class FakeBackend:
         self.documents.append(document)
         return f"backend-{len(self.documents)}"
 
+    async def remember_many(self, documents: tuple[str, ...]) -> tuple[str, ...]:
+        self.documents.extend(documents)
+        return tuple(f"backend-{index + 1}" for index in range(len(documents)))
+
     async def search(self, query: str, *, limit: int) -> tuple[MemoryHit, ...]:
         return self.hits[:limit]
 
@@ -100,6 +104,13 @@ class MovingOriginTests(unittest.TestCase):
         self.assertEqual(candidate.event_refs, naive.event_refs)
         self.assertEqual(candidate.inspected, 5)
         self.assertEqual(naive.inspected, 1_000)
+
+        maintained_position = origin.position(_ref(501))
+        naive_position, inspected = FairNaiveTemporalView.from_index(origin).position(
+            _ref(501)
+        )
+        self.assertEqual(maintained_position, naive_position)
+        self.assertEqual(inspected, 1_000)
 
     def test_snapshot_round_trip_preserves_coordinates_and_rejects_bad_chain(self) -> None:
         origin = MovingOriginIndex()
@@ -226,6 +237,25 @@ class SituatedMemoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(backend.forgotten)
         self.assertEqual(memory.origin.anchor(_ref(8)).ordinal, 0)
 
+    async def test_bulk_projection_uses_one_backend_batch_and_preserves_order(self) -> None:
+        backend = FakeBackend()
+        memory = SituatedMemory(backend)
+        projections = tuple(
+            MemoryProjection.from_mapping(
+                artifact_ref=_ref(index),
+                text=f"Evidence {index}",
+                source_ref=_ref(index + 100),
+            )
+            for index in range(20, 23)
+        )
+        ordinals = await memory.remember_many(projections)
+        self.assertEqual(ordinals, (0, 1, 2))
+        self.assertEqual(len(backend.documents), 3)
+        self.assertEqual(
+            [decode_projection(item)[0] for item in backend.documents],
+            list(projections),
+        )
+
 
 @dataclass
 class _FakeRememberResult:
@@ -295,6 +325,62 @@ class CogneeBoundaryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(module.calls[1][1]["query_type"], "CHUNKS")
         self.assertEqual(module.calls[1][1]["datasets"], ["angler-test"])
         self.assertEqual(module.calls[2], ("forget", {"dataset": "angler-test"}))
+
+    async def test_cognee_1_5_chunk_dictionary_results_are_not_discarded(self) -> None:
+        module = _FakeCogneeModule()
+
+        async def search(**kwargs: object) -> list[dict[str, object]]:
+            module.calls.append(("search", kwargs))
+            return [
+                {
+                    "id": "chunk-live-1",
+                    "document_id": "data-live-1",
+                    "text": "live chunk document",
+                    "score": 0.125,
+                    "chunk_index": 0,
+                }
+            ]
+
+        module.search = search  # type: ignore[method-assign]
+        backend = CogneeProjectionBackend(
+            "angler-test",
+            cognee_module=module,
+            local_models_configured=True,
+            telemetry_authorized=True,
+        )
+
+        hits = await backend.search("query", limit=4)
+
+        self.assertEqual(
+            hits,
+            (MemoryHit("live chunk document", 0.125, "chunk-live-1"),),
+        )
+
+    async def test_access_control_chunk_envelope_is_supported(self) -> None:
+        module = _FakeCogneeModule()
+
+        async def search(**kwargs: object) -> list[dict[str, object]]:
+            module.calls.append(("search", kwargs))
+            return [
+                {
+                    "dataset_name": "angler-test",
+                    "search_result": [
+                        {"text": "wrapped chunk", "document_id": "data-wrapped"}
+                    ],
+                }
+            ]
+
+        module.search = search  # type: ignore[method-assign]
+        backend = CogneeProjectionBackend(
+            "angler-test",
+            cognee_module=module,
+            local_models_configured=True,
+            telemetry_authorized=True,
+        )
+
+        hits = await backend.search("query", limit=4)
+
+        self.assertEqual(hits, (MemoryHit("wrapped chunk", None, "data-wrapped"),))
 
 
 if __name__ == "__main__":

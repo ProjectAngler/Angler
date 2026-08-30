@@ -79,6 +79,7 @@ does not hard-code a recency answer rule. See
 | V20 OML | 120/128 held-out rows and 30/32 streams; second-order AUC about 39.22% better than first-order | Most gain came from the slow meta-learned representation; live adaptation added only two rows |
 | V22 gated plasticity | Beat several open/forward/mean/permuted controls; resetting live state removed the measured advantage | No material second-order ANML advantage at the 4,096-step horizon |
 | V23-D1-R1 | A 20-step credit horizon increased measurable indirect meta-gradient contribution | Absolute second-order advantage remained tiny |
+| Situated memory V2 | 99.5% synthetic fresh-instance accuracy; sealed reader reached 87.5% through live Cognee recall with 100% target coverage | Eight synthetic mechanism families; one live family error; not unrestricted transfer |
 
 These are causal, synthetic research results—not a claim of general intelligence.
 Detailed identities, frozen interpretations, and hashes live in the Learning

@@ -254,12 +254,51 @@ class MovingOriginIndex:
 class FairNaiveTemporalView:
     """Correct scan-based control with the same answers and explicit work."""
 
-    def __init__(self, anchors: Iterable[TemporalAnchor]) -> None:
+    def __init__(
+        self,
+        anchors: Iterable[TemporalAnchor],
+        landmarks: Iterable[Landmark] = (),
+    ) -> None:
         self._anchors = tuple(anchors)
+        self._landmarks = tuple(landmarks)
 
     @classmethod
     def from_index(cls, index: MovingOriginIndex) -> "FairNaiveTemporalView":
-        return cls(index.anchor(event_ref) for event_ref in index._order)
+        return cls(
+            (index.anchor(event_ref) for event_ref in index._order),
+            index._landmarks.values(),
+        )
+
+    def position(self, event_ref: str) -> tuple[TemporalPosition, int]:
+        """Recompute one live position by scanning the complete history."""
+
+        selected = None
+        now = -1
+        inspected = 0
+        for anchor in self._anchors:
+            inspected += 1
+            now = max(now, anchor.ordinal)
+            if anchor.event_ref == event_ref:
+                selected = anchor
+        if selected is None:
+            raise KeyError("event is not in the autobiography")
+        relations = tuple(
+            (
+                landmark.name,
+                MovingOriginIndex._relation(selected.ordinal, landmark.designated_at),
+            )
+            for landmark in sorted(self._landmarks, key=lambda item: item.name)
+        )
+        return (
+            TemporalPosition(
+                acquired_ordinal=selected.ordinal,
+                age=now - selected.ordinal,
+                landmark_relations=relations,
+                world_valid_from=selected.world_valid_from,
+                world_valid_until=selected.world_valid_until,
+            ),
+            inspected,
+        )
 
     def recent(self, limit: int) -> RecentResult:
         if type(limit) is not int or limit < 1:

@@ -157,6 +157,29 @@ class SituatedMemory:
             raise ValueError("projection does not match the registered evidence event")
         return await self.backend.remember(encode_projection(projection))
 
+    async def remember_many(
+        self,
+        projections: tuple[MemoryProjection, ...],
+    ) -> tuple[int, ...]:
+        """Register a bounded evidence batch, then project it efficiently."""
+
+        if not projections or any(not isinstance(item, MemoryProjection) for item in projections):
+            raise ValueError("projections must be a non-empty tuple of MemoryProjection values")
+        documents = []
+        ordinals = []
+        for projection in projections:
+            identity = projection_id(projection)
+            anchor = self.origin.append(projection.artifact_ref, identity)
+            documents.append(encode_projection(projection))
+            ordinals.append(anchor.ordinal)
+        bulk = getattr(self.backend, "remember_many", None)
+        if callable(bulk):
+            await bulk(tuple(documents))
+        else:
+            for document in documents:
+                await self.backend.remember(document)
+        return tuple(ordinals)
+
     async def recall(
         self,
         query: str,

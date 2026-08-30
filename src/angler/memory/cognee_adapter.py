@@ -17,6 +17,52 @@ class CogneeConfigurationError(RuntimeError):
     pass
 
 
+def _cognee_result_entries(results: Any) -> tuple[Any, ...]:
+    """Normalize Cognee's public CHUNKS compatibility envelopes.
+
+    Cognee 1.5 returns a flat list of chunk dictionaries when backend access
+    control is disabled.  With access control it returns one dataset envelope
+    whose ``search_result`` contains that same list.  Older/test doubles may
+    expose normalized result objects instead.  This boundary deliberately
+    supports only those public shapes rather than guessing recursively.
+    """
+
+    if not isinstance(results, (list, tuple)):
+        return ()
+    entries: list[Any] = []
+    for result in results:
+        if isinstance(result, dict) and isinstance(result.get("search_result"), list):
+            entries.extend(result["search_result"])
+        elif isinstance(result, (list, tuple)):
+            entries.extend(result)
+        else:
+            entries.append(result)
+    return tuple(entries)
+
+
+def _chunk_hit(result: Any) -> MemoryHit | None:
+    if isinstance(result, dict):
+        text = result.get("text")
+        score = result.get("score")
+        raw_ref = result.get("id") or result.get("document_id")
+    else:
+        text = getattr(result, "text", None)
+        score = getattr(result, "score", None)
+        metadata = getattr(result, "metadata", None)
+        raw_ref = None
+        if isinstance(metadata, dict):
+            raw_ref = metadata.get("chunk_id") or metadata.get("data_id")
+    if not isinstance(text, str):
+        return None
+    if score is not None and not isinstance(score, (int, float)):
+        score = None
+    return MemoryHit(
+        document=text,
+        score=None if score is None else float(score),
+        backend_ref=None if raw_ref is None else str(raw_ref),
+    )
+
+
 class CogneeProjectionBackend:
     """Dataset-scoped Cognee backend with explicit model-call authority."""
 
@@ -83,6 +129,28 @@ class CogneeProjectionBackend:
             return None if identifier is None else str(identifier)
         return None
 
+    async def remember_many(self, documents: tuple[str, ...]) -> tuple[str, ...]:
+        """Index a bounded projection batch through one Cognee pipeline run."""
+
+        if not documents or any(type(item) is not str or not item for item in documents):
+            raise ValueError("documents must be a non-empty tuple of text")
+        cognee = self._module()
+        self._require_telemetry_authority()
+        self._require_model_authority()
+        result = await cognee.remember(
+            list(documents),
+            dataset_name=self.dataset_name,
+            self_improvement=False,
+        )
+        status = getattr(result, "status", None)
+        if status not in (None, "completed"):
+            raise RuntimeError(f"Cognee remember did not complete: {status}")
+        identifiers = []
+        for item in getattr(result, "items", None) or ():
+            if isinstance(item, dict) and item.get("id") is not None:
+                identifiers.append(str(item["id"]))
+        return tuple(identifiers)
+
     async def search(self, query: str, *, limit: int) -> tuple[MemoryHit, ...]:
         if type(query) is not str or not query.strip():
             raise ValueError("query must be non-empty text")
@@ -98,17 +166,10 @@ class CogneeProjectionBackend:
             top_k=limit,
         )
         hits = []
-        for result in results:
-            text = getattr(result, "text", None)
-            if not isinstance(text, str):
-                continue
-            metadata = getattr(result, "metadata", None)
-            backend_ref = None
-            if isinstance(metadata, dict):
-                raw_ref = metadata.get("chunk_id") or metadata.get("data_id")
-                backend_ref = None if raw_ref is None else str(raw_ref)
-            score = getattr(result, "score", None)
-            hits.append(MemoryHit(document=text, score=score, backend_ref=backend_ref))
+        for result in _cognee_result_entries(results):
+            hit = _chunk_hit(result)
+            if hit is not None:
+                hits.append(hit)
         return tuple(hits)
 
     async def forget_dataset(self) -> None:
