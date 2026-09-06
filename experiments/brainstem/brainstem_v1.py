@@ -44,7 +44,7 @@ STATE_DB = pathlib.Path(
 )
 QUARANTINE_DIR = STATE_DB.parent / "quarantined-effects"
 PAUSE_PATH = pathlib.Path("/opt/angler/results/jenny2/her-job-v1/paused.json")
-SERVICE = os.environ.get("JENNY2_SERVICE", "http://192.168.137.5:8088")
+SERVICE = os.environ.get("JENNY2_SERVICE", "http://127.0.0.1:8088")
 LOG_DIR = pathlib.Path("/opt/angler/results/jenny2/brainstem-v1")
 LOG_PATH = LOG_DIR / "log.jsonl"
 MODEL_PATH = os.environ.get("JENNY2_BRAINSTEM_MODEL", "/opt/angler/models/Qwen3-1.7B")
@@ -241,6 +241,13 @@ def runtime_state() -> dict:
 
 
 def may_wake(state: dict) -> tuple[bool, str]:
+    try:
+        from angler.runtime import becca_gate
+        held, why = becca_gate.held()
+        if held:
+            return False, why
+    except Exception:  # noqa: BLE001 — the gate module missing never wakes her by accident
+        return False, "gate unavailable"
     if PAUSE_PATH.exists():
         try:
             if json.loads(PAUSE_PATH.read_text(encoding="utf-8")).get("paused"):

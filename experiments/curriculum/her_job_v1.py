@@ -400,10 +400,8 @@ PAUSE_PATH = pathlib.Path("/opt/angler/results/jenny2/her-job-v1/paused.json")
 
 
 def _paused_by_becca() -> bool:
-    try:
-        return bool(json.loads(PAUSE_PATH.read_text()).get("paused"))
-    except (OSError, ValueError):
-        return False
+    from angler.runtime import becca_gate
+    return becca_gate.held()[0]
 
 
 def _service_ready() -> bool:

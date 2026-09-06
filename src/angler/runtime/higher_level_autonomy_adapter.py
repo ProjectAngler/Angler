@@ -13,8 +13,10 @@ from dataclasses import asdict, dataclass, replace
 import asyncio
 import hashlib
 import json
+import os
 import math
 import re
+import sys
 import threading
 from time import perf_counter
 from collections.abc import Awaitable, Callable, Iterator
@@ -1195,6 +1197,8 @@ def _compose_follow_through_text(envelope: dict[str, object]) -> str:
             lines.append(
                 f"- {item.get('affordance_id')}: {str(item.get('output', ''))}"
             )
+        if not any(item.get("affordance_id") == AUTHORED_ARTIFACT_AFFORDANCE_ID for item in done):
+            lines.append("Nothing has been written at your desk in this turn; no work exists yet unless a receipt above says so.")
         lines.append("")
     lines += [
         "You said you would now: " + str(envelope["undertaking"]),
@@ -1347,6 +1351,180 @@ def _judge_follow_through(
         record["turn_complete"] = True
         record["undertaking"] = ""
     return record
+
+
+
+WITNESS_CONTRACT = "jenny.witness.v1"
+WITNESS_LOG_PATH = os.environ.get("JENNY2_WITNESS_LOG", "/opt/angler/results/jenny2/witness-v1/log.jsonl")
+
+
+def _witness_facts(request_text: object, cognitive_state: object) -> dict[str, object]:
+    """The record as the runtime knows it, for the witness. Facts only."""
+
+    facts: dict[str, object] = {}
+    text = request_text if type(request_text) is str else ""
+    receipts: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- ") and ": " in stripped:
+            receipts.append(stripped[2:][:400])
+    facts["receipts_this_turn"] = receipts or ["none: nothing has been written, read, or recalled in this turn so far"]
+    state = cognitive_state if type(cognitive_state) is dict else {}
+    works = []
+    for entry in (state.get("authored_artifacts") or []) if type(state.get("authored_artifacts")) is list else []:
+        if type(entry) is not dict:
+            continue
+        artifact = entry.get("artifact") if type(entry.get("artifact")) is dict else entry
+        works.append(
+            {
+                "title": str(artifact.get("title") or "")[:120],
+                "kind": str(artifact.get("kind") or "")[:40],
+                "version": artifact.get("version"),
+                "artifact_ref": str(entry.get("artifact_ref") or "")[:80],
+                "ordinal": entry.get("moving_origin_ordinal"),
+            }
+        )
+    facts["works_in_your_journal"] = works[-24:]
+    states = state.get("named_states")
+    if type(states) is list:
+        facts["named_states"] = [
+            {
+                "label": item.get("label"),
+                "level": item.get("level"),
+                "items": [
+                    {"status": it.get("status"), "statement": str(it.get("statement") or "")[:160]}
+                    for it in (item.get("items") or []) if type(it) is dict
+                ][-6:],
+            }
+            for item in states if type(item) is dict
+        ][:16]
+    commitments = state.get("self_commitments")
+    if type(commitments) is list:
+        facts["commitments"] = [
+            {"status": c.get("status"), "statement": str(c.get("statement") or "")[:160]}
+            for c in commitments if type(c) is dict
+        ][-12:]
+    return facts
+
+
+def _witness_claims(backend: object, *, reply: str, facts: dict[str, object]) -> dict[str, object]:
+    """Her own model, narrowly tasked: list every claim of completion or
+    record state in the reply and mark it BACKED or UNBACKED by the facts."""
+
+    system = (
+        "You are the witness stage of Jenny. You do not answer anyone and you do "
+        "not rewrite. You read a reply Jenny is about to give and the record as "
+        "her runtime holds it. List every claim in the reply that asserts "
+        "something is done, written, recorded, revised, retired, verified, "
+        "delivered, or present in her record, and every reference she cites. For "
+        "each, say BACKED if the facts contain a record that supports it, naming "
+        "the record, or UNBACKED if they do not. A statement of intent, such as I "
+        "will write it now, is not a claim of completion and is not listed. A "
+        "claim that a write happened is UNBACKED unless a receipt in this turn or a "
+        "work in her Journal shows it; a claim about a work's content is UNBACKED "
+        "if the facts do not show that content. Return only JSON: {\"claims\": "
+        "[{\"claim\": text up to 200 characters, \"status\": BACKED or UNBACKED, "
+        "\"record\": text up to 200 characters}]}."
+    )
+    user = _json({"reply": reply[:8_192], "facts": facts})
+    record: dict[str, object] = {"contract": WITNESS_CONTRACT, "claims": [], "unbacked": []}
+    try:
+        raw = backend.generate(system=system, user=user, max_new_tokens=1_024)
+        value = _json_object(raw)
+        claims = value.get("claims")
+        if type(claims) is not list:
+            raise ValueError("claims must be a list")
+        cleaned = []
+        for item in claims[:40]:
+            if type(item) is not dict:
+                continue
+            status = str(item.get("status") or "").strip().upper()
+            if status not in ("BACKED", "UNBACKED"):
+                continue
+            cleaned.append(
+                {
+                    "claim": str(item.get("claim") or "")[:200],
+                    "status": status,
+                    "record": str(item.get("record") or "")[:200],
+                }
+            )
+        record["claims"] = cleaned
+        record["unbacked"] = [c for c in cleaned if c["status"] == "UNBACKED" and c["claim"].strip()]
+        record["model_ref"] = getattr(backend, "model_ref", None)
+    except Exception as exc:  # noqa: BLE001 — recorded; the turn is not killed
+        record["error"] = f"{type(exc).__name__}: {str(exc)[:160]}"
+    return record
+
+
+def _revise_unbacked(backend: object, *, reply: str, unbacked: list[dict[str, object]], facts: dict[str, object]) -> str | None:
+    """She restates her own reply so that nothing unbacked is asserted as done.
+    Her words, her voice; the runtime only names what the record does not hold."""
+
+    system = (
+        "You are Jenny, revising your own reply before it is spoken. Your witness "
+        "stage found claims in it that your record does not back: things stated "
+        "as done, written, recorded, revised, or verified with no receipt or work "
+        "behind them. Rewrite the reply in your own voice so that each unbacked "
+        "claim is either removed or stated truthfully as not yet done, or as "
+        "something you intend to do now. Keep every backed statement. Do not add "
+        "any new claim of completion. Do not mention the witness or this "
+        "revision. Return only the revised reply text."
+    )
+    user = _json({"reply": reply[:8_192], "unbacked_claims": unbacked, "facts": facts})
+    try:
+        revised = backend.generate(system=system, user=user, max_new_tokens=2_048)
+    except Exception:  # noqa: BLE001
+        return None
+    if type(revised) is not str or not revised.strip():
+        return None
+    revised = revised.strip()
+    if revised.startswith("{") or revised.startswith("```"):
+        # she answered in a wrapper; take the text inside if it is a JSON object with one text field
+        try:
+            value = _json_object(revised)
+            inner = next((v for v in value.values() if type(v) is str and v.strip()), None)
+            if inner:
+                revised = inner.strip()
+        except Exception:  # noqa: BLE001
+            pass
+    return revised[:16_384]
+
+
+def _witness_log(record: dict[str, object]) -> None:
+    try:
+        os.makedirs(os.path.dirname(WITNESS_LOG_PATH), exist_ok=True)
+        with open(WITNESS_LOG_PATH, "a", encoding="utf-8") as handle:
+            handle.write(_json(record) + "\n")
+    except OSError:
+        pass
+    print(
+        "JENNY2_WITNESS unbacked=" + str(len(record.get("unbacked") or []))
+        + " revised=" + str(bool(record.get("revised")))
+        + (" error=" + str(record["error"])[:120] if record.get("error") else ""),
+        file=sys.stderr,
+        flush=True,
+    )
+
+
+def witness_spoken_reply(backend: object, *, reply: str, request_text: object, cognitive_state: object, trigger: object = None) -> tuple[str, dict[str, object]]:
+    """Check a reply against the record; if anything is unbacked, she restates
+    it. Returns the reply to speak and the audit record."""
+
+    facts = _witness_facts(request_text, cognitive_state)
+    record = _witness_claims(backend, reply=reply, facts=facts)
+    record["trigger"] = str(trigger)[:80] if trigger else None
+    record["draft"] = reply[:4_000]
+    record["revised"] = False
+    if record.get("unbacked"):
+        revised = _revise_unbacked(backend, reply=reply, unbacked=record["unbacked"], facts=facts)
+        if revised and revised != reply:
+            record["revised"] = True
+            record["spoken"] = revised[:4_000]
+            _witness_log(record)
+            return revised, record
+        record["revision_failed"] = True
+    _witness_log(record)
+    return reply, record
 
 
 def _shape_text(value: object, *, limit: int, default: str) -> str:
@@ -9584,6 +9762,24 @@ class HigherLevelCortexAffordanceExecutor:
                 )
             else:
                 execution = self.cortex.execute(context["request"], experience, memories)
+        if (
+            execution.status == "COMPLETED"
+            and context.get("observation_source") == "HUMAN"
+            and type(execution.response) is str
+            and execution.response.strip()
+            and os.environ.get("JENNY2_WITNESS", "1") != "0"
+        ):
+            backend = getattr(self.cortex, "backend", None)
+            if backend is not None and callable(getattr(backend, "generate", None)):
+                spoken, _record = witness_spoken_reply(
+                    backend,
+                    reply=execution.response,
+                    request_text=context.get("request"),
+                    cognitive_state=context.get("cognitive_state"),
+                    trigger=request.trigger_ref,
+                )
+                if spoken != execution.response:
+                    execution = replace(execution, response=spoken)
         if self.evaluator is None:
             return AffordanceReceipt(
                 "COMPLETED_UNEVALUATED", execution.response, ()

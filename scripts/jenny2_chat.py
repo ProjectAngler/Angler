@@ -20,6 +20,7 @@ import secrets
 import shlex
 import stat
 import threading
+import time
 from time import perf_counter, time_ns
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -48,6 +49,7 @@ from angler.runtime.latency_trace import (
     persist_latency_trace,
 )
 from angler.runtime.persistent_autonomy import Affordance, ObservableConsequence
+from angler.runtime import becca_gate
 from angler.runtime.authored_artifact import (
     is_creative_work,
     is_private_work,
@@ -816,6 +818,22 @@ def _door_view(runtime) -> dict[str, object]:
 WORK_PAUSE_PATH = Path("/opt/angler/results/jenny2/her-job-v1/paused.json")
 WORK_DOOR_PATH = Path("/opt/angler/results/jenny2/curriculum-v1/door.json")
 _pause_keepalive: dict[str, object] = {"thread": None, "stop": threading.Event()}
+
+
+def _start_gate_keepalive(runtime) -> None:
+    """While Becca's gate holds (paused, or quiet after her send), idle wakes
+    are deferred every twenty seconds. Scheduling only."""
+
+    def _hold() -> None:
+        while True:
+            try:
+                if becca_gate.held()[0]:
+                    runtime.defer_life_for_foreground()
+            except Exception:  # noqa: BLE001
+                pass
+            time.sleep(20.0)
+
+    threading.Thread(target=_hold, name="jenny2-becca-gate", daemon=True).start()
 
 
 def _work_pause_state() -> dict[str, object]:
@@ -2159,6 +2177,13 @@ def _build_api_server(
                     if len(message) > 262_144:
                         raise ValueError("message exceeds the bounded input size")
                     trigger = _ref(f"{identity}:api:chat:{request_id}")
+                    if _speaker_for(request_id, body.get("speaker")) == OWNER_SPEAKER:
+                        # Becca hit send: everything automated holds for five minutes.
+                        try:
+                            becca_gate.touch_quiet()
+                        except OSError:
+                            pass
+                        runtime.defer_life_for_foreground()
                     stage_started = True
                     started = perf_counter()
                     with capture_latency_trace(
@@ -2341,6 +2366,7 @@ def _serve_api(
             flush=True,
         )
     if life_interval_seconds is not None:
+        _start_gate_keepalive(runtime)
         runtime.start_life(
             interval_seconds=life_interval_seconds,
             max_steps_per_session=life_max_steps,
@@ -2382,7 +2408,7 @@ def main() -> int:
     parser.add_argument("--identity", default="jenny2-interactive-qwen38-v1")
     parser.add_argument("--message", help="run one message and exit")
     parser.add_argument("--serve", action="store_true", help="serve the authenticated LAN API")
-    parser.add_argument("--bind", default="192.168.137.5")
+    parser.add_argument("--bind", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8088)
     parser.add_argument("--token-file")
     parser.add_argument("--bridge-token-file")

@@ -33,7 +33,7 @@ import random
 import sys
 import urllib.request
 
-SERVICE = "http://192.168.137.5:8088"
+SERVICE = os.environ.get("JENNY2_SERVICE", "http://127.0.0.1:8088")
 TOKEN_PATH = pathlib.Path(
     "/opt/angler/state/project-angler/jenny2-interactive-qwen38-v1/api-token.txt"
 )

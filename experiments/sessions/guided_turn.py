@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import os
 import pathlib
 import sys
 
@@ -31,6 +32,12 @@ def _append(record: dict) -> None:
 
 
 def turn(step: str, message: str, aspect: str) -> int:
+    from angler.runtime import becca_gate
+    held, why = becca_gate.held()
+    if held and not os.environ.get("JENNY2_SESSION_OVERRIDE"):
+        _append({"event": "TURN_HELD", "step": step, "reason": why})
+        print(f"TURN HELD: {why}. Nothing was sent.")
+        return 3
     runner._set_door("Developmental session four, guided", "BUSY")
     try:
         reply = runner._api("/v1/chat", {
