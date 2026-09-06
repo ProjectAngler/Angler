@@ -594,6 +594,43 @@ def _validated_named_state_transitions(value: object) -> tuple[dict[str, object]
     return tuple(result)
 
 
+def _named_states_for_model(state_payload: object) -> list[dict[str, object]]:
+    """Her active states as a prompt sees them: the meaning (label, level,
+    valence, influence, basis, inclination) and the live pressure (open items,
+    the last two closures, counts). Bookkeeping such as choice refs, level
+    history, timestamps and consequence logs stays in the ledger. Presentation
+    only; the ledger is untouched."""
+
+    compact: list[dict[str, object]] = []
+    for item in _active_named_states(state_payload):
+        items = [it for it in (item.get("items") or []) if type(it) is dict]
+        open_items = [it for it in items if it.get("status") == "OPEN"]
+        resolved = [it for it in items if it.get("status") == "RESOLVED"]
+        entry: dict[str, object] = {
+            "label": item.get("label"),
+            "level": item.get("level"),
+            "valence": item.get("valence"),
+            "influence": item.get("influence"),
+            "acts_at_level": item.get("acts_at_level"),
+            "basis": str(item.get("basis") or "")[:240],
+            "inclination": str(item.get("inclination") or "")[:160],
+            "open_items": [
+                {"statement": str(it.get("statement") or "")[:160], "weight": it.get("weight")}
+                for it in open_items[-6:]
+            ],
+            "resolved_items": len(resolved),
+            "last_resolved": [
+                {"statement": str(it.get("statement") or "")[:120], "evidence": str(it.get("resolution_evidence") or "")[:120]}
+                for it in resolved[-2:]
+            ],
+        }
+        arithmetic = item.get("level_arithmetic")
+        if type(arithmetic) is str:
+            entry["level_arithmetic"] = arithmetic[:160]
+        compact.append(entry)
+    return compact
+
+
 def _active_named_states(state_payload: object, *, now_utc: float | None = None) -> list[dict[str, object]]:
     """Return the model's own active named states, most recently revised
     first. Presentation only: the labels, levels and inclinations are the
@@ -1684,6 +1721,42 @@ def _library_availability_context(
     }
 
 
+def _library_reading_context_for_model(state_payload: dict[str, object]) -> dict[str, object]:
+    """The library view a stage receives: exact refs and progress items kept
+    intact, the catalog listing trimmed to paths and titles, and progress
+    limited to the most recent works. Structure-preserving; nothing in the
+    reading state changes."""
+
+    raw = _library_reading_context(state_payload)
+    catalog = raw.get("catalog")
+    view: dict[str, object] = {"contract": raw.get("contract"), "catalog": None, "progress": {}}
+    if type(catalog) is dict:
+        eligible = catalog.get("eligible_items") or []
+        view["catalog"] = {
+            key: catalog.get(key)
+            for key in ("catalog_acquired_at", "catalog_ref", "manifest_ref", "last_observation_ref")
+        }
+        view["catalog"]["eligible_count"] = len(eligible) if type(eligible) is list else None
+        excluded = catalog.get("excluded_catalog_items")
+        view["catalog"]["excluded_count"] = excluded if type(excluded) is int else len(excluded or [])
+        view["catalog"]["eligible_items"] = [
+            {"path": item.get("path"), "title": str(item.get("title") or "")[:80]}
+            for item in eligible[:24] if type(item) is dict
+        ]
+        if type(eligible) is list and len(eligible) > 24:
+            view["catalog"]["eligible_items_note"] = f"{len(eligible) - 24} more works are in the catalog; the library find operation lists them"
+    progress = raw.get("progress") or {}
+    if type(progress) is dict:
+        ordered = sorted(
+            progress.items(),
+            key=lambda kv: (kv[1].get("last_ordinal") if type(kv[1]) is dict and type(kv[1].get("last_ordinal")) is int else -1),
+        )
+        view["progress"] = dict(ordered[-4:])
+        if len(progress) > 4:
+            view["progress_note"] = f"{len(progress) - 4} older works in progress are not shown"
+    return view
+
+
 def _library_reading_context(state_payload: dict[str, object]) -> dict[str, object]:
     """Return the bounded source-owned catalog/cursor view exposed to the model."""
 
@@ -2754,6 +2827,33 @@ def _semantic_model_projection(value: object) -> object:
     return value
 
 
+def _context_scale() -> float:
+    """One knob over every per-section prompt budget (JENNY2_CONTEXT_SCALE).
+    Becca, 2026-09-06: her turns are prefill-bound on state that grew to
+    ~90K tokens per turn; until the relevance budget lands, the caps scale
+    uniformly. Bounds only; nothing in state changes."""
+
+    try:
+        value = float(os.environ.get("JENNY2_CONTEXT_SCALE", "1.0"))
+    except ValueError:
+        value = 1.0
+    return min(4.0, max(0.1, value))
+
+
+def _memory_content_chars() -> int:
+    """Per-candidate cap on recalled memory content (JENNY2_MEMORY_CONTENT_CHARS;
+    0 = unlimited). A bound, not a policy."""
+
+    try:
+        return max(0, int(os.environ.get("JENNY2_MEMORY_CONTENT_CHARS", "0")))
+    except ValueError:
+        return 0
+
+
+def _scaled_bound(maximum_characters: int) -> int:
+    return max(256, int(maximum_characters * _context_scale()))
+
+
 def _bounded_semantic_model_record(
     value: object, *, maximum_characters: int
 ) -> object:
@@ -2761,6 +2861,7 @@ def _bounded_semantic_model_record(
 
     if type(maximum_characters) is not int or maximum_characters < 256:
         raise ValueError("semantic model record bound must be at least 256")
+    maximum_characters = _scaled_bound(maximum_characters)
     projected = _semantic_model_projection(value)
     if projected is _MODEL_INPUT_OMIT:
         return None
@@ -2786,6 +2887,7 @@ def _bounded_attributed_model_record(
 
     if type(maximum_characters) is not int or maximum_characters < 256:
         raise ValueError("attributed model record bound must be at least 256")
+    maximum_characters = _scaled_bound(maximum_characters)
     serialized = _json(value)
     if len(serialized) <= maximum_characters:
         return json.loads(serialized)
@@ -4795,7 +4897,7 @@ class AdaptiveHumanTurnRouter:
         cognitive_state = {
             "active_human_holds": _active_human_holds(state_payload),
             "recently_closed_holds": _closed_human_holds(state_payload),
-            "named_states": _active_named_states(state_payload),
+            "named_states": _named_states_for_model(state_payload),
             "commitments_you_made": _active_self_commitments(state_payload),
             "commitments_you_resolved": _resolved_self_commitments(state_payload),
             "standing_standards": _standing_standards(state_payload),
@@ -5612,7 +5714,7 @@ class FrozenModelAffordanceController:
                 "motivation_weights": state_payload.get("motivation_weights", {}),
                 "active_human_holds": _active_human_holds(state_payload),
                 "recently_closed_holds": _closed_human_holds(state_payload),
-                "named_states": _active_named_states(state_payload),
+                "named_states": _named_states_for_model(state_payload),
                 "commitments_you_made": _active_self_commitments(state_payload),
                 "commitments_you_resolved": _resolved_self_commitments(state_payload),
                 "standing_standards": _standing_standards(state_payload),
@@ -5652,8 +5754,10 @@ class FrozenModelAffordanceController:
                 "self_observation_diary": _self_observation_diary_context(
                     state_payload
                 ),
-                "authored_artifacts": authored_artifacts,
-                "library_reading_state": _library_reading_context(state_payload),
+                "authored_artifacts": _bounded_semantic_model_record(
+                    authored_artifacts, maximum_characters=4_096
+                ),
+                "library_reading_state": _library_reading_context_for_model(state_payload),
                 "last_human_interaction": _adaptive_router_last_human_context(
                     state_payload
                 ),
@@ -7886,7 +7990,9 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 "latest_learning_progress": state_payload.get(
                     "latest_learning_progress"
                 ),
-                "last_intent": state_payload.get("last_intent"),
+                "last_intent": _bounded_semantic_model_record(
+                    state_payload.get("last_intent"), maximum_characters=2_048
+                ),
                 "intent_ranking_evidence": choice_history[
                     "intent_ranking_evidence"
                 ],
@@ -7908,8 +8014,10 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 "self_observation_diary": _self_observation_diary_context(
                     state_payload
                 ),
-                "authored_artifacts": _authored_artifact_context(state_payload),
-                "library_reading_state": _library_reading_context(state_payload),
+                "authored_artifacts": _bounded_semantic_model_record(
+                    _authored_artifact_context(state_payload), maximum_characters=4_096
+                ),
+                "library_reading_state": _library_reading_context_for_model(state_payload),
                 "library_availability": _library_availability_context(
                     state_payload, affordances
                 ),
@@ -7922,7 +8030,7 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 ),
                 "active_human_holds": _active_human_holds(state_payload),
                 "recently_closed_holds": _closed_human_holds(state_payload),
-                "named_states": _active_named_states(state_payload),
+                "named_states": _named_states_for_model(state_payload),
                 "commitments_you_made": _active_self_commitments(state_payload),
                 "commitments_you_resolved": _resolved_self_commitments(state_payload),
                 "standing_standards": _standing_standards(state_payload),
@@ -8081,7 +8189,7 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                     self.human_turn_router.backend,
                     human_message=observation.content,
                     answer=receipt.output,
-                    named_states=_active_named_states(state_payload),
+                    named_states=_named_states_for_model(state_payload),
                     decider_transitions=transitions,
                     commitments_you_made=_active_self_commitments(state_payload),
                 )
@@ -8119,7 +8227,7 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                     what_happened=(
                         receipt.output if type(receipt.output) is str else ""
                     ),
-                    named_states=_active_named_states(state_payload),
+                    named_states=_named_states_for_model(state_payload),
                     commitments=_active_self_commitments(state_payload),
                 )
                 judgment.update(
@@ -9822,7 +9930,16 @@ class DeferredSemanticMemory:
         return self._delegate
 
     def recall(self, request: str, *, limit: int) -> Sequence[MemoryCandidate]:
-        return self._memory().recall(request, limit=limit)
+        candidates = self._memory().recall(request, limit=limit)
+        cap = _memory_content_chars()
+        if cap <= 0:
+            return candidates
+        # Bound only: a recalled candidate keeps its record_ref and distance;
+        # over-long content is cut so one memory cannot crowd out a stage.
+        return tuple(
+            replace(item, content=item.content[:cap]) if len(item.content) > cap else item
+            for item in candidates
+        )
 
     def store(self, content: str, provenance_refs: Sequence[str]) -> str:
         return self._memory().store(content, provenance_refs)

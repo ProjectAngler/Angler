@@ -6,6 +6,7 @@ from dataclasses import asdict
 import base64
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -1841,6 +1842,18 @@ class LocalOpenAICompatibleFrozenBackend:
         finish_reason: str | None = None,
         json_schema_ref: str | None = None,
     ) -> dict[str, object]:
+        _dump_dir = os.environ.get("JENNY2_PROMPT_DUMP_DIR")
+        if _dump_dir:
+            # Measurement only: write each stage prompt so its composition can
+            # be sized. Gated by environment; never on by default.
+            try:
+                import time as _time
+                os.makedirs(_dump_dir, exist_ok=True)
+                name = f"{int(_time.time()*1000)}-{len(system)+len(user)}.json"
+                with open(os.path.join(_dump_dir, name), "w", encoding="utf-8") as handle:
+                    json.dump({"system": system, "user": user, "max_new_tokens": max_new_tokens, "status": status}, handle)
+            except OSError:
+                pass
         value = response if type(response) is dict else {}
         usage = value.get("usage") if type(value) is dict else None
         usage = usage if type(usage) is dict else {}
