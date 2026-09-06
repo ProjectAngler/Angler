@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the Jenny 2.0 healer every two minutes
+
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=2min
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target

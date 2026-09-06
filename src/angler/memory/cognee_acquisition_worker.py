@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 import sqlite3
 import sys
+import traceback
 from typing import Any
 from uuid import UUID
 
@@ -1224,12 +1225,18 @@ async def _serve(
                 raise CogneeWorkerProtocolError("operation is not admitted")
             response = success_response(request_id, result)
         except CogneeWorkerProtocolError:
+            # The wire message stays frozen; the reason goes to stderr for the
+            # operator (the bindings retain a bounded stderr window).
+            traceback.print_exc(file=sys.stderr)
+            sys.stderr.flush()
             response = error_response(
                 request_id,
                 "PROTOCOL_VIOLATION",
                 "Operation violated the frozen Cognee protocol",
             )
         except Exception:
+            traceback.print_exc(file=sys.stderr)
+            sys.stderr.flush()
             response = error_response(
                 request_id,
                 "COGNEE_OPERATION_FAILED",

@@ -1,0 +1,7 @@
+[Unit]
+Description=Jenny 2.0 healer: keep her API alive while her model serves
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/jenny2-heal.sh

@@ -2271,6 +2271,19 @@ class PersistentAutonomySupervisor:
             )
             connection.commit()
 
+    def rebuild_projections(self) -> int:
+        """Clear every projection mark so the rebuildable memory projection is
+        regenerated from the canonical record. Returns the episode count."""
+
+        with closing(self._connect()) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            cursor = connection.execute(
+                "UPDATE projection_outbox SET backend_ref=NULL WHERE backend_ref IS NOT NULL"
+            )
+            count = int(cursor.rowcount)
+            connection.commit()
+        return count
+
     def retry_pending_projections(
         self, projector: ConsolidationProjector, *, limit: int = 64
     ) -> tuple[str, ...]:

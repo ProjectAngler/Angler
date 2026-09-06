@@ -3522,14 +3522,31 @@ def assemble_qwen38_autonomous_jenny2_with_cognee(
                 capability_backend,  # type: ignore[arg-type]
             )
             runtime.projector = projector
-            runtime.drain_pending_projections()
-            projector.bootstrap_procedural_cases()
-            reading_refs = projector.bootstrap_reading_records()
-            print(
-                f"JENNY2_READING_PROJECTION_BOOTSTRAP records={len(reading_refs)}",
-                flush=True,
-            )
-            projector.bootstrap_active()
+            try:
+                runtime.drain_pending_projections()
+                projector.bootstrap_procedural_cases()
+                reading_refs = projector.bootstrap_reading_records()
+                print(
+                    f"JENNY2_READING_PROJECTION_BOOTSTRAP records={len(reading_refs)}",
+                    flush=True,
+                )
+                projector.bootstrap_active()
+            except Exception as exc:  # noqa: BLE001 — canonical is the authority; she wakes regardless
+                from . import self_recovery
+
+                runtime._projection_error = exc
+                print(
+                    f"JENNY2_MEMORY_PROJECTION_FAULT {type(exc).__name__}: {str(exc)[:200]}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                try:
+                    self_recovery.request_memory_rebuild(
+                        Path(cognee_scope.state_root).parent,
+                        f"{type(exc).__name__}: {str(exc)[:200]}",
+                    )
+                except OSError:
+                    pass
             runtime._closers = (
                 capability_backend.close,
                 reference_backend.close,

@@ -1,0 +1,7 @@
+[Unit]
+Description=Jenny 2.0 hourly snapshot of her canonical record and Diary
+
+[Service]
+Type=oneshot
+User=becca
+ExecStart=/usr/local/sbin/jenny2-backup.sh

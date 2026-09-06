@@ -346,6 +346,11 @@ class _SubprocessTransport:
         return transport
 
     async def _discard_bounded_stderr(self) -> None:
+        """Forward a bounded window of the worker's stderr to our own stderr
+        (the service journal) so a failure names its reason; then discard."""
+
+        import sys as _sys
+
         stream = self._process.stderr
         if stream is None:
             return
@@ -355,6 +360,13 @@ class _SubprocessTransport:
             if not chunk:
                 return
             retained += len(chunk)
+            try:
+                for line in chunk.decode("utf-8", "replace").splitlines():
+                    if not line.strip() or "[info " in line or "[debug" in line:
+                        continue  # routine progress stays out of the journal
+                    print("COGNEE_WORKER_STDERR " + line[:400], file=_sys.stderr, flush=True)
+            except Exception:  # noqa: BLE001
+                pass
         while await stream.read(65_536):
             pass
 

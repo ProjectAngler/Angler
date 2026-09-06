@@ -50,6 +50,7 @@ from angler.runtime.latency_trace import (
 )
 from angler.runtime.persistent_autonomy import Affordance, ObservableConsequence
 from angler.runtime import becca_gate
+from angler.runtime import self_recovery
 from angler.runtime.authored_artifact import (
     is_creative_work,
     is_private_work,
@@ -2455,9 +2456,15 @@ def main() -> int:
         raise RuntimeError("exact configured model is absent from the loopback runtime")
     root = Path(args.state_root).resolve()
     root.mkdir(parents=True, exist_ok=True)
+    rebuild_memory = False
     if args.serve:
         recovered = _recover_worker_temp(root)
         print(f"JENNY2_WORKER_TEMP_RECOVERED={recovered}", flush=True)
+        guard = self_recovery.guard_canonical(root / "jenny2.sqlite3")
+        print(f"JENNY2_CANONICAL_GUARD={guard}", flush=True)
+        if guard == "damaged-unrecoverable":
+            raise RuntimeError("canonical record is damaged and no good snapshot exists")
+        rebuild_memory = self_recovery.consume_memory_rebuild_request(root)
     identity = args.identity
     scope = CogneeWorkerScope(
         dataset_name=identity,
@@ -2527,6 +2534,13 @@ def main() -> int:
         ),
         enable_native_openclaw=False,
     )
+    if rebuild_memory:
+        try:
+            cleared = runtime.supervisor.rebuild_projections()
+            self_recovery.finish_memory_rebuild(root, cleared=cleared)
+            runtime.schedule_pending_projections()
+        except Exception as exc:  # noqa: BLE001
+            print(f"JENNY2_MEMORY_REBUILD_FAILED {type(exc).__name__}: {str(exc)[:200]}", flush=True)
     print(f"JENNY2_SERVED_MODEL={served_model}", flush=True)
     print(
         "JENNY2_MODEL_BINDING_REF=" + (model_binding_ref or "BASE_CONTROL"),
