@@ -8,6 +8,9 @@ move only bounded, reference-oriented JSON across a networkless subprocess.
 from __future__ import annotations
 
 import asyncio
+import re as _re_ansi
+
+_ANSI_ESCAPES = _re_ansi.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 from collections.abc import Awaitable, Callable
 import os
 from pathlib import Path
@@ -362,9 +365,10 @@ class _SubprocessTransport:
             retained += len(chunk)
             try:
                 for line in chunk.decode("utf-8", "replace").splitlines():
-                    if not line.strip() or "[info " in line or "[debug" in line:
+                    clean = _ANSI_ESCAPES.sub("", line)
+                    if not clean.strip() or "[info" in clean or "[debug" in clean:
                         continue  # routine progress stays out of the journal
-                    print("COGNEE_WORKER_STDERR " + line[:400], file=_sys.stderr, flush=True)
+                    print("COGNEE_WORKER_STDERR " + clean[:400], file=_sys.stderr, flush=True)
             except Exception:  # noqa: BLE001
                 pass
         while await stream.read(65_536):
