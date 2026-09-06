@@ -1,0 +1,9 @@
+{
+  "identity": "angler.higher-level-experience-cycle.v1-r4-smoke",
+  "status": "CONSUMED",
+  "runner_sha256": "ac2b60a2cee811324a280ee8300846790ea41ff8b55ef9bb52f9f4019778d480",
+  "predecessor_result": "/opt/angler/results/higher-level-experience-cycle-v1-r3/result.json",
+  "repair": "use two qualified one-shot TensorRT cortex lifetimes after the persistent worker deadlocked on its second request",
+  "paid_apis": false,
+  "max_live_cycles": 1
+}

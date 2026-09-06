@@ -1,0 +1,9 @@
+{
+  "identity": "angler.higher-level-experience-cycle.v1-r3-smoke",
+  "status": "CONSUMED",
+  "runner_sha256": "2788fba0cea3fc410d9280fed3f423d6d8364e33635ba3e8083adaa28bb87dd5",
+  "predecessor_result": "/opt/angler/results/higher-level-experience-cycle-v1-r2/result.json",
+  "repair": "bound reflection/consolidation verbosity, bound cortex responses, and evaluate settled rather than transient load headroom",
+  "paid_apis": false,
+  "max_live_cycles": 1
+}

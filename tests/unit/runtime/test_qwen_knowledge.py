@@ -38,6 +38,19 @@ class DetachedKnowledgeEncodingTests(unittest.TestCase):
         self.assertIsNone(together.grad_fn)
         self.assertTrue(all(not parameter.requires_grad for parameter in model.parameters()))
 
+    def test_backbone_fast_path_returns_last_hidden_state(self) -> None:
+        model = _ToyCausalLMWithBackbone(width=5)
+        freeze_knowledge_model(model)
+        encoded = encode_detached_segments(
+            model,
+            _ToyTokenizer(),
+            ("alpha", "beta"),
+            batch_size=2,
+        )
+        self.assertEqual(encoded.shape, (2, 5))
+        self.assertTrue(model.model.called)
+        self.assertFalse(model.wrapper_called)
+
 
 class _ToyBatch(dict):
     def to(self, device: torch.device) -> "_ToyBatch":
@@ -90,6 +103,43 @@ class _ToyKnowledgeModel(nn.Module):
         values = input_ids.float().unsqueeze(-1) + positions.view(1, -1, 1)
         hidden = values * self.anchor.view(1, 1, -1)
         return SimpleNamespace(hidden_states=(hidden * 0.5, hidden))
+
+
+class _ToyBackbone(nn.Module):
+    def __init__(self, *, width: int) -> None:
+        super().__init__()
+        self.anchor = nn.Parameter(torch.ones(width))
+        self.called = False
+
+    def forward(
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        *,
+        use_cache: bool,
+        return_dict: bool,
+    ) -> SimpleNamespace:
+        del attention_mask
+        if use_cache or not return_dict:
+            raise AssertionError("unexpected backbone options")
+        self.called = True
+        positions = torch.arange(input_ids.shape[1], device=input_ids.device)
+        hidden = (
+            input_ids.float().unsqueeze(-1) + positions.view(1, -1, 1)
+        ) * self.anchor.view(1, 1, -1)
+        return SimpleNamespace(last_hidden_state=hidden)
+
+
+class _ToyCausalLMWithBackbone(nn.Module):
+    def __init__(self, *, width: int) -> None:
+        super().__init__()
+        self.model = _ToyBackbone(width=width)
+        self.wrapper_called = False
+
+    def forward(self, *args, **kwargs):
+        del args, kwargs
+        self.wrapper_called = True
+        raise AssertionError("fast path should bypass the causal-LM wrapper")
 
 
 if __name__ == "__main__":

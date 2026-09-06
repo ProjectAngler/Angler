@@ -1,0 +1,18 @@
+{
+  "identity": "angler.higher-level-experience-cycle.v1-smoke",
+  "status": "CONSUMED",
+  "consumed_at": "2026-09-02T17:19:00-04:00",
+  "frozen_artifacts": {
+    "runner_sha256": "398362d3293396c957f8af1ad8033394d10786c063c0b83c2dc3aa0abdf7e09d",
+    "orchestration_sha256": "4b3d592271a1d984f6b09bb6c06b26c79f0821ecdc7cda4ae0d1abe0019a2e54"
+  },
+  "network": "offline-after-source-fetch",
+  "paid_apis": false,
+  "cortex": {"model": "nvidia/Qwen3-14B-NVFP4", "revision": "bc39319a4dc265d9bbb9a9731bc52c4988d9ece7", "physical_gpu": 0},
+  "experience_model": {"model": "Qwen/Qwen3-1.7B", "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e", "physical_gpu": 1, "frozen": true},
+  "memory": {"cognee": "1.5.3", "semantic_limit": 4, "utility_pattern": "MemRL"},
+  "learning_flow": "attempt-feedback-reflection-refinement-consolidation",
+  "trace_pattern": "Agent-Lightning-style append-only spans",
+  "removals": ["NO_EXPERIENCE", "NO_UTILITY", "NO_REFLECTION", "NO_TEMPORAL", "SHUFFLED_CONSEQUENCE"],
+  "limits": {"max_live_cycles": 1, "max_refinements": 1, "max_generated_tokens": 256, "max_live_wall_seconds": 1800, "min_settled_free_vram_gib_each": 2.0}
+}

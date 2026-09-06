@@ -1,0 +1,9 @@
+{
+  "identity": "angler.higher-level-experience-cycle.v1-r7-smoke",
+  "status": "CONSUMED",
+  "runner_sha256": "5610f17c98fd0be7aa5547ff67456a0ecd3b7b9b8e9b04273a333140aa16f62b",
+  "predecessor_result": "/opt/angler/results/higher-level-experience-cycle-v1-r6/result.json",
+  "repair": "invoke each TensorRT cortex pass as a non-interactive one-shot process after JSON-lines request delivery deadlocked nondeterministically",
+  "paid_apis": false,
+  "max_live_cycles": 1
+}

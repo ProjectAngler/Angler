@@ -67,6 +67,7 @@ _TOKEN = re.compile(r"\b(?:STOP|[A-Z])\b")
 class PreparedExample:
     query_text: str
     target_text: str | None
+    action_texts: tuple[str, ...]
     candidate_refs: tuple[str, ...]
     relevant: tuple[bool, ...]
     temporal: torch.Tensor
@@ -150,6 +151,14 @@ def serialize_public_task(task: PublicSoftwarePipelineTask) -> str:
         f"origin={origin}; goal={required}; forbidden={forbidden}; budget={task.max_steps}",
         "components:",
     ]
+    rows.extend(serialize_action_candidates(task))
+    return "\n".join(rows)
+
+
+def serialize_action_candidates(task: PublicSoftwarePipelineTask) -> tuple[str, ...]:
+    atoms = _atom_map(task)
+    types = _type_map(task)
+    rows = []
     for index, component in enumerate(_component_order(task)):
         reads = ",".join(atoms[value] for value in component.state_reads)
         writes = ",".join(atoms[value] for value in component.state_writes)
@@ -158,7 +167,7 @@ def serialize_public_task(task: PublicSoftwarePipelineTask) -> str:
             f"out={types[component.output_type]} reads={reads} writes={writes} "
             f"graph={_graph_text(component)}"
         )
-    return "\n".join(rows)
+    return tuple(rows)
 
 
 def visible_procedure(task: PublicSoftwarePipelineTask) -> str:
@@ -304,6 +313,7 @@ def prepare_corpus() -> tuple[
                     PreparedExample(
                         query_text=serialize_public_task(replace(pair.learner, observations=())),
                         target_text=visible_procedure(pair.learner),
+                        action_texts=serialize_action_candidates(pair.learner),
                         candidate_refs=refs,
                         relevant=relevant,
                         temporal=_temporal_rows(origin, refs, now=now),
@@ -323,6 +333,7 @@ def prepare_corpus() -> tuple[
                     PreparedExample(
                         query_text=serialize_public_task(pair.learner),
                         target_text=None,
+                        action_texts=serialize_action_candidates(pair.learner),
                         candidate_refs=refs,
                         relevant=relevant,
                         temporal=_temporal_rows(origin, refs, now=now),

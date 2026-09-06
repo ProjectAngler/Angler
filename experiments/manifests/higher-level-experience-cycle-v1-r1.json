@@ -1,0 +1,21 @@
+{
+  "identity": "angler.higher-level-experience-cycle.v1-r1-smoke",
+  "status": "CONSUMED",
+  "consumed_at": "2026-09-02T17:34:00-04:00",
+  "frozen_artifacts": {
+    "runner_sha256": "18dbf02ecbc4cce59352186837c94f11f5dfa9dd8ca4e584b71f2c15eed67c34",
+    "orchestration_sha256": "4b3d592271a1d984f6b09bb6c06b26c79f0821ecdc7cda4ae0d1abe0019a2e54"
+  },
+  "predecessor": {
+    "identity": "angler.higher-level-experience-cycle.v1-smoke",
+    "disposition": "FAIL",
+    "reason": "hand-authored point was rejected by the frozen Cognee projection boundary before model launch",
+    "result": "/opt/angler/results/higher-level-experience-cycle-v1/result.json"
+  },
+  "repair": "use the already-qualified canonical CognitiveAcquisition -> CognitiveGraphProjectionV2 -> CogneeAcquisitionAdapter path and explicitly initialize the fresh namespace",
+  "network": "offline",
+  "paid_apis": false,
+  "cortex": {"model": "nvidia/Qwen3-14B-NVFP4", "revision": "bc39319a4dc265d9bbb9a9731bc52c4988d9ece7", "physical_gpu": 0},
+  "experience_model": {"model": "Qwen/Qwen3-1.7B", "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e", "physical_gpu": 1, "frozen": true},
+  "limits": {"max_live_cycles": 1, "max_refinements": 1, "max_generated_tokens": 256, "max_live_wall_seconds": 1800, "min_settled_free_vram_mib_each": 2048}
+}

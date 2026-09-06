@@ -1,0 +1,9 @@
+{
+  "identity": "angler.higher-level-experience-cycle.v1-r6-smoke",
+  "status": "CONSUMED",
+  "runner_sha256": "375ebe51a31da2fd5e7ced7ad41f66bfdd21bc07cf06f9aca0d210dce883102b",
+  "predecessor_result": "/opt/angler/results/higher-level-experience-cycle-v1-r5/result.json",
+  "repair": "accept the model's complete five-field consolidation whether separated by spaces or requested bars",
+  "paid_apis": false,
+  "max_live_cycles": 1
+}

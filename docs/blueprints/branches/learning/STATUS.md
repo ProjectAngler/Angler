@@ -466,3 +466,19 @@ cross-domain improvement, because V2 deliberately reused V1's observed rows.
 The next scientific action is a fresh complex-task online-feedback trial using
 the completed recall-selection-generation-feedback coordinator; do not tune
 the eight interface rows further.
+
+## Paused proposal: model-scale metacognitive experience controller V1
+
+The R6 high-level history-conditioning line is terminal technical failure and
+will not receive R7. The initially drafted construction successor was
+`ANG-WORK-LEARNING-METACOGNITIVE-EXPERIENCE-CONTROLLER-V1-001`: replace the
+small answer-selector frontier with a real 1.7B frozen-base/LoRA process
+controller that learns how to allocate cognitive work from multi-dimensional,
+attributable consequences. Its first gate is only a bounded RTX-5070
+feasibility proof—fit, learn one process signal, preserve base weights,
+save/reload, reset, and retain 2 GiB headroom. No paid API, long training,
+14B integration, or reasoning-improvement claim is authorized before it passes.
+The owner then directed that Angler's existing learned core be retained only as
+experimental/ablation reference while a higher-level-tool composition is
+chosen. This proposal therefore paused before code, tests, optimizer state, or
+GPU execution; its completed free official 1.7B download is inert local input.

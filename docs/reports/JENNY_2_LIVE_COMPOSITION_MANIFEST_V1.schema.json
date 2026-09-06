@@ -1,0 +1,729 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:angler:jenny2:live-composition-manifest:v1",
+  "title": "Jenny 2.0 live composition manifest v1",
+  "description": "A same-snapshot, hash-bound account of the components actually assembled for one Jenny 2.0 runtime. Schema validity is necessary but does not itself verify the declared hashes.",
+  "$comment": "The emitter must sort set-valued arrays lexicographically and tool entries by affordance_id before hashing. A semantic validator must rehash artifacts and enforce cross-field equality such as the state/time ordinal and configured/observed served model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "manifest_version",
+    "manifest_ref",
+    "hash_rule",
+    "schema_artifact",
+    "generated_at_utc",
+    "integrity_status",
+    "operational_status",
+    "integrity_failures",
+    "operational_failures",
+    "agent",
+    "guide",
+    "model_binding",
+    "canonical_state",
+    "time",
+    "scheduler",
+    "memory",
+    "tools",
+    "effects",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema": {
+      "const": "jenny2.live-composition-manifest.v1"
+    },
+    "manifest_version": {
+      "const": "1.0.0"
+    },
+    "manifest_ref": {
+      "$ref": "#/$defs/sha256_ref"
+    },
+    "hash_rule": {
+      "const": "sha256 of UTF-8 canonical JSON using sorted keys, no insignificant whitespace, no NaN/Infinity, with manifest_ref omitted"
+    },
+    "schema_artifact": {
+      "$ref": "#/$defs/file_artifact"
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "integrity_status": {
+      "enum": [
+        "FRESH",
+        "STALE",
+        "MISMATCH",
+        "INCOMPLETE"
+      ]
+    },
+    "operational_status": {
+      "enum": [
+        "READY",
+        "DEGRADED",
+        "STOPPED",
+        "UNKNOWN"
+      ]
+    },
+    "integrity_failures": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024
+      }
+    },
+    "operational_failures": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent_ref",
+        "genesis_contract",
+        "genesis_ref"
+      ],
+      "properties": {
+        "agent_ref": {
+          "const": "jenny.agent.v2"
+        },
+        "genesis_contract": {
+          "const": "ANG-CTR-JENNY-GENESIS-001@0.1.0"
+        },
+        "genesis_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        }
+      }
+    },
+    "guide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id",
+        "contract",
+        "version",
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "document_id": {
+          "const": "ANG-REPORT-JENNY-2-SYSTEM-GUIDE-001"
+        },
+        "contract": {
+          "const": "jenny2.system-guide.v1"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "model_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "binding_ref",
+        "binding_file",
+        "base_served_model",
+        "configured_served_model",
+        "observed_served_model",
+        "runtime_ref",
+        "runtime_image",
+        "runtime_revision",
+        "source_model",
+        "quantized_model",
+        "adapter",
+        "selector_qualification_ref"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "BASE_CONTROL",
+            "LORA"
+          ]
+        },
+        "binding_ref": {
+          "$ref": "#/$defs/nullable_sha256_ref"
+        },
+        "binding_file": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/file_artifact"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "base_served_model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "configured_served_model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "observed_served_model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "runtime_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "runtime_image": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "runtime_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "source_model": {
+          "$ref": "#/$defs/model_artifact"
+        },
+        "quantized_model": {
+          "$ref": "#/$defs/model_artifact"
+        },
+        "adapter": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "model_sha256",
+                "config_sha256",
+                "rank",
+                "target_modules",
+                "training_result_sha256",
+                "curriculum_manifest_sha256"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096
+                },
+                "model_sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "config_sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "rank": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 64
+                },
+                "target_modules": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 64,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
+                },
+                "training_result_sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "curriculum_manifest_sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          ]
+        },
+        "selector_qualification_ref": {
+          "$ref": "#/$defs/nullable_sha256_ref"
+        }
+      }
+    },
+    "canonical_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "store_identity_ref",
+        "state_ref",
+        "revision",
+        "moving_origin_ordinal",
+        "last_event_ref",
+        "pending_ref"
+      ],
+      "properties": {
+        "contract": {
+          "const": "ANG-CTR-PERSISTENT-AUTONOMY-STATE-001@0.1.0"
+        },
+        "store_identity_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "state_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "moving_origin_ordinal": {
+          "type": "integer",
+          "minimum": -1
+        },
+        "last_event_ref": {
+          "$ref": "#/$defs/nullable_sha256_ref"
+        },
+        "pending_ref": {
+          "$ref": "#/$defs/nullable_sha256_ref"
+        }
+      }
+    },
+    "time": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "sample_ref",
+        "clock_anchor_ref",
+        "trusted_utc",
+        "local_time",
+        "local_timezone",
+        "uncertainty_ms",
+        "jump_detected",
+        "moving_origin_ordinal"
+      ],
+      "properties": {
+        "contract": {
+          "const": "ANG-CTR-TEMPORAL-NOW-001@0.2.0"
+        },
+        "sample_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "clock_anchor_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "trusted_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "local_time": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "local_timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "uncertainty_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "jump_detected": {
+          "type": "boolean"
+        },
+        "moving_origin_ordinal": {
+          "type": "integer",
+          "minimum": -1
+        }
+      }
+    },
+    "scheduler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementation_ref",
+        "configuration_ref",
+        "enabled",
+        "life_loop_running",
+        "interval_seconds",
+        "max_steps_per_session",
+        "error"
+      ],
+      "properties": {
+        "implementation_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "configuration_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "life_loop_running": {
+          "type": "boolean"
+        },
+        "interval_seconds": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 3600
+        },
+        "max_steps_per_session": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_writer_ref",
+        "canonical_store_ref",
+        "cognee_is_canonical_writer",
+        "projection_backend_refs",
+        "pending_projections",
+        "projection_error"
+      ],
+      "properties": {
+        "canonical_writer_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "canonical_store_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "cognee_is_canonical_writer": {
+          "const": false
+        },
+        "projection_backend_refs": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/sha256_ref"
+          }
+        },
+        "pending_projections": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "projection_error": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registry_ref",
+        "context_policy",
+        "entries"
+      ],
+      "properties": {
+        "registry_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "context_policy": {
+          "const": "compact cards in ordinary context; exact full definition loaded only when selected"
+        },
+        "entries": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/tool_entry"
+          }
+        }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_ref",
+        "general_external_effects_enabled",
+        "allowed_read_only_scopes",
+        "allowed_host_guarded_scopes",
+        "host_guarded_tools_enabled",
+        "host_catalog_ref"
+      ],
+      "properties": {
+        "policy_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "general_external_effects_enabled": {
+          "type": "boolean"
+        },
+        "allowed_read_only_scopes": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "allowed_host_guarded_scopes": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "host_guarded_tools_enabled": {
+          "type": "boolean"
+        },
+        "host_catalog_ref": {
+          "$ref": "#/$defs/nullable_sha256_ref"
+        }
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/sha256_ref"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "model_binding": {
+            "properties": {
+              "kind": {
+                "const": "LORA"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        },
+        "required": [
+          "model_binding"
+        ]
+      },
+      "then": {
+        "properties": {
+          "model_binding": {
+            "properties": {
+              "binding_ref": {
+                "$ref": "#/$defs/sha256_ref"
+              },
+              "binding_file": {
+                "$ref": "#/$defs/file_artifact"
+              },
+              "adapter": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "model_binding": {
+            "properties": {
+              "binding_ref": {
+                "type": "null"
+              },
+              "binding_file": {
+                "type": "null"
+              },
+              "adapter": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "integrity_status": {
+            "const": "FRESH"
+          }
+        },
+        "required": [
+          "integrity_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "integrity_failures": {
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "integrity_failures": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sha256_ref": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "nullable_sha256_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "file_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "model_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "revision",
+        "config_sha256",
+        "index_sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "config_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "index_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "tool_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "affordance_id",
+        "card_ref",
+        "full_definition_ref",
+        "executor_ref",
+        "observable_source_ref",
+        "permission_scope",
+        "external_effect",
+        "authorization_mode",
+        "execution_mode",
+        "availability"
+      ],
+      "properties": {
+        "affordance_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+        },
+        "card_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "full_definition_ref": {
+          "$ref": "#/$defs/sha256_ref"
+        },
+        "executor_ref": {
+          "$ref": "#/$defs/nullable_sha256_ref"
+        },
+        "observable_source_ref": {
+          "$ref": "#/$defs/nullable_sha256_ref"
+        },
+        "permission_scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "external_effect": {
+          "type": "boolean"
+        },
+        "authorization_mode": {
+          "enum": [
+            "LOCAL",
+            "HOST_GUARDED"
+          ]
+        },
+        "execution_mode": {
+          "enum": [
+            "SYNC",
+            "DEFERRED"
+          ]
+        },
+        "availability": {
+          "enum": [
+            "ACTIVE",
+            "INACTIVE",
+            "DEGRADED"
+          ]
+        }
+      }
+    }
+  }
+}

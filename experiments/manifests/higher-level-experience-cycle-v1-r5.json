@@ -1,0 +1,9 @@
+{
+  "identity": "angler.higher-level-experience-cycle.v1-r5-smoke",
+  "status": "CONSUMED",
+  "runner_sha256": "511448a9b9ce7389e8512fdb850a969e669a9a8a931bea70aab856c06a10c2ea",
+  "predecessor_result": "/opt/angler/results/higher-level-experience-cycle-v1-r4/result.json",
+  "repair": "use a compact one-line consolidation contract after nested verbose JSON exceeded the bounded generator output",
+  "paid_apis": false,
+  "max_live_cycles": 1
+}

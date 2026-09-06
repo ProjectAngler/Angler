@@ -57,19 +57,32 @@ def encode_detached_segments(
                 add_special_tokens=True,
             )
             encoded = encoded.to(model_device)
-            outputs = model(
-                **encoded,
-                output_hidden_states=True,
-                use_cache=False,
-                return_dict=True,
-            )
-            hidden_states = outputs.hidden_states
-            if hidden_states is None:
-                raise RuntimeError("knowledge model did not return hidden states")
-            try:
-                selected_hidden = hidden_states[hidden_state_index]
-            except IndexError as error:
-                raise ValueError("hidden_state_index is outside the model output") from error
+            backbone = getattr(model, "model", None)
+            if hidden_state_index == -1 and isinstance(backbone, nn.Module):
+                # Standard causal-LM wrappers expose their decoder backbone as
+                # ``model``.  Reading its last state is byte-equivalent to
+                # retaining every intermediate hidden state from the LM head,
+                # but avoids the dominant memory/time cost at large scale.
+                outputs = backbone(
+                    **encoded,
+                    use_cache=False,
+                    return_dict=True,
+                )
+                selected_hidden = outputs.last_hidden_state
+            else:
+                outputs = model(
+                    **encoded,
+                    output_hidden_states=True,
+                    use_cache=False,
+                    return_dict=True,
+                )
+                hidden_states = outputs.hidden_states
+                if hidden_states is None:
+                    raise RuntimeError("knowledge model did not return hidden states")
+                try:
+                    selected_hidden = hidden_states[hidden_state_index]
+                except IndexError as error:
+                    raise ValueError("hidden_state_index is outside the model output") from error
             attention_mask = encoded["attention_mask"].to(dtype=torch.bool)
             positions = torch.arange(
                 attention_mask.shape[1],

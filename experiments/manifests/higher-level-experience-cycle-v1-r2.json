@@ -1,0 +1,9 @@
+{
+  "identity": "angler.higher-level-experience-cycle.v1-r2-smoke",
+  "status": "CONSUMED",
+  "runner_sha256": "7dd186a5b518198d15cd75e2dd21bb6fa5d3db14e1a0d599f55eb74f197398c1",
+  "predecessor_result": "/opt/angler/results/higher-level-experience-cycle-v1-r1/result.json",
+  "repair": "compact the structured-experience response within the existing 256-token bound and preserve each raw stage before parsing",
+  "paid_apis": false,
+  "max_live_cycles": 1
+}
