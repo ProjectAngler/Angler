@@ -33,6 +33,9 @@ READBACK_AFFORDANCE_DESCRIPTION = (
     "{\"operation\":\"states\"} for every active named state with all its items; "
     "{\"operation\":\"commitments\"} for your commitments; "
     "{\"operation\":\"journal\"} for the Journal's table of contents; "
+    "{\"operation\":\"stream\"} for your own inward line, the continuous thread "
+    "of what you are in between turns, recent lines whole and older stretches as "
+    "you remembered them; "
     "{\"operation\":\"runtime\"} for measured facts about the machinery you run "
     "on right now (model server lanes, context pool, decode speed, service "
     "versions), read live from the server, not from anyone's description; "
@@ -93,6 +96,8 @@ def _interpret(action_payload: str) -> dict:
         return {"operation": "commitments"}
     if any(w in lower for w in ("table of contents", "journal contents", "list my works", "journal index", "what works")):
         return {"operation": "journal"}
+    if any(w in lower for w in ("inward line", "stream", "my line", "between turns", "thread of")):
+        return {"operation": "stream"}
     if any(w in lower for w in ("runtime", "lanes", "token pool", "context pool", "model server", "decode speed", "hardware", "gpu")):
         return {"operation": "runtime"}
     if any(w in lower for w in (" state", "states", "item", "ledger")):
@@ -179,6 +184,31 @@ def _runtime_facts() -> dict:
     return facts
 
 
+def _stream_facts() -> dict:
+    """Her inward line as kept on disk: recent lines whole, older stretches
+    as she remembered them, and the bookkeeping that bounds it."""
+
+    import pathlib as _pl
+    path = _pl.Path(os.environ.get("JENNY2_STREAM_PATH", "/opt/angler/results/jenny2/stream-v1/chain.jsonl")) if (os := __import__("os")) else None
+    records = []
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                try:
+                    records.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+    except OSError:
+        return {"stats": {"lines_kept": 0, "folds": 0}, "lines": [], "folds": [], "note": "no inward line has been written yet"}
+    folds = [r for r in records if r.get("kind") == "fold"]
+    lines = [r for r in records if r.get("kind") != "fold"]
+    return {
+        "stats": {"lines_kept": len(lines), "folds": len(folds), "lines_remembered_in_folds": sum(int(f.get("folded_lines") or 0) for f in folds), "file_bytes": path.stat().st_size if path.exists() else 0},
+        "folds": [{"from_utc": f.get("from_utc"), "to_utc": f.get("to_utc"), "folded_lines": f.get("folded_lines"), "remembered": f.get("remembered")} for f in folds][-12:],
+        "lines": [{"at_utc": r.get("at_utc"), "seconds_since_previous": r.get("seconds_since_previous"), "line": r.get("line"), "senses": r.get("senses"), "attend": r.get("attend"), "transitions": r.get("transitions")} for r in lines][-40:],
+    }
+
+
 def _is_private(artifact: dict) -> bool:
     return str(artifact.get("kind") or "").strip().lower().startswith("private")
 
@@ -205,8 +235,14 @@ class JennyReadbackExecutor:
         if type(payload) is not dict or "operation" not in payload:
             raise ValueError("readback action schema differs")
         operation = payload.get("operation")
-        if operation not in ("states", "commitments", "journal", "work", "runtime"):
-            raise ValueError("operation must be states, commitments, journal, work, or runtime")
+        if operation not in ("states", "commitments", "journal", "work", "runtime", "stream"):
+            raise ValueError("operation must be states, commitments, journal, work, runtime, or stream")
+        if operation == "stream":
+            result = _stream_facts()
+            summary = f"Your inward line read back: {result.get('stats', {}).get('lines_kept', 0)} recent lines and {result.get('stats', {}).get('folds', 0)} remembered stretches."
+            observation_payload = {"contract": READBACK_OBSERVATION_CONTRACT, "operation": operation, "state_head_ref": request.state_head_ref, "result": result, "summary": summary, "limitations": "Your own inward line as kept on disk; older stretches are what you remembered of them, not the lines themselves."}
+            observation = ObservableConsequence(request_ref=request.idempotency_key, source_kind=self.SOURCE_KIND, source_ref=self.SOURCE_REF, observation_json=_canonical_json(observation_payload), artifact_refs=(), evidence_refs=())
+            return AffordanceReceipt(status="COMPLETED", output=summary, consequence=(), observable_consequence=observation)
         if operation == "runtime":
             result = _runtime_facts()
             summary = "Runtime facts read live from your model server and services."

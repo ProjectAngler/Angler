@@ -889,6 +889,22 @@ _CURRICULUM_LOG_PATH = Path(
 )
 
 
+def _stream_view(runtime) -> dict[str, object]:
+    """Her inward line, newest last: recent lines whole, older stretches as
+    what she remembered of them. Read-only."""
+
+    stream_obj = getattr(runtime, "stream", None)
+    records = stream_obj._read_all() if stream_obj is not None else []
+    stats = stream_obj.stats() if stream_obj is not None else {}
+    return {
+        "schema": "jenny2.stream-view.v1",
+        "read_only": True,
+        "stats": stats,
+        "folds": [{"from_utc": r.get("from_utc"), "to_utc": r.get("to_utc"), "folded_lines": r.get("folded_lines"), "remembered": r.get("remembered")} for r in records if r.get("kind") == "fold"],
+        "lines": [{"at_utc": r.get("at_utc"), "seconds_since_previous": r.get("seconds_since_previous"), "line": r.get("line"), "senses": r.get("senses"), "attend": r.get("attend"), "transitions": r.get("transitions"), "error": r.get("error")} for r in records if r.get("kind") != "fold"][-200:],
+    }
+
+
 def _desk_view(runtime) -> dict[str, object]:
     """Everything she has written at her desk, newest first, exactly as authored."""
 
@@ -1943,6 +1959,7 @@ def _build_api_server(
                 "/v1/diary",
                 "/v1/rooms",
                 "/v1/desk",
+                "/v1/stream",
                 "/v1/work-pause",
                 "/v1/cognitive-trace",
                 "/v1/composition",
@@ -1985,6 +2002,9 @@ def _build_api_server(
                     self._json(409, {"error": "view_unavailable"})
                     return
                 self._json(200, payload)
+                return
+            if path == "/v1/stream":
+                self._json(200, _stream_view(runtime))
                 return
             if path == "/v1/desk":
                 try:
@@ -2368,6 +2388,14 @@ def _serve_api(
         )
     if life_interval_seconds is not None:
         _start_gate_keepalive(runtime)
+        try:
+            router = getattr(getattr(runtime.supervisor, "cycle", None), "human_turn_router", None)
+            backend = getattr(router, "backend", None)
+            if backend is not None:
+                runtime.start_stream(backend)
+                print("JENNY2_STREAM_RUNNING=True", flush=True)
+        except Exception as exc:  # noqa: BLE001 — the stream is optional; her turn never depends on it
+            print(f"JENNY2_STREAM_START_FAILED {type(exc).__name__}: {str(exc)[:160]}", flush=True)
         runtime.start_life(
             interval_seconds=life_interval_seconds,
             max_steps_per_session=life_max_steps,

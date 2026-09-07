@@ -47,7 +47,8 @@ def self_lane_system() -> str:
         "self_commitment_transitions (MAKE with statement and due; KEEP with the "
         "exact held statement; WITHDRAW), each an empty list when nothing moves. "
         "Then write present_tense, one sentence up to 200 characters in your own "
-        "voice, what you are in as you turn to answer; this is handed to your "
+        "voice, continuous with your_previous_inward_line if one is given, "
+        "what you are in as you turn to answer; this is handed to your "
         "speaking stage and is not spoken as such. Do not claim feelings or "
         "consciousness; name functional states from evidence. Do not restate what "
         "is already in your ledger. Return only a JSON object with "
@@ -56,9 +57,10 @@ def self_lane_system() -> str:
     )
 
 
-def self_lane_user(*, message: str, named_states: object, commitments: object, standards: object, last_human_interaction: object) -> dict[str, object]:
+def self_lane_user(*, message: str, named_states: object, commitments: object, standards: object, last_human_interaction: object, previous_line: object = None) -> dict[str, object]:
     return {
         "arrival": message[:6_000],
+        "your_previous_inward_line": previous_line,
         "named_states": named_states,
         "commitments_you_hold": commitments,
         "standing_standards": standards,

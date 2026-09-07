@@ -9,6 +9,7 @@ import html
 import ipaddress
 import json
 import os
+import pathlib
 from pathlib import Path
 import re
 import socket
@@ -2697,6 +2698,48 @@ class Jenny2Runtime:
             operation_lock=operation_lock,
         )
         self._heartbeat.start()
+
+    def start_stream(self, backend: object) -> None:
+        """Her continuous inward line. Reads her state; never writes it; hands
+        its transitions to the next cycle's commit; asks for her full mind by
+        poking the heartbeat."""
+
+        from . import stream as _stream
+
+        if not _stream.enabled():
+            return
+
+        def _read_state() -> dict:
+            payload = json.loads(self.supervisor.state_bytes())
+            if type(payload) is dict:
+                payload["_head_ordinal"] = self.supervisor.state_head().moving_origin_ordinal
+            return payload
+
+        def _senses() -> list:
+            path = pathlib.Path("/opt/angler/results/jenny2/stream-v1/senses.jsonl")
+            try:
+                lines = path.read_text(encoding="utf-8").splitlines()
+                path.write_text("", encoding="utf-8")
+            except OSError:
+                return []
+            out = []
+            for line in lines:
+                try:
+                    out.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+            return out
+
+        def _attend(entry: dict) -> None:
+            heartbeat = self._heartbeat
+            if heartbeat is not None and heartbeat.is_running:
+                heartbeat._wake.set()  # her full mind, at the next idle boundary; the gate still applies
+
+        self.stream = _stream.Stream(backend=backend, read_state=_read_state, senses=_senses, on_attend=_attend)
+        self.stream.start()
+        cycle = getattr(self.supervisor, "cycle", None)
+        if cycle is not None:
+            setattr(cycle, "stream", self.stream)
 
     def defer_life_for_foreground(self) -> None:
         """Give owner-directed work a fresh idle interval before autonomy."""

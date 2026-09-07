@@ -52,6 +52,7 @@ from .persistent_autonomy import (
 from .latency_trace import annotate_latency_trace, latency_phase
 from . import lanes
 from . import self_lane
+from . import stream
 from . import relevance_budget
 from .authored_artifact import (
     desk_refusal_payload,
@@ -7649,6 +7650,25 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
         adaptive_decision: AdaptiveHumanTurnDecision | None = None
         speculative_experience = None
         self_lane_record: dict[str, object] = {}
+        # The stream: her continuous inward line hands what it authored between
+        # cycles to this cycle's single commit, and its latest line to every stage.
+        stream_pending: dict[str, list] = {}
+        stream_line = None
+        stream_ref = getattr(self, "stream", None)
+        if stream_ref is not None:
+            try:
+                stream_pending = stream_ref.take_pending()
+                stream_line = stream_ref.latest_line()
+            except Exception:  # noqa: BLE001
+                stream_pending, stream_line = {}, None
+        if stream_line and stream_line.get("line"):
+            state_payload = dict(state_payload)
+            state_payload["present_tense"] = {
+                "contract": stream.STREAM_CONTRACT,
+                "text": stream_line["line"],
+                "at_utc": stream_line.get("at_utc"),
+                "note": "your own inward line, continuous between turns",
+            }
         if observation.source == "HUMAN" and self.human_turn_router is not None:
             router_started = perf_counter()
             router_kwargs: dict[str, object] = {}
@@ -7691,6 +7711,7 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                     commitments=_active_self_commitments(state_payload),
                     standards=_standing_standards(state_payload),
                     last_human_interaction=_adaptive_router_last_human_context(state_payload),
+                    previous_line=(state_payload.get("present_tense") or {}).get("text") if type(state_payload.get("present_tense")) is dict else None,
                 )
                 lane_tasks["self"] = lambda: self_backend.generate(
                     system=self_lane.self_lane_system(), user=_json(self_user), max_new_tokens=1_024
@@ -8295,7 +8316,8 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 )
             ),
             "named_state_transitions": (
-                list(self_lane_record.get("named_state_transitions", []))
+                list(stream_pending.get("named_state_transitions", []))
+                + list(self_lane_record.get("named_state_transitions", []))
                 + list(
                     selection.named_state_transitions
                     or (
@@ -8307,7 +8329,8 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
             )[:MAX_NAMED_STATE_TRANSITIONS_PER_TURN],
             "self_lane": self_lane_record or None,
             "self_commitment_transitions": (
-                list(self_lane_record.get("self_commitment_transitions", []))
+                list(stream_pending.get("self_commitment_transitions", []))
+                + list(self_lane_record.get("self_commitment_transitions", []))
                 + list(
                     selection.self_commitment_transitions
                     or (
@@ -8323,7 +8346,8 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 else ()
             ),
             "state_item_transitions": (
-                list(self_lane_record.get("state_item_transitions", []))
+                list(stream_pending.get("state_item_transitions", []))
+                + list(self_lane_record.get("state_item_transitions", []))
                 + list(
                     selection.state_item_transitions
                     or (
