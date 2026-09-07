@@ -4571,7 +4571,14 @@ def _controller_output_json_schema(
                 },
             }
         )
-        required = list(properties)
+        # Derivable fields are not required of the model in comparative mode:
+        # the action is the selected candidate's proposed_action, and the
+        # expected delta is that candidate's desired_state_change. Emitting
+        # them again cost ~300 output tokens per turn for no information.
+        required = [
+            key for key in properties
+            if key not in ("action_payload", "expected_state_delta")
+        ]
     else:
         ranking_properties = {
             "affordance_id": {"type": "string", "enum": affordance_enum},
@@ -5667,8 +5674,9 @@ class FrozenModelAffordanceController:
                 "rationale, predicted_consequences, unknowns, reversibility, "
                 "required_capability_keys, evidence_refs, reasons_for, and reasons_against. "
                 "proposed_action is the actual content to execute and must be non-empty. "
-                "Keep every explanatory candidate string under 24 words so the complete "
-                "variable set fits the internal reasoning boundary. proposed_action may "
+                "Keep every explanatory candidate string under 14 words; a clear "
+                "fragment beats a sentence here, since this output is consumed by your "
+                "own stages, not by a person. proposed_action may "
                 "use up to 96 words when needed for a complete cortex.respond conclusion. "
                 "When a candidate's affordance description specifies an exact JSON "
                 "request format, that candidate's proposed_action must be exactly that "
@@ -5676,8 +5684,9 @@ class FrozenModelAffordanceController:
                 "an answer, quotation, or predicted result: the payload is the request "
                 "to execute, and results exist only after the operation runs. "
                 "The word guidance above does not apply to these payloads. "
-                "predicted_consequences contains 1-6 concrete predictions; unknowns, "
-                "reasons_for, and reasons_against contain 0-6 short strings; reversibility "
+                "predicted_consequences contains 1-3 concrete predictions; unknowns, "
+                "reasons_for, and reasons_against contain 0-3 short strings, empty when "
+                "there is nothing real to say; reversibility "
                 "is REVERSIBLE, PARTIAL, or IRREVERSIBLE. Use only supplied capability keys "
                 "and evidence refs. If information or authority is missing, an operation may "
                 "formulate the exact question or evidence request in ordinary language; do not "
@@ -5688,12 +5697,12 @@ class FrozenModelAffordanceController:
                 "Do not invent numerical value scores. selected_candidate_id must name the "
                 "first candidate in candidate_preference_order and selected_affordance_id must "
                 "be first in affordance_preference_order. "
-                "The selected candidate's affordance_id and proposed_action must exactly "
-                "match selected_affordance_id and action_payload. Return intent_candidates "
-                "selected_candidate_id, candidate_preference_order, "
+                "The selected candidate's affordance_id must match selected_affordance_id; "
+                "its proposed_action is the action, so do not repeat it at the top level. "
+                "Return intent_candidates, selected_candidate_id, candidate_preference_order, "
                 "affordance_preference_order, and selection_basis in addition to "
-                "selected_affordance_id, action_payload, state_assessment, resolution_target, "
-                "expected_state_delta, and evidence_refs."
+                "selected_affordance_id, state_assessment, resolution_target, and "
+                "evidence_refs. state_assessment and resolution_target are one sentence each."
             )
         else:
             system += (
@@ -5874,6 +5883,24 @@ class FrozenModelAffordanceController:
             )
 
         def decode(candidate: dict[str, object]) -> LearnedAffordanceSelection:
+            if self.require_intent_candidates and type(candidate) is dict:
+                # Derive what the grammar no longer demands (shape only).
+                chosen = None
+                raw_list = candidate.get("intent_candidates")
+                chosen_id = candidate.get("selected_candidate_id")
+                if type(raw_list) is list:
+                    chosen = next(
+                        (c for c in raw_list if type(c) is dict and c.get("candidate_id") == chosen_id),
+                        None,
+                    )
+                if "action_payload" not in candidate:
+                    candidate["action_payload"] = (
+                        chosen.get("proposed_action") if chosen is not None else ""
+                    )
+                if "expected_state_delta" not in candidate:
+                    candidate["expected_state_delta"] = (
+                        chosen.get("desired_state_change") if chosen is not None else ""
+                    ) or candidate.get("desired_state_change") or "(none given)"
             missing_fields = schema - set(candidate)
             if missing_fields:
                 raise ValueError(
