@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Angler System Monitor
+Comment=CPU, RAM, storage, network, and dual-GPU monitor
+Exec=/usr/bin/conky --daemonize --config=/home/becca/.config/conky/angler.conf
+Terminal=false
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=5
+NoDisplay=false
