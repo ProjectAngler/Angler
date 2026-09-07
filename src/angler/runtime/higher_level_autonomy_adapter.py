@@ -51,6 +51,7 @@ from .persistent_autonomy import (
 )
 from .latency_trace import annotate_latency_trace, latency_phase
 from . import lanes
+from . import self_lane
 from . import relevance_budget
 from .authored_artifact import (
     desk_refusal_payload,
@@ -307,6 +308,9 @@ def _validated_state_item_transitions(value: object) -> tuple[dict[str, object],
         if type(item) is not dict:
             raise ValueError("state_item transition must be an object")
         status = item.get("status")
+        if type(status) is str:
+            status = status.strip().upper()
+            item = {**item, "status": status}
         if status not in _STATE_ITEM_STATUSES:
             raise ValueError("state_item status must be NONE, ADD, or RESOLVE")
         if status == "NONE":
@@ -1435,6 +1439,17 @@ def _witness_facts(request_text: object, cognitive_state: object, ledger: object
             receipts.append(stripped[2:][:400])
     facts["receipts_this_turn"] = receipts or ["none: nothing has been written, read, or recalled in this turn so far"]
     state = cognitive_state if type(cognitive_state) is dict else {}
+    present = state.get("present_tense")
+    if type(present) is dict and present.get("text"):
+        facts["inward_stage_this_turn"] = {
+            "present_tense": str(present.get("text"))[:240],
+            "note": "written by her own inward stage in this turn; it backs claims about what her inward stage found or wrote",
+        }
+    facts["runtime_attested"] = _runtime_attestations()
+    facts["what_the_speaker_said"] = (
+        "Statements in the arriving message were made by the speaker named there, not by Jenny; "
+        "Jenny relaying or acknowledging what a speaker told her is not a claim of her own to be marked unbacked."
+    )
     works = []
     for entry in (state.get("authored_artifacts") or []) if type(state.get("authored_artifacts")) is list else []:
         if type(entry) is not dict:
@@ -1472,6 +1487,30 @@ def _witness_facts(request_text: object, cognitive_state: object, ledger: object
     return facts
 
 
+def _runtime_attestations() -> dict[str, object]:
+    """Facts the runtime itself can attest about her machinery right now:
+    lanes, self-lane, witness, follow-through, brainstem. Measured, not told."""
+
+    import os as _os
+
+    facts: dict[str, object] = {
+        "lanes": int(_os.environ.get("JENNY2_LANES", "1") or 1),
+        "inward_stage_enabled": _os.environ.get("JENNY2_SELF_LANE", "1") != "0",
+        "witness_enabled": _os.environ.get("JENNY2_WITNESS", "1") != "0",
+        "follow_through_enabled": True,
+        "context_tokens_configured": _os.environ.get("JENNY2_CONTEXT_TOKENS"),
+    }
+    try:
+        import subprocess as _sp
+
+        active = _sp.run(["systemctl", "is-active", "jenny2-brainstem.service"], capture_output=True, text=True, timeout=3).stdout.strip()
+        facts["brainstem_service"] = active or "unknown"
+    except Exception:  # noqa: BLE001
+        facts["brainstem_service"] = "unknown"
+    facts["note"] = "attested by the runtime process itself at the moment of this reply; these back claims about which of her stages are live"
+    return facts
+
+
 def _witness_claims(backend: object, *, reply: str, facts: dict[str, object]) -> dict[str, object]:
     """Her own model, narrowly tasked: list every claim of completion or
     record state in the reply and mark it BACKED or UNBACKED by the facts."""
@@ -1483,8 +1522,12 @@ def _witness_claims(backend: object, *, reply: str, facts: dict[str, object]) ->
         "something is done, written, recorded, revised, retired, verified, "
         "delivered, or present in her record, and every reference she cites. For "
         "each, say BACKED if the facts contain a record that supports it, naming "
-        "the record, or UNBACKED if they do not. A statement of intent, such as I "
-        "will write it now, is not a claim of completion and is not listed. A "
+        "the record, or UNBACKED if they do not. runtime_attested and "
+        "inward_stage_this_turn are facts too: a claim that a stage or lane is "
+        "live, or about what her inward stage wrote, is BACKED when they show it. "
+        "Relaying what the arriving speaker said is not her claim. A statement of "
+        "intent, such as I will write it now, is not a claim of completion and is "
+        "not listed. A "
         "claim that a write happened is UNBACKED unless a receipt in this turn or a "
         "work in her Journal shows it; a claim about a work's content is UNBACKED "
         "if the facts do not show that content. Return only JSON: {\"claims\": "
@@ -1590,6 +1633,55 @@ def witness_spoken_reply(backend: object, *, reply: str, request_text: object, c
         record["revision_failed"] = True
     _witness_log(record)
     return reply, record
+
+
+def _decode_self_lane(raw: object) -> dict[str, object]:
+    """Validate the inward stage's answer. Any failure returns an empty record
+    with the reason; the turn is never affected."""
+
+    record: dict[str, object] = {"contract": self_lane.SELF_LANE_CONTRACT}
+    if raw is None:
+        return {}
+    if isinstance(raw, Exception):
+        record["error"] = f"{type(raw).__name__}: {str(raw)[:160]}"
+        return record
+    try:
+        value = _json_object(raw)
+    except Exception as exc:  # noqa: BLE001 — recorded, never raised into the turn
+        record["error"] = f"{type(exc).__name__}: {str(exc)[:160]}"
+        for key in ("named_state_transitions", "state_item_transitions", "self_commitment_transitions"):
+            record[key] = []
+        record["present_tense"] = ""
+        return record
+    dropped: list[str] = []
+    record["raw_excerpt"] = str(raw)[:600]
+
+    def _each(items: object, validate, label: str) -> list[dict[str, object]]:
+        # Shape per entry: one malformed transition is dropped and named;
+        # the rest of what she authored stands.
+        kept: list[dict[str, object]] = []
+        if type(items) is not list:
+            return kept
+        for entry in items:
+            try:
+                kept.extend(validate([entry]))
+            except Exception as exc:  # noqa: BLE001
+                dropped.append(f"{label}: {type(exc).__name__}: {str(exc)[:100]}")
+        return kept
+
+    record["named_state_transitions"] = _each(
+        value.get("named_state_transitions"), _validated_named_state_transitions, "named_state"
+    )
+    record["state_item_transitions"] = _each(
+        value.get("state_item_transitions"), _validated_state_item_transitions, "state_item"
+    )
+    record["self_commitment_transitions"] = _each(
+        value.get("self_commitment_transitions"), _validated_self_commitment_transitions, "self_commitment"
+    )
+    record["present_tense"] = _shape_text(value.get("present_tense"), limit=200, default="").strip()
+    if dropped:
+        record["dropped"] = dropped[:8]
+    return record
 
 
 def _shape_text(value: object, *, limit: int, default: str) -> str:
@@ -7556,6 +7648,7 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
             raise RuntimeError("human ingress has no public response affordance")
         adaptive_decision: AdaptiveHumanTurnDecision | None = None
         speculative_experience = None
+        self_lane_record: dict[str, object] = {}
         if observation.source == "HUMAN" and self.human_turn_router is not None:
             router_started = perf_counter()
             router_kwargs: dict[str, object] = {}
@@ -7584,6 +7677,24 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                     **router_kwargs,
                 )
             }
+            if (
+                self_lane.enabled()
+                and lanes.lane_count() > 2
+                and library_turn_observation is None
+                and getattr(observation, "source", None) == "HUMAN"
+                and not str(observation.content).startswith("Speaker: Jenny; this is your own follow-through")
+            ):
+                self_backend = self.human_turn_router.backend
+                self_user = self_lane.self_lane_user(
+                    message=observation.content,
+                    named_states=_named_states_for_model(state_payload),
+                    commitments=_active_self_commitments(state_payload),
+                    standards=_standing_standards(state_payload),
+                    last_human_interaction=_adaptive_router_last_human_context(state_payload),
+                )
+                lane_tasks["self"] = lambda: self_backend.generate(
+                    system=self_lane.self_lane_system(), user=_json(self_user), max_new_tokens=1_024
+                )
             if library_turn_observation is None and lanes.lane_count() > 1:
                 if callable(situated_generator_lane):
                     lane_tasks["experience"] = lambda: situated_generator_lane(
@@ -7602,6 +7713,14 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
             speculative_experience = lane_results.get("experience")
             if isinstance(speculative_experience, Exception):
                 speculative_experience = None  # the serial path below regenerates it
+            self_lane_record = _decode_self_lane(lane_results.get("self"))
+            if self_lane_record.get("present_tense"):
+                # Handed to the speaking stage: what she is in as she turns to answer.
+                state_payload = dict(state_payload)
+                state_payload["present_tense"] = {
+                    "contract": self_lane.SELF_LANE_CONTRACT,
+                    "text": self_lane_record["present_tense"],
+                }
             phase_timings_ms["adaptive_route_and_response"] = (
                 perf_counter() - router_started
             ) * 1000
@@ -8147,6 +8266,7 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 "active_human_holds": _active_human_holds(state_payload),
                 "recently_closed_holds": _closed_human_holds(state_payload),
                 "named_states": _named_states_for_model(state_payload),
+                "present_tense": state_payload.get("present_tense"),
                 "commitments_you_made": _active_self_commitments(state_payload),
                 "commitments_you_resolved": _resolved_self_commitments(state_payload),
                 "standing_standards": _standing_standards(state_payload),
@@ -8174,35 +8294,45 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                     else None
                 )
             ),
-            "named_state_transitions": list(
-                selection.named_state_transitions
-                or (
-                    adaptive_decision.named_state_transitions
-                    if adaptive_decision is not None
-                    else ()
+            "named_state_transitions": (
+                list(self_lane_record.get("named_state_transitions", []))
+                + list(
+                    selection.named_state_transitions
+                    or (
+                        adaptive_decision.named_state_transitions
+                        if adaptive_decision is not None
+                        else ()
+                    )
                 )
-            ),
-            "self_commitment_transitions": list(
-                selection.self_commitment_transitions
-                or (
-                    adaptive_decision.self_commitment_transitions
-                    if adaptive_decision is not None
-                    else ()
+            )[:MAX_NAMED_STATE_TRANSITIONS_PER_TURN],
+            "self_lane": self_lane_record or None,
+            "self_commitment_transitions": (
+                list(self_lane_record.get("self_commitment_transitions", []))
+                + list(
+                    selection.self_commitment_transitions
+                    or (
+                        adaptive_decision.self_commitment_transitions
+                        if adaptive_decision is not None
+                        else ()
+                    )
                 )
-            ),
+            )[:MAX_SELF_COMMITMENT_TRANSITIONS_PER_TURN],
             "substrate_effects": list(
                 adaptive_decision.substrate_effects
                 if adaptive_decision is not None
                 else ()
             ),
-            "state_item_transitions": list(
-                selection.state_item_transitions
-                or (
-                    adaptive_decision.state_item_transitions
-                    if adaptive_decision is not None
-                    else ()
+            "state_item_transitions": (
+                list(self_lane_record.get("state_item_transitions", []))
+                + list(
+                    selection.state_item_transitions
+                    or (
+                        adaptive_decision.state_item_transitions
+                        if adaptive_decision is not None
+                        else ()
+                    )
                 )
-            ),
+            )[:MAX_STATE_ITEM_TRANSITIONS_PER_TURN],
             "adaptive_effort": (
                 None
                 if adaptive_decision is None

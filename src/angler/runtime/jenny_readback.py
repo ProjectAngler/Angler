@@ -109,6 +109,7 @@ def _runtime_facts() -> dict:
     right now. Every field names its source."""
 
     import os
+    import pathlib
     import subprocess
     import time
     import urllib.request
@@ -137,6 +138,38 @@ def _runtime_facts() -> dict:
     except Exception as exc:  # noqa: BLE001
         facts["decode_probe"] = {"error": f"{type(exc).__name__}"}
     facts["runtime_lanes"] = {"source": "JENNY2_LANES environment of your API service", "lanes": os.environ.get("JENNY2_LANES", "1")}
+    facts["stages"] = {
+        "source": "environment of your API service",
+        "inward_stage": os.environ.get("JENNY2_SELF_LANE", "1") != "0",
+        "witness": os.environ.get("JENNY2_WITNESS", "1") != "0",
+    }
+    try:
+        active = subprocess.run(["systemctl", "is-active", "jenny2-brainstem.service"], capture_output=True, text=True, timeout=5).stdout.strip()
+        brain: dict = {"source": "systemctl is-active jenny2-brainstem.service, and its log", "service": active or "unknown"}
+        log = pathlib.Path("/opt/angler/results/jenny2/brainstem-v1/log.jsonl")
+        if log.exists():
+            lines = log.read_text(encoding="utf-8").splitlines()[-40:]
+            events = [json.loads(l) for l in lines if l.strip()]
+            start = next((e for e in reversed(events) if e.get("event") == "START"), None)
+            if start:
+                brain["started_at_utc"] = start.get("logged_at_utc"); brain["model"] = start.get("model")
+                brain["sense_interval_seconds"] = start.get("sense_interval"); brain["cooldown_seconds"] = start.get("cooldown")
+            last_j = next((e for e in reversed(events) if e.get("event") == "JUDGMENT"), None)
+            if last_j:
+                brain["last_judgment"] = {"at": last_j.get("logged_at_utc"), "criteria_ref": last_j.get("criteria_ref"), "wake": (last_j.get("judgment") or {}).get("wake")}
+            held = [e for e in events if e.get("event") == "HELD"]
+            if held:
+                brain["last_hold_reason"] = held[-1].get("reason")
+            brain["wakes_logged_recently"] = sum(1 for e in events if e.get("event") == "WAKE")
+        facts["brainstem"] = brain
+    except Exception as exc:  # noqa: BLE001
+        facts["brainstem"] = {"error": f"{type(exc).__name__}"}
+    try:
+        from . import becca_gate
+        held, why = becca_gate.held()
+        facts["becca_gate"] = {"source": "paused.json and quiet.json, read by code", "automation_held": held, "why": why}
+    except Exception as exc:  # noqa: BLE001
+        facts["becca_gate"] = {"error": f"{type(exc).__name__}"}
     facts["context_tokens_configured"] = {"source": "JENNY2_CONTEXT_TOKENS environment", "tokens": os.environ.get("JENNY2_CONTEXT_TOKENS")}
     try:
         gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.used,memory.total", "--format=csv,noheader"], capture_output=True, text=True, timeout=5).stdout.strip().splitlines()

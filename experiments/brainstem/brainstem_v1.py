@@ -234,7 +234,14 @@ class Triage:
 
 def runtime_state() -> dict:
     try:
-        with urllib.request.urlopen(SERVICE + "/v1/ui-state", timeout=10) as reply:
+        req = urllib.request.Request(SERVICE + "/v1/ui-state")
+        try:
+            token = pathlib.Path(os.environ.get("JENNY2_API_TOKEN_PATH", str(STATE_DB.parent / "api-token.txt"))).read_text(encoding="utf-8").strip()
+            if token:
+                req.add_header("Authorization", f"Bearer {token}")
+        except OSError:
+            pass
+        with urllib.request.urlopen(req, timeout=10) as reply:
             return json.loads(reply.read().decode("utf-8"))
     except (OSError, ValueError, urllib.error.URLError):
         return {}
@@ -284,10 +291,17 @@ def wake(signal: dict, judgment: dict, criteria_ref: str) -> dict:
             "speaker": SPEAKER,
         }
     ).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    try:
+        token = pathlib.Path(os.environ.get("JENNY2_API_TOKEN_PATH", str(STATE_DB.parent / "api-token.txt"))).read_text(encoding="utf-8").strip()
+        if token:
+            headers["Authorization"] = f"Bearer {token}"  # read at send time; never logged
+    except OSError:
+        pass
     request = urllib.request.Request(
         SERVICE + "/v1/chat",
         data=body,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST",
     )
     try:

@@ -55,6 +55,7 @@ ALWAYS = frozenset(
 PRIORITY: dict[str, dict[str, float]] = {
     "common": {
         "named_states": 0.95,
+        "present_tense": 1.0,
         "commitments_you_made": 0.9,
         "commitments_you_resolved": 0.5,
         "standing_standards": 0.85,

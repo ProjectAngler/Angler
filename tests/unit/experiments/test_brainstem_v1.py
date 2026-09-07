@@ -75,13 +75,16 @@ class MayWakeTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             pause = pathlib.Path(directory) / "paused.json"
             brainstem.PAUSE_PATH = pause
+            from angler.runtime import becca_gate
+            becca_gate.PAUSE_PATH = pause
+            becca_gate.QUIET_PATH = pathlib.Path(directory) / "quiet.json"
             self.assertEqual(brainstem.may_wake({}), (False, "her runtime is not answering"))
             self.assertEqual(brainstem.may_wake({"door": {"busy": True, "label": "Becca is with her"}, "activity": {}})[0], False)
             self.assertEqual(brainstem.may_wake({"door": {"privacy": "HER_TIME"}, "activity": {}})[0], False)
             self.assertEqual(brainstem.may_wake({"door": {"privacy": "OPEN"}, "activity": {"phase": "EXECUTE"}})[0], False)
             self.assertEqual(brainstem.may_wake({"door": {"privacy": "OPEN"}, "activity": {"phase": "ERROR"}}), (True, "clear"))
             pause.write_text(json.dumps({"paused": True}))
-            self.assertEqual(brainstem.may_wake({"door": {"privacy": "OPEN"}, "activity": {}}), (False, "Becca paused her cycle"))
+            self.assertEqual(brainstem.may_wake({"door": {"privacy": "OPEN"}, "activity": {}}), (False, "Becca has scheduled work switched off"))
 
 
 if __name__ == "__main__":
