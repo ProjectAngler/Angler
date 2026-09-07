@@ -33,6 +33,9 @@ READBACK_AFFORDANCE_DESCRIPTION = (
     "{\"operation\":\"states\"} for every active named state with all its items; "
     "{\"operation\":\"commitments\"} for your commitments; "
     "{\"operation\":\"journal\"} for the Journal's table of contents; "
+    "{\"operation\":\"runtime\"} for measured facts about the machinery you run "
+    "on right now (model server lanes, context pool, decode speed, service "
+    "versions), read live from the server, not from anyone's description; "
     "{\"operation\":\"work\",\"title\":\"...\"} or {\"operation\":\"work\",\"artifact_ref\":\"sha256:...\"} "
     "for one public work with its body. Use it to verify before you claim; a "
     "claim about your record that you have not read back is unverified. Private "
@@ -90,6 +93,8 @@ def _interpret(action_payload: str) -> dict:
         return {"operation": "commitments"}
     if any(w in lower for w in ("table of contents", "journal contents", "list my works", "journal index", "what works")):
         return {"operation": "journal"}
+    if any(w in lower for w in ("runtime", "lanes", "token pool", "context pool", "model server", "decode speed", "hardware", "gpu")):
+        return {"operation": "runtime"}
     if any(w in lower for w in (" state", "states", "item", "ledger")):
         return {"operation": "states"}
     if quoted:
@@ -97,6 +102,48 @@ def _interpret(action_payload: str) -> dict:
     if "journal" in lower or "works" in lower:
         return {"operation": "journal"}
     raise ValueError("readback request names no operation: states, commitments, journal, or work")
+
+
+def _runtime_facts() -> dict:
+    """Measured, not described: what her model server and services report
+    right now. Every field names its source."""
+
+    import os
+    import subprocess
+    import time
+    import urllib.request
+
+    facts: dict = {"measured_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    endpoint = os.environ.get("JENNY2_MODEL_ENDPOINT", "http://127.0.0.1:30000/v1").rstrip("/")
+    try:
+        with urllib.request.urlopen(endpoint.rsplit("/v1", 1)[0] + "/get_server_info", timeout=5) as r:
+            info = json.loads(r.read().decode("utf-8"))
+        keep = {}
+        for key in ("max_running_requests", "max_total_num_tokens", "context_length", "tp_size", "speculative_algorithm", "kv_cache_dtype", "mem_fraction_static", "chunked_prefill_size", "disable_custom_all_reduce", "version"):
+            if key in info:
+                keep[key] = info[key]
+        facts["model_server"] = {"source": "GET /get_server_info on the model server", **keep}
+    except Exception as exc:  # noqa: BLE001
+        facts["model_server"] = {"source": "GET /get_server_info", "error": f"{type(exc).__name__}"}
+    try:
+        body = json.dumps({"model": os.environ.get("JENNY2_SERVED_MODEL", "jenny-qwen3.8-27b"), "messages": [{"role": "user", "content": "Count from one to forty in words."}], "max_tokens": 96, "temperature": 0}).encode()
+        req = urllib.request.Request(endpoint + "/chat/completions", data=body, headers={"Content-Type": "application/json"}, method="POST")
+        t0 = time.perf_counter()
+        with urllib.request.urlopen(req, timeout=60) as r:
+            d = json.loads(r.read().decode("utf-8"))
+        dt = time.perf_counter() - t0
+        out = d.get("usage", {}).get("completion_tokens", 0)
+        facts["decode_probe"] = {"source": "one 96-token completion timed by code", "tokens": out, "seconds": round(dt, 2), "tokens_per_second": round(out / dt, 1) if dt > 0 else None}
+    except Exception as exc:  # noqa: BLE001
+        facts["decode_probe"] = {"error": f"{type(exc).__name__}"}
+    facts["runtime_lanes"] = {"source": "JENNY2_LANES environment of your API service", "lanes": os.environ.get("JENNY2_LANES", "1")}
+    facts["context_tokens_configured"] = {"source": "JENNY2_CONTEXT_TOKENS environment", "tokens": os.environ.get("JENNY2_CONTEXT_TOKENS")}
+    try:
+        gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.used,memory.total", "--format=csv,noheader"], capture_output=True, text=True, timeout=5).stdout.strip().splitlines()
+        facts["gpus"] = {"source": "nvidia-smi", "devices": gpu}
+    except Exception as exc:  # noqa: BLE001
+        facts["gpus"] = {"error": f"{type(exc).__name__}"}
+    return facts
 
 
 def _is_private(artifact: dict) -> bool:
@@ -125,8 +172,24 @@ class JennyReadbackExecutor:
         if type(payload) is not dict or "operation" not in payload:
             raise ValueError("readback action schema differs")
         operation = payload.get("operation")
-        if operation not in ("states", "commitments", "journal", "work"):
-            raise ValueError("operation must be states, commitments, journal, or work")
+        if operation not in ("states", "commitments", "journal", "work", "runtime"):
+            raise ValueError("operation must be states, commitments, journal, work, or runtime")
+        if operation == "runtime":
+            result = _runtime_facts()
+            summary = "Runtime facts read live from your model server and services."
+            observation_payload = {
+                "contract": READBACK_OBSERVATION_CONTRACT,
+                "operation": operation,
+                "state_head_ref": request.state_head_ref,
+                "result": result,
+                "summary": summary,
+                "limitations": "These are measurements taken now by code, not claims by a speaker; they can change between turns.",
+            }
+            observation = ObservableConsequence(
+                request_ref=request.idempotency_key, source_kind=self.SOURCE_KIND, source_ref=self.SOURCE_REF,
+                observation_json=_canonical_json(observation_payload), artifact_refs=(), evidence_refs=(),
+            )
+            return AffordanceReceipt(status="COMPLETED", output=summary, consequence=(), observable_consequence=observation)
         try:
             state = json.loads(bytes(self._read(request.state_head_ref)).decode("utf-8"))
         except Exception as exc:  # noqa: BLE001 — a failed read is an error receipt
