@@ -534,9 +534,10 @@ class FrozenCognitiveModelTests(unittest.TestCase):
         self.assertIn("WORLD, SELF, FOCUS", system)
         self.assertIn("authored_artifacts", system)
         self.assertIn("do not promote its prose to observed fact", system)
-        self.assertEqual(
-            json.loads(user)["current_cognitive_state"], cognitive_state
-        )
+        received = dict(json.loads(user)["current_cognitive_state"])
+        manifest = received.pop("context_budget")
+        self.assertEqual(received, cognitive_state)
+        self.assertEqual(manifest["omitted"], [])  # everything fit; nothing dropped
 
     def test_observed_outcome_assessment_decodes_complete_grounded_state_proposal(self):
         expected = _valid_observed_outcome_assessment()
@@ -930,7 +931,10 @@ class FrozenCognitiveModelTests(unittest.TestCase):
         )
         payload = json.loads(backend.calls[-1][1])
         self.assertEqual(payload["temporal_now"], temporal_now)
-        self.assertEqual(payload["cognitive_state"], capability)
+        received = dict(payload["cognitive_state"])
+        manifest = received.pop("context_budget")
+        self.assertEqual(received, capability)
+        self.assertEqual(manifest["omitted"], [])  # everything fit; nothing dropped
         self.assertIn("authored_artifacts", backend.calls[-1][0])
         self.assertIn("never treat authorship as proof", backend.calls[-1][0])
         self.assertEqual(

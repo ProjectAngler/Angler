@@ -24,6 +24,7 @@ from .higher_level_experience_cycle import (
     TemporalContext,
     content_ref,
 )
+from . import relevance_budget
 from .latency_trace import record_model_call
 
 
@@ -376,7 +377,10 @@ class FrozenStructuredExperienceModel:
                 "request": request,
                 "retrieved_memories": [asdict(item) for item in memories],
                 "temporal_context": asdict(temporal),
-                "current_cognitive_state": cognitive_state,
+                "current_cognitive_state": (
+                    relevance_budget.fit(cognitive_state, stage="experience", turn_text=request)
+                    if type(cognitive_state) is dict else cognitive_state
+                ),
             }
         )
         raw = self.backend.generate(system=system, user=user, max_new_tokens=1_024)
@@ -1990,7 +1994,10 @@ class FrozenQwenCortex:
                 "request": request,
                 "retrieved_memories": [asdict(item) for item in memories],
                 "structured_experience": asdict(experience),
-                "cognitive_state": cognitive_state,
+                "cognitive_state": (
+                    relevance_budget.fit(cognitive_state, stage="cortex", turn_text=request)
+                    if type(cognitive_state) is dict else cognitive_state
+                ),
                 "temporal_now": temporal_now,
             }
         )
@@ -2009,7 +2016,10 @@ class FrozenQwenCortex:
                     "request": request,
                     "experience": asdict(experience),
                     "memory_refs": [item.record_ref for item in memories],
-                    "cognitive_state": cognitive_state,
+                    "cognitive_state": (
+                    relevance_budget.fit(cognitive_state, stage="cortex", turn_text=request)
+                    if type(cognitive_state) is dict else cognitive_state
+                ),
                     "temporal_now": temporal_now,
                 }
             ),

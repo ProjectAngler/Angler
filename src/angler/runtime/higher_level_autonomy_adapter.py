@@ -50,6 +50,7 @@ from .persistent_autonomy import (
     _receipt_from_payload,
 )
 from .latency_trace import annotate_latency_trace, latency_phase
+from . import relevance_budget
 from .authored_artifact import (
     desk_refusal_payload,
     is_creative_work,
@@ -77,6 +78,7 @@ from .self_observation_diary import (
 )
 from .jenny_web import WEB_AFFORDANCE_ID, WEB_PAGE_CONTRACT, WEB_SEARCH_CONTRACT
 from .jenny_recall import RECALL_AFFORDANCE_ID
+from .jenny_readback import READBACK_AFFORDANCE_ID
 from .jenny_library import (
     LibraryFindObservation,
     LIBRARY_AFFORDANCE_ID,
@@ -662,6 +664,9 @@ def _active_named_states(state_payload: object, *, now_utc: float | None = None)
             "level_history": list(item.get("level_history", []))[-6:],
             "consequences_while_active": list(item.get("consequences", []))[
                 -MAX_NAMED_STATE_CONSEQUENCES_PRESENTED:
+            ],
+            "items": [
+                dict(entry) for entry in item.get("items", []) if type(entry) is dict
             ],
         }
         for item in states
@@ -1395,10 +1400,32 @@ WITNESS_CONTRACT = "jenny.witness.v1"
 WITNESS_LOG_PATH = os.environ.get("JENNY2_WITNESS_LOG", "/opt/angler/results/jenny2/witness-v1/log.jsonl")
 
 
-def _witness_facts(request_text: object, cognitive_state: object) -> dict[str, object]:
-    """The record as the runtime knows it, for the witness. Facts only."""
+def _witness_facts(request_text: object, cognitive_state: object, ledger: object = None) -> dict[str, object]:
+    """The record as the runtime knows it, for the witness. Facts only. When
+    the real state payload is given as ledger, her states, items, commitments
+    and works come from it rather than from the bounded projection."""
 
     facts: dict[str, object] = {}
+    if type(ledger) is dict:
+        try:
+            facts["named_states"] = _named_states_for_model(ledger)
+            facts["commitments"] = [
+                {"status": c.get("status"), "statement": str(c.get("statement") or "")[:160]}
+                for c in (ledger.get(SELF_COMMITMENT_STATE_KEY) or []) if type(c) is dict
+            ][-12:]
+            facts["works_in_your_journal"] = [
+                {
+                    "title": str((e.get("artifact") or {}).get("title") or "")[:120],
+                    "kind": str((e.get("artifact") or {}).get("kind") or "")[:40],
+                    "version": (e.get("artifact") or {}).get("version"),
+                    "artifact_ref": str(e.get("artifact_ref") or "")[:80],
+                    "ordinal": e.get("moving_origin_ordinal"),
+                }
+                for e in (ledger.get("authored_artifacts") or []) if type(e) is dict
+                and not str((e.get("artifact") or {}).get("kind") or "").lower().startswith("private")
+            ][-40:]
+        except Exception:  # noqa: BLE001 — fall back to the projection below
+            facts = {}
     text = request_text if type(request_text) is str else ""
     receipts: list[str] = []
     for line in text.splitlines():
@@ -1421,9 +1448,9 @@ def _witness_facts(request_text: object, cognitive_state: object) -> dict[str, o
                 "ordinal": entry.get("moving_origin_ordinal"),
             }
         )
-    facts["works_in_your_journal"] = works[-24:]
+    facts.setdefault("works_in_your_journal", works[-24:])
     states = state.get("named_states")
-    if type(states) is list:
+    if type(states) is list and "named_states" not in facts:
         facts["named_states"] = [
             {
                 "label": item.get("label"),
@@ -1436,7 +1463,7 @@ def _witness_facts(request_text: object, cognitive_state: object) -> dict[str, o
             for item in states if type(item) is dict
         ][:16]
     commitments = state.get("self_commitments")
-    if type(commitments) is list:
+    if type(commitments) is list and "commitments" not in facts:
         facts["commitments"] = [
             {"status": c.get("status"), "statement": str(c.get("statement") or "")[:160]}
             for c in commitments if type(c) is dict
@@ -1543,11 +1570,11 @@ def _witness_log(record: dict[str, object]) -> None:
     )
 
 
-def witness_spoken_reply(backend: object, *, reply: str, request_text: object, cognitive_state: object, trigger: object = None) -> tuple[str, dict[str, object]]:
+def witness_spoken_reply(backend: object, *, reply: str, request_text: object, cognitive_state: object, trigger: object = None, ledger: object = None) -> tuple[str, dict[str, object]]:
     """Check a reply against the record; if anything is unbacked, she restates
     it. Returns the reply to speak and the audit record."""
 
-    facts = _witness_facts(request_text, cognitive_state)
+    facts = _witness_facts(request_text, cognitive_state, ledger)
     record = _witness_claims(backend, reply=reply, facts=facts)
     record["trigger"] = str(trigger)[:80] if trigger else None
     record["draft"] = reply[:4_000]
@@ -2825,6 +2852,23 @@ def _semantic_model_projection(value: object) -> object:
     if type(value) is str and re.fullmatch(r"sha256:[0-9a-f]{64}", value):
         return _MODEL_INPUT_OMIT
     return value
+
+
+def _state_focus_words(state_payload: object) -> set[str]:
+    """Words from her active states' labels, inclinations and open items:
+    what she is in right now is part of what a turn is about."""
+
+    words: set[str] = set()
+    try:
+        for item in _active_named_states(state_payload):
+            words |= relevance_budget._words(item.get("label") or "")
+            words |= relevance_budget._words(item.get("inclination") or "")
+            for it in (item.get("items") or [])[-6:]:
+                if type(it) is dict and it.get("status") == "OPEN":
+                    words |= relevance_budget._words(it.get("statement") or "")
+    except Exception:  # noqa: BLE001 — focus is a hint, never a failure
+        return set()
+    return words
 
 
 def _context_scale() -> float:
@@ -5139,7 +5183,12 @@ class AdaptiveHumanTurnRouter:
                 _semantic_model_projection(asdict(item)) for item in affordances
             ],
             "retrieved_memories": retrieved_memories,
-            "cognitive_state": cognitive_state,
+            "cognitive_state": relevance_budget.fit(
+                cognitive_state,
+                stage="router",
+                turn_text=observation.content,
+                focus_words=_state_focus_words(state_payload),
+            ),
             "available_evidence_keys": sorted(evidence_catalog),
             "authoritative_turn_affordance_ids": turn_affordance_ids,
             # This duplicate, deliberately sorted after the background fields,
@@ -5767,6 +5816,14 @@ class FrozenModelAffordanceController:
                 "autonomous_target_formation": controller_formation,
                 "allowed_evidence_refs": sorted(allowed_evidence_refs),
             }
+        )
+        user = _json(
+            relevance_budget.fit(
+                json.loads(user),
+                stage="controller",
+                turn_text=observation.content,
+                focus_words=_state_focus_words(state_payload),
+            )
         )
         expected = {item.affordance_id for item in affordances}
         schema = {
@@ -7447,6 +7504,7 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                             LIBRARY_AFFORDANCE_ID,
                             AUTHORED_ARTIFACT_AFFORDANCE_ID,
                             RECALL_AFFORDANCE_ID,
+                            READBACK_AFFORDANCE_ID,
                         )
                         and item.disposition == "ACT"
                         and item.permission_scope == "internal.cognition"
@@ -9725,6 +9783,7 @@ class HigherLevelCortexAffordanceExecutor:
         self.precomputed_response_authority_ref = (
             precomputed_response_authority_ref
         )
+        self.state_reader: object = None  # bound by the runtime: state_ref -> bytes
         self.precomputed_response_qualification_ref = (
             precomputed_response_qualification_ref
         )
@@ -9879,12 +9938,20 @@ class HigherLevelCortexAffordanceExecutor:
         ):
             backend = getattr(self.cortex, "backend", None)
             if backend is not None and callable(getattr(backend, "generate", None)):
+                ledger = None
+                reader = self.state_reader
+                if callable(reader):
+                    try:
+                        ledger = json.loads(reader(request.state_head_ref))
+                    except Exception:  # noqa: BLE001 — the projection remains the fallback
+                        ledger = None
                 spoken, _record = witness_spoken_reply(
                     backend,
                     reply=execution.response,
                     request_text=context.get("request"),
                     cognitive_state=context.get("cognitive_state"),
                     trigger=request.trigger_ref,
+                    ledger=ledger,
                 )
                 if spoken != execution.response:
                     execution = replace(execution, response=spoken)

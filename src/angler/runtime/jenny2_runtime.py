@@ -105,6 +105,13 @@ from .jenny_web import (
     WEB_SOURCE_KIND,
     WEB_SOURCE_REF,
 )
+from .jenny_readback import (
+    JennyReadbackExecutor,
+    READBACK_AFFORDANCE,
+    READBACK_AFFORDANCE_ID,
+    READBACK_SOURCE_KIND,
+    READBACK_SOURCE_REF,
+)
 from .jenny_recall import (
     JennyRecallExecutor,
     RECALL_AFFORDANCE,
@@ -113,7 +120,7 @@ from .jenny_recall import (
     RECALL_SOURCE_REF,
 )
 
-SOURCE_TURN_AFFORDANCE_IDS = (LIBRARY_AFFORDANCE_ID, WEB_AFFORDANCE_ID, RECALL_AFFORDANCE_ID)
+SOURCE_TURN_AFFORDANCE_IDS = (LIBRARY_AFFORDANCE_ID, WEB_AFFORDANCE_ID, RECALL_AFFORDANCE_ID, READBACK_AFFORDANCE_ID)
 from .jenny2_tool_bridge import (
     NativeModelToolCall,
     NativeOpenClawCatalog,
@@ -1293,6 +1300,22 @@ class ReadOnlyExternalAffordanceBinding:
             raise ValueError("read-only external source kind must be TOOL or WORLD")
 
 
+class _DeferredStateReader:
+    """Break the construction cycle: the read-back executor is built before
+    the supervisor exists; it reads through this once bound."""
+
+    def __init__(self) -> None:
+        self._reader: Callable[[str], bytes] | None = None
+
+    def bind(self, reader: Callable[[str], bytes]) -> None:
+        self._reader = reader
+
+    def __call__(self, state_ref: str) -> bytes:
+        if self._reader is None:
+            raise RuntimeError("state reader is not yet bound")
+        return self._reader(state_ref)
+
+
 class Jenny2Runtime:
     """One state head, one life loop, one memory projection path."""
 
@@ -1416,7 +1439,7 @@ class Jenny2Runtime:
             observation.source not in ("HUMAN", "CONTINUATION")
             or observation.trigger_ref != envelope["human_trigger_ref"]
             or observation.observation_ref != envelope["human_observation_ref"]
-            or choice.selected_affordance_id != LIBRARY_AFFORDANCE_ID
+            or choice.selected_affordance_id not in SOURCE_TURN_AFFORDANCE_IDS
             or choice.choice_ref != envelope["library_choice_ref"]
             or receipt.receipt_ref != envelope["library_receipt_ref"]
         ):
@@ -1436,7 +1459,7 @@ class Jenny2Runtime:
         if observed is not None:
             if choice.selected_affordance_id == LIBRARY_AFFORDANCE_ID:
                 library_observation_from_observable(observed)
-            elif observed.source_ref not in (WEB_SOURCE_REF, RECALL_SOURCE_REF):
+            elif observed.source_ref not in (WEB_SOURCE_REF, RECALL_SOURCE_REF, READBACK_SOURCE_REF):
                 raise RuntimeError("source-bound continuation observation source differs")
             history = state_payload.get("observed_outcome_evidence", [])
             if type(history) is not list:
@@ -2905,6 +2928,14 @@ def assemble_jenny2_runtime(
             external_effects_enabled=False,
         ),
     )
+    # The witness reads her real ledger (the state head of the request), not
+    # the bounded projection her stages receive.
+    try:
+        cortex_executor = registry.executor(cortex_affordance_id)
+        if isinstance(cortex_executor, HigherLevelCortexAffordanceExecutor):
+            cortex_executor.state_reader = supervisor.state_bytes_for_ref
+    except Exception:  # noqa: BLE001 — optional wiring
+        pass
     if deferred_memory is not None:
         deferred_memory.bind(SupervisorCanonicalMemory(supervisor))
     return Jenny2Runtime(
@@ -3393,6 +3424,13 @@ def assemble_qwen38_autonomous_jenny2_with_cognee(
         observable_source_ref=RECALL_SOURCE_REF,
         observable_source_kind=RECALL_SOURCE_KIND,
     )
+    deferred_state_reader = _DeferredStateReader()
+    readback_binding = InternalAffordanceBinding(
+        affordance=READBACK_AFFORDANCE,
+        executor=JennyReadbackExecutor(deferred_state_reader),
+        observable_source_ref=READBACK_SOURCE_REF,
+        observable_source_kind=READBACK_SOURCE_KIND,
+    )
     backend = LocalOpenAICompatibleFrozenBackend(
         endpoint=endpoint,
         served_model=served_model,
@@ -3495,6 +3533,7 @@ def assemble_qwen38_autonomous_jenny2_with_cognee(
                 diary_binding,
                 authored_artifact_binding,
                 recall_binding,
+                readback_binding,
             ),
             read_only_external_affordance_bindings=(
                 *read_only_external_affordance_bindings,
@@ -3515,6 +3554,9 @@ def assemble_qwen38_autonomous_jenny2_with_cognee(
         )
         canonical = SupervisorCanonicalMemory(runtime.supervisor)
         deferred.bind(ReferenceAugmentedSemanticMemory(canonical, reference_backend))
+        reader = getattr(runtime.supervisor, "state_bytes_for_ref", None)
+        if callable(reader):
+            deferred_state_reader.bind(reader)
         if capability_backend is not None:
             projector = CapabilityAwareConsolidationProjector(
                 SemanticMemoryConsolidationProjector(deferred),
