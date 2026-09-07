@@ -50,6 +50,7 @@ from .persistent_autonomy import (
     _receipt_from_payload,
 )
 from .latency_trace import annotate_latency_trace, latency_phase
+from . import lanes
 from . import relevance_budget
 from .authored_artifact import (
     desk_refusal_payload,
@@ -7527,6 +7528,7 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
         if not choice_affordances:
             raise RuntimeError("human ingress has no public response affordance")
         adaptive_decision: AdaptiveHumanTurnDecision | None = None
+        speculative_experience = None
         if observation.source == "HUMAN" and self.human_turn_router is not None:
             router_started = perf_counter()
             router_kwargs: dict[str, object] = {}
@@ -7536,8 +7538,16 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 False,
             ):
                 router_kwargs["trusted_composition"] = trusted_composition
-            with latency_phase("cycle.adaptive_human_router"):
-                adaptive_decision = self.human_turn_router.decide(
+            # Lanes: the router and the structured-experience stage both read
+            # the observation and state and neither needs the other. The
+            # experience runs speculatively beside the router; if the router
+            # takes the fast path its result is simply not used.
+            speculative_experience: object = None
+            situated_generator_lane = getattr(
+                self.experience_model, "generate_situated_experience", None
+            )
+            lane_tasks: dict[str, object] = {
+                "router": lambda: self.human_turn_router.decide(
                     observation=observation,
                     temporal=temporal,
                     affordances=choice_affordances,
@@ -7546,6 +7556,25 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                     capability_modules=active_capability_modules,
                     **router_kwargs,
                 )
+            }
+            if library_turn_observation is None and lanes.lane_count() > 1:
+                if callable(situated_generator_lane):
+                    lane_tasks["experience"] = lambda: situated_generator_lane(
+                        request, selected_memories, temporal_context, cognitive_state=prediction_state
+                    )
+                else:
+                    lane_tasks["experience"] = lambda: self.experience_model.generate_experience(
+                        request, selected_memories, temporal_context
+                    )
+            with latency_phase("cycle.adaptive_human_router"):
+                lane_results = lanes.run_lanes(lane_tasks)
+            router_result = lane_results.get("router")
+            if isinstance(router_result, Exception):
+                raise router_result
+            adaptive_decision = router_result
+            speculative_experience = lane_results.get("experience")
+            if isinstance(speculative_experience, Exception):
+                speculative_experience = None  # the serial path below regenerates it
             phase_timings_ms["adaptive_route_and_response"] = (
                 perf_counter() - router_started
             ) * 1000
@@ -7775,7 +7804,9 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 self.experience_model, "generate_situated_experience", None
             )
             with latency_phase("cycle.structured_experience"):
-                if callable(situated_generator):
+                if speculative_experience is not None:
+                    experience = speculative_experience  # already computed in a lane
+                elif callable(situated_generator):
                     experience = situated_generator(
                         request,
                         selected_memories,
@@ -8242,15 +8273,52 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 and self.human_turn_router is not None
             )
             spoken_commitments: tuple[dict[str, str], ...] = ()
+            # Lanes: the pen and the follow-through judgment both read the
+            # same reply and the same pre-speech state; they run at once.
+            # The rejoin below writes their results in a fixed order.
+            origin = _follow_through_origin(
+                raw_observation, request_text=context.get("request")
+            )
+            judge_here = (
+                origin is not None
+                and self.human_turn_router is not None
+                and receipt.status.startswith("COMPLETED")
+            )
+            lane_tasks: dict[str, object] = {}
             if spoke_here:
-                spoken, reflection_record = _reflect_after_speaking(
+                pen_states = _named_states_for_model(state_payload)
+                pen_commitments = _active_self_commitments(state_payload)
+                lane_tasks["pen"] = lambda: _reflect_after_speaking(
                     self.human_turn_router.backend,
                     human_message=observation.content,
                     answer=receipt.output,
-                    named_states=_named_states_for_model(state_payload),
-                    decider_transitions=transitions,
-                    commitments_you_made=_active_self_commitments(state_payload),
+                    named_states=pen_states,
+                    decider_transitions=list(transitions),
+                    commitments_you_made=pen_commitments,
                 )
+            if judge_here:
+                judge_states = _named_states_for_model(state_payload)
+                judge_commitments = _active_self_commitments(state_payload)
+                lane_tasks["judgment"] = lambda: _judge_follow_through(
+                    self.human_turn_router.backend,
+                    origin=origin,
+                    affordance_id=choice.selected_affordance_id,
+                    what_happened=(
+                        receipt.output if type(receipt.output) is str else ""
+                    ),
+                    named_states=judge_states,
+                    commitments=judge_commitments,
+                )
+            lane_results = lanes.run_lanes(lane_tasks) if lane_tasks else {}
+            if spoke_here:
+                pen_result = lane_results.get("pen")
+                if isinstance(pen_result, Exception) or type(pen_result) is not tuple:
+                    spoken, reflection_record = (), {
+                        "contract": POST_ANSWER_REFLECTION_CONTRACT,
+                        "error": f"lane: {type(pen_result).__name__}: {str(pen_result)[:160]}",
+                    }
+                else:
+                    spoken, reflection_record = pen_result
                 spoken_commitments = tuple(
                     reflection_record.get("self_commitment_transitions", [])
                 )
@@ -8270,24 +8338,18 @@ class HigherLevelAutonomyCycleAdapter(CanonicalLearnedCycle):
                 state_payload["post_answer_reflections"] = [
                     *history, reflection_record,
                 ][-MAX_POST_ANSWER_REFLECTIONS:]
-            origin = _follow_through_origin(
-                raw_observation, request_text=context.get("request")
-            )
-            if (
-                origin is not None
-                and self.human_turn_router is not None
-                and receipt.status.startswith("COMPLETED")
-            ):
-                judgment = _judge_follow_through(
-                    self.human_turn_router.backend,
-                    origin=origin,
-                    affordance_id=choice.selected_affordance_id,
-                    what_happened=(
-                        receipt.output if type(receipt.output) is str else ""
-                    ),
-                    named_states=_named_states_for_model(state_payload),
-                    commitments=_active_self_commitments(state_payload),
-                )
+            if judge_here:
+                judgment = lane_results.get("judgment")
+                if isinstance(judgment, Exception) or type(judgment) is not dict:
+                    judgment = {
+                        "contract": FOLLOW_THROUGH_JUDGMENT_CONTRACT,
+                        "human_trigger_ref": origin["human_trigger_ref"],
+                        "step": origin["step"],
+                        "turn_complete": True,
+                        "undertaking": "",
+                        "why": "",
+                        "error": f"lane: {type(judgment).__name__}: {str(judgment)[:160]}",
+                    }
                 judgment.update(
                     {
                         "moving_origin_ordinal": temporal.moving_origin_ordinal,
